@@ -14,13 +14,29 @@
  */
 
 
-const random = () => Math.floor(Math.random()*65535); // CHECK with shape1 and shape2
-
 const assert = function(assertion: boolean) {
   if (!assertion) {
     console.log("Assertion FALSE. Expect errors")
   }
 };
+
+// pseudo-random number generator
+// https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
+function sfc32(a: number, b: number, c: number, d: number) {
+  return function() {
+    a |= 0; b |= 0; c |= 0; d |= 0;
+    let t = (a + b | 0) + d | 0;
+    d = d + 1 | 0;
+    a = b ^ b >>> 9;
+    b = c + (c << 3) | 0;
+    c = (c << 21 | c >>> 11);
+    c = c + t | 0;
+    return (t >>> 0) / 4294967296;
+  }
+}
+
+const getRand = sfc32(1, 32, 3, 4); // random seed constants
+const random = () => Math.floor(getRand()*65535); // CHECK with shape1 and shape2
 
 /*-----------------------------------------*/
 
@@ -161,9 +177,10 @@ class Pattern {
     let currentNode: GraphNode, firstNode: GraphNode;
     let currentDirection: Direction, firstDirection: Direction;
     let s: Spline;
-    let nextEdgeDirection: any;
+    let nextEdgeDirection: any = this.nextUnprocessedEdgeDirection();
 
-    while (nextEdgeDirection = this.nextUnprocessedEdgeDirection()) {
+    while (nextEdgeDirection !== 0) {
+      console.error(1, nextEdgeDirection)
       firstEdge = nextEdgeDirection.edge;
       firstDirection = nextEdgeDirection.direction;
 
@@ -196,6 +213,8 @@ class Pattern {
       if (s.segments.length==2) { /* spline is just one point: remove it */
         this.splines.pop()
       }
+      nextEdgeDirection = this.nextUnprocessedEdgeDirection();
+      console.error(2, nextEdgeDirection)
     }
   }
 }
