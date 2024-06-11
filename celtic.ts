@@ -26,15 +26,6 @@ const assert = function(assertion: boolean) {
 
 type angle = number;
 
-type Params = {
-  shape1: number;
-  shape2: number;
-  edgeSize: number;
-  margin: number;
-  nbOrbits: number;        /* only used if type is polar */
-  nbNodesPerOrbit: number; /* only used if type is polar */
-}
-
 /*-----------------------------------------*/
 
 enum Direction {
@@ -391,25 +382,22 @@ const HEIGHT=2000;
 
 
 const celticDraw = () => {
-  const params: Params = {
-    shape1: (15+random()%15)/10.0 -1.0,
-    shape2: (15+random()%15)/10.0 -1.0,
-    edgeSize: 10*(random()%5)+20,
-    margin: 50,
-    nbOrbits: 2+random()%10,
-    nbNodesPerOrbit: 4+random()%10
-  }
+  const shape1: number = (15+random()%15)/10.0 -1.0;
+  const shape2: number = (15+random()%15)/10.0 -1.0;
+  const margin: number = 50;
+  const nbOrbits: number = 2+random()%10;
+  const nbNodesPerOrbit: number = 4+random()%10;
 
-  const graph = makePolarGraph(
-    params.margin,
-    params.margin,
-    WIDTH-2*params.margin,
-    HEIGHT-2*params.margin,
-    params.nbNodesPerOrbit,
-    params.nbOrbits
+  const graph: Graph = makePolarGraph(
+    margin,
+    margin,
+    WIDTH-2*margin,
+    HEIGHT-2*margin,
+    nbNodesPerOrbit,
+    nbOrbits
   );
 
-  const pattern = new Pattern(graph, params.shape1, params.shape2);
+  const pattern = new Pattern(graph, shape1, shape2);
 
   pattern.makeCurves();
 
