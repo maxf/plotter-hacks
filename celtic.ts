@@ -37,15 +37,6 @@ type Params = {
 
 /*-----------------------------------------*/
 
-type State = {
-  showGraph: boolean;
-  pattern: Pattern;
-  graph: Graph;
-  params: Params;
-}
-
-/*-----------------------------------------*/
-
 enum Direction {
   Clockwise = 0,
   Anticlockwise = 1
@@ -291,7 +282,6 @@ class GraphEdge {
 /*-----------------------------------------*/
 
 const makePolarGraph = (
-  st: State,
   xmin: number,
   ymin: number,
   width: number,
@@ -401,34 +391,32 @@ const HEIGHT=2000;
 
 
 const celticDraw = () => {
-  const st = {} as State
-  st.params = {} as Params
-  st.params.shape1 = (15+random()%15)/10.0 -1.0;
-  st.params.shape2 = (15+random()%15)/10.0 -1.0;
-  st.params.edgeSize = 10*(random()%5)+20;
-  st.params.margin=(random()%8)*100-600;
-  st.params.nbOrbits=2+random()%10;
-  st.params.nbNodesPerOrbit=4+random()%10;
+  const params: Params = {
+    shape1: (15+random()%15)/10.0 -1.0,
+    shape2: (15+random()%15)/10.0 -1.0,
+    edgeSize: 10*(random()%5)+20,
+    margin: 50,
+    nbOrbits: 2+random()%10,
+    nbNodesPerOrbit: 4+random()%10
+  }
 
-  st.graph=makePolarGraph(
-    st,
-    st.params.margin,
-    st.params.margin,
-    WIDTH-2*st.params.margin,
-    HEIGHT-2*st.params.margin,
-    st.params.nbNodesPerOrbit,
-    st.params.nbOrbits
+  const graph = makePolarGraph(
+    params.margin,
+    params.margin,
+    WIDTH-2*params.margin,
+    HEIGHT-2*params.margin,
+    params.nbNodesPerOrbit,
+    params.nbOrbits
   );
 
-  //   graph_draw(st, st->graph);
+  const pattern = new Pattern(graph, params.shape1, params.shape2);
 
-  st.pattern = new Pattern(st.graph, st.params.shape1, st.params.shape2);
-  st.pattern.makeCurves();
+  pattern.makeCurves();
 
   // generate SVG for pattern
   console.log(`
     <svg height="${HEIGHT}" width="${WIDTH}" xmlns="http://www.w3.org/2000/svg">
-      ${st.graph.asSvg()}
+      ${graph.asSvg()}
     </svg>
   `);
 };
