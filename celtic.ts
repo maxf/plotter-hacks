@@ -26,7 +26,7 @@ const assert = function(assertion: boolean) {
 
 type angle = number;
 
-class Params {
+type Params = {
   shape1: number;
   shape2: number;
   edgeSize: number;
@@ -37,7 +37,7 @@ class Params {
 
 /*-----------------------------------------*/
 
-class State {
+type State = {
   showGraph: boolean;
   pattern: Pattern;
   graph: Graph;
@@ -82,8 +82,8 @@ class Graph {
       if (edge != e) {
         const angle = e.angleTo(edge, n, direction);
         if (angle < minAngle) {
-  	  nextEdge = edge;
-  	  minAngle = angle;
+          nextEdge = edge;
+          minAngle = angle;
         }
       }
     }
@@ -91,7 +91,7 @@ class Graph {
   }
 
   asSvg(): string {
-    const s = [];
+    const s: string[] = [];
     this.nodes.forEach(node => s.push(node.asSvg()));
     this.edges.forEach(edge => s.push(edge.asSvg()));
     return s.join('\n');
@@ -99,43 +99,48 @@ class Graph {
 }
 
 
-class EdgeCouple {
-  array: number[][]; // an array of couples of integers
-  size: number;
-
-  constructor(nbEdges: number) {
-    this.array = []
-    this.size = nbEdges;
-
-    for (let i=0;i<nbEdges;i++) {
-      this.array[i]=[] // array of 2 ints
-      this.array[i][Direction.Clockwise]=0;
-      this.array[i][Direction.Anticlockwise]=0;
-    }
-  }
-}
-
+/* ====================================== */
+// A pattern is a whole celtic pattern, including drawing parameters of the pattern,
+// a graph of nodes and edges from which the celtic know is drawn
+// a list of Splines which form the celtic know
 
 class Pattern {
+  // parameters setting how "stretched" splines are. They dictate how far are
+  //  the middle control points of the cubic Bezier splines are from the first
+  //  and last points
   shape1: number;
   shape2: number;
-  ec: EdgeCouple;
+
+  // 2 bools for each graph edge, originally all set to 0
+  // first bool is true if the edge's centre has been processed clockwise
+  // second bool is true if the edge's centre has been processed anticlockwise
+  #processedEdgeFlags: boolean[][];
+
+  // The graph (nodes and edges) on which the knot is drawn
   graph: Graph;
+
+  // The actual node as a list of bezier splines
   splines: Spline[];
 
   constructor(g: Graph, shape1: number, shape2: number) {
     this.shape1 = shape1;
     this.shape2 = shape2;
-    this.ec = new EdgeCouple(g.edges.length);
     this.graph = g;
-    this.splines = []
+    this.splines = [];
+
+    this.#processedEdgeFlags = [];
+    // No edge has been processed, so set all flags to false
+    for (let i=0; i<g.edges.length; i++) {
+      this.#processedEdgeFlags[i] = []  // array of 2 ints
+      this.#processedEdgeFlags[i][Direction.Clockwise] = false;
+      this.#processedEdgeFlags[i][Direction.Anticlockwise] = false;
+    }
   }
 
-
-  edgeCoupleSet(e: GraphEdge, d: Direction, value: number) {
+  setEdgeProcessed(e: GraphEdge, d: Direction, value: boolean) {
     for (let i = 0; i < this.graph.edges.length; i++) {
       if (this.graph.edges[i] == e) {
-        this.ec.array[i][d] = value;
+        this.#processedEdgeFlags[i][d] = value;
         return;
       }
     }
@@ -178,15 +183,15 @@ class Pattern {
     s.addSegment(x1,y1,x2,y2,x3,y3,x4,y4);
   }
 
-  nextUnfilledCouple() {
-    for (let i = 0; i < this.ec.array.length; i++) {
-      if (this.ec.array[i][Direction.Clockwise] == 0) {
+  nextUnprocessedEdgeDirection() {
+    for (let i = 0; i < this.#processedEdgeFlags.length; i++) {
+      if (!this.#processedEdgeFlags[i][Direction.Clockwise]) {
         return {
           edge: this.graph.edges[i],
           direction: Direction.Clockwise
         }
       } else {
-        if (this.ec.array[i][Direction.Anticlockwise]==0) {
+        if (!this.#processedEdgeFlags[i][Direction.Anticlockwise]) {
           return {
             edge: this.graph.edges[i],
             direction: Direction.Anticlockwise
@@ -202,11 +207,11 @@ class Pattern {
     let currentNode: GraphNode, firstNode: GraphNode;
     let currentDirection: Direction, firstDirection: Direction;
     let s: Spline;
-    let nextCouple: any;
+    let nextEdgeDirection: any;
 
-    while (nextCouple = this.nextUnfilledCouple()) {
-      firstEdge = nextCouple.edge;
-      firstDirection = nextCouple.direction;
+    while (nextEdgeDirection = this.nextUnprocessedEdgeDirection()) {
+      firstEdge = nextEdgeDirection.edge;
+      firstDirection = nextEdgeDirection.direction;
 
       /* start a new loop */
       s = new Spline();
@@ -217,7 +222,7 @@ class Pattern {
       currentDirection = firstDirection;
 
       do {
-        this.edgeCoupleSet(currentEdge, currentDirection, 1);
+        this.setEdgeProcessed(currentEdge, currentDirection, true);
         nextEdge = this.graph.nextEdgeAround(currentNode, currentEdge, currentDirection);
 
         /* add the spline segment to the spline */
@@ -266,16 +271,18 @@ class GraphNode {
 class GraphEdge {
   node1: GraphNode;
   node2: GraphNode;
-  angle1: angle;
-  angle2: angle;
+  #angle1: angle;
+  #angle2: angle;
+  processed: boolean[]; // 2 booleans, first indicates if this edge has been processed clockwise, second anticlockwise
 
   constructor(n1: GraphNode, n2: GraphNode) {
     this.node1 = n1;
     this.node2 = n2;
-    this.angle1 = Math.atan2(n2.y - n1.y, n2.x - n1.x);
-    if (this.angle1 < 0) this.angle1 += 2*Math.PI;
-    this.angle2 = Math.atan2(n1.y - n2.y, n1.x - n2.x);
-    if (this.angle2 < 0) this.angle2 += 2*Math.PI;
+    this.#angle1 = Math.atan2(n2.y - n1.y, n2.x - n1.x);
+    if (this.#angle1 < 0) this.#angle1 += 2*Math.PI;
+    this.#angle2 = Math.atan2(n1.y - n2.y, n1.x - n2.x);
+    if (this.#angle2 < 0) this.#angle2 += 2*Math.PI;
+    this.processed = [false, false];
   }
 
   asSvg(): string {
@@ -285,7 +292,7 @@ class GraphEdge {
   angle(n: GraphNode): angle {
     /* returns the angle of the edge at Node n */
     assert(n==this.node1 || n==this.node2);
-    return n==this.node1 ? this.angle1 : this.angle2;
+    return n==this.node1 ? this.#angle1 : this.#angle2;
   }
 
   otherNode(n: GraphNode): GraphNode {
@@ -330,7 +337,7 @@ const makePolarGraph = (
     for (let p = 0; p < nbp; p++) {
       const gridNode = new GraphNode(
         cx + (o+1) * os * Math.sin(p * 2*Math.PI / nbp),
-	cy + (o+1) * os * Math.cos(p*2*Math.PI/nbp)
+        cy + (o+1) * os * Math.cos(p*2*Math.PI/nbp)
       );
       grid.push(gridNode);
       g.addNode(gridNode);
@@ -341,9 +348,9 @@ const makePolarGraph = (
   for (let o = 0; o < nbo; o++) {
     for (let p = 0; p < nbp; p++) {
       if (o == 0) { /* link first orbit nodes with centre */
-	g.addEdge(new GraphEdge(grid[1+o*nbp+p], grid[0]));
+        g.addEdge(new GraphEdge(grid[1+o*nbp+p], grid[0]));
       } else { /* liink orbit nodes with lower orbit */
-      	g.addEdge(new GraphEdge(grid[1+o*nbp+p], grid[1+(o-1)*nbp+p]));
+        g.addEdge(new GraphEdge(grid[1+o*nbp+p], grid[1+(o-1)*nbp+p]));
       }
       /* link along orbit */
       g.addEdge(new GraphEdge(grid[1+o*nbp+p], grid[1+o*nbp+(p+1)%nbp]));
@@ -409,18 +416,15 @@ class Spline {
   }
 }
 
-
-
 /*======================================================================*/
-
 
 const WIDTH=2000;
 const HEIGHT=2000;
 
 
 const celticDraw = () => {
-  const st = new State()
-  st.params = new Params()
+  const st = {} as State
+  st.params = {} as Params
   st.params.shape1 = (15+random()%15)/10.0 -1.0;
   st.params.shape2 = (15+random()%15)/10.0 -1.0;
   st.params.edgeSize = 10*(random()%5)+20;
