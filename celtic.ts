@@ -35,8 +35,8 @@ function sfc32(a: number, b: number, c: number, d: number) {
   }
 }
 
-const getRand = sfc32(1, 32, 3, 4); // random seed constants
-const random = () => Math.floor(getRand()*65535); // CHECK with shape1 and shape2
+const getRand = sfc32(12, 22, 13, 54); // random seed constants
+const random = () => Math.floor(getRand()*4294967295); // CHECK with shape1 and shape2
 
 /*-----------------------------------------*/
 
@@ -413,8 +413,8 @@ const celticDraw = () => {
   const shape1: number = (15+random()%15)/10.0 -1.0;
   const shape2: number = (15+random()%15)/10.0 -1.0;
   const margin: number = 50;
-  const nbOrbits: number = 2+random()%10;
-  const nbNodesPerOrbit: number = 4+random()%10;
+  const nbOrbits: number = 1; // 2+random()%10;
+  const nbNodesPerOrbit: number = 4 // 4+random()%10;
 
   const graph: Graph = makePolarGraph(
     margin,
