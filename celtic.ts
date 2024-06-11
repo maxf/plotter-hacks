@@ -94,6 +94,18 @@ class Graph {
     this.edges.forEach(edge => s.push(edge.asSvg()));
     return s.join('\n');
   }
+
+  asText(): string {
+    return `Graph
+    Nodes:
+
+${this.nodes.map(node => node.asText()).join('\n')}
+
+    Edges:
+
+${this.edges.map(edge => edge.asText()).join('\n')}
+    `
+  }
 }
 
 
@@ -180,7 +192,6 @@ class Pattern {
     let nextEdgeDirection: any = this.nextUnprocessedEdgeDirection();
 
     while (nextEdgeDirection !== 0) {
-      console.error(1, nextEdgeDirection)
       firstEdge = nextEdgeDirection.edge;
       firstDirection = nextEdgeDirection.direction;
 
@@ -214,7 +225,6 @@ class Pattern {
         this.splines.pop()
       }
       nextEdgeDirection = this.nextUnprocessedEdgeDirection();
-      console.error(2, nextEdgeDirection)
     }
   }
 }
@@ -238,6 +248,10 @@ class GraphNode {
 
   asSvg(): string {
     return `<circle cx="${this.x}" cy="${this.y}" r="10" stroke="black" fill="none" />`;
+  }
+
+  asText(): string {
+    return `Node (${this.x.toFixed(0)}, ${this.y.toFixed(0)})`;
   }
 
   addEdge(e: GraphEdge) {
@@ -266,6 +280,10 @@ class GraphEdge {
 
   asSvg(): string {
     return `<line x1="${this.node1.x}" y1="${this.node1.y}" x2="${this.node2.x}" y2="${this.node2.y}" stroke="black" fill="none" />`;
+  }
+
+  asText(): string {
+    return `Edge (${this.node1.asText()}, ${this.node2.asText()} - cw: ${this.processedClockwise}, acw: ${this.processedAnticlockwise})`;
   }
 
   angle(n: GraphNode): angle {
@@ -428,6 +446,8 @@ const celticDraw = () => {
   const pattern = new Pattern(graph, shape1, shape2);
 
   pattern.makeCurves();
+
+  console.error(pattern.splines)
 
   // generate SVG for pattern
   console.log(`
