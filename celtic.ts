@@ -111,11 +111,6 @@ class Pattern {
   shape1: number;
   shape2: number;
 
-  // 2 bools for each graph edge, originally all set to 0
-  // first bool is true if the edge's centre has been processed clockwise
-  // second bool is true if the edge's centre has been processed anticlockwise
-  #processedEdgeFlags: boolean[][];
-
   // The graph (nodes and edges) on which the knot is drawn
   graph: Graph;
 
@@ -127,23 +122,6 @@ class Pattern {
     this.shape2 = shape2;
     this.graph = g;
     this.splines = [];
-
-    this.#processedEdgeFlags = [];
-    // No edge has been processed, so set all flags to false
-    for (let i=0; i<g.edges.length; i++) {
-      this.#processedEdgeFlags[i] = []  // array of 2 ints
-      this.#processedEdgeFlags[i][Direction.Clockwise] = false;
-      this.#processedEdgeFlags[i][Direction.Anticlockwise] = false;
-    }
-  }
-
-  setEdgeProcessed(e: GraphEdge, d: Direction, value: boolean) {
-    for (let i = 0; i < this.graph.edges.length; i++) {
-      if (this.graph.edges[i] == e) {
-        this.#processedEdgeFlags[i][d] = value;
-        return;
-      }
-    }
   }
 
   drawSplineDirection(s: Spline, node: GraphNode, edge1: GraphEdge, edge2: GraphEdge, direction: Direction) {
@@ -184,19 +162,13 @@ class Pattern {
   }
 
   nextUnprocessedEdgeDirection() {
-    for (let i = 0; i < this.#processedEdgeFlags.length; i++) {
-      if (!this.#processedEdgeFlags[i][Direction.Clockwise]) {
-        return {
-          edge: this.graph.edges[i],
-          direction: Direction.Clockwise
-        }
-      } else {
-        if (!this.#processedEdgeFlags[i][Direction.Anticlockwise]) {
-          return {
-            edge: this.graph.edges[i],
-            direction: Direction.Anticlockwise
-          }
-        }
+    // Check all edges of our graph and if we find an unprocessed one, return it
+    for (let edge of this.graph.edges) {
+      if (!edge.processedClockwise) {
+        return { edge, direction: Direction.Clockwise }
+      }
+      if (!edge.processedAnticlockwise) {
+        return { edge, direction: Direction.Anticlockwise }
       }
     }
     return 0;
@@ -222,7 +194,11 @@ class Pattern {
       currentDirection = firstDirection;
 
       do {
-        this.setEdgeProcessed(currentEdge, currentDirection, true);
+        if (currentDirection == Direction.Clockwise) {
+          currentEdge.processedClockwise = true;
+        } else {
+          currentEdge.processedAnticlockwise = true;
+        }
         nextEdge = this.graph.nextEdgeAround(currentNode, currentEdge, currentDirection);
 
         /* add the spline segment to the spline */
@@ -273,7 +249,8 @@ class GraphEdge {
   node2: GraphNode;
   #angle1: angle;
   #angle2: angle;
-  processed: boolean[]; // 2 booleans, first indicates if this edge has been processed clockwise, second anticlockwise
+  processedClockwise: boolean;
+  processedAnticlockwise: boolean;
 
   constructor(n1: GraphNode, n2: GraphNode) {
     this.node1 = n1;
@@ -282,7 +259,8 @@ class GraphEdge {
     if (this.#angle1 < 0) this.#angle1 += 2*Math.PI;
     this.#angle2 = Math.atan2(n1.y - n2.y, n1.x - n2.x);
     if (this.#angle2 < 0) this.#angle2 += 2*Math.PI;
-    this.processed = [false, false];
+    this.processedClockwise = false;
+    this.processedAnticlockwise = false;
   }
 
   asSvg(): string {
