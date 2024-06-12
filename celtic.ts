@@ -124,7 +124,7 @@ class Pattern {
   // The graph (nodes and edges) on which the knot is drawn
   graph: Graph;
 
-  // The actual node as a list of bezier splines
+  // The actual knot as a list of bezier splines
   splines: Spline[];
 
   constructor(g: Graph, shape1: number, shape2: number) {
@@ -197,7 +197,7 @@ class Pattern {
 
       /* start a new loop */
       s = new Spline();
-      this.splines.push(new Spline());
+      this.splines.push(s);
 
       currentEdge = firstEdge;
       currentNode = firstNode = currentEdge.node1;
