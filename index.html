@@ -8,6 +8,8 @@
     <svg id="canvas" width="600" height="600" style="border: 1px solid black"></svg><br/>
     <input id="shape1" type="range" min="-2" max="2" step="0.01" /><br/>
     <input id="shape2" type="range" min="-2" max="2" step="0.01" /><br/>
+    <input id="nbOrbits" type="range" min="1" max="10" step="1" /><br/>
+    <input id="nbNodesPerOrbit" type="range" min="4" max="15" step="1" /><br/>
 
 
     <script>
@@ -15,9 +17,20 @@
      let height = 600;
      let shape1 = 1;
      let shape2 = -1.2;
+     let nbOrbits = 4;
+     let nbNodesPerOrbit = 6;
      document.getElementById('shape1').value = shape1;
      document.getElementById('shape2').value = shape2;
-     const go = () => document.getElementById('canvas').innerHTML = celticDraw(width,height,shape1,shape2);
+     const go = () => {
+       document.getElementById('canvas').innerHTML = celticDraw(
+         width,
+         height,
+         shape1,
+         shape2,
+         nbOrbits,
+         nbNodesPerOrbit
+       );
+     };
      go();
 
      document.getElementById('shape1').addEventListener('change', t => {
@@ -26,6 +39,14 @@
      });
      document.getElementById('shape2').addEventListener('change', t => {
        shape2 = t.target.value;
+       go();
+     });
+     document.getElementById('nbOrbits').addEventListener('change', t => {
+       nbOrbits = t.target.value;
+       go();
+     });
+     document.getElementById('nbNodesPerOrbit').addEventListener('change', t => {
+       nbNodesPerOrbit = t.target.value;
        go();
      });
 
