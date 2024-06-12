@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Celtic</title>
+    <script src="celtic.js"></script>
+  </head>
+  <body>
+    <svg id="canvas" width="600" height="600" style="border: 1px solid black"></svg><br/>
+    <input id="shape1" type="range" min="-2" max="2" step="0.01" /><br/>
+    <input id="shape2" type="range" min="-2" max="2" step="0.01" /><br/>
+
+
+    <script>
+     let width = 600;
+     let height = 600;
+     let shape1 = 1;
+     let shape2 = -1.2;
+     document.getElementById('shape1').value = shape1;
+     document.getElementById('shape2').value = shape2;
+     const go = () => document.getElementById('canvas').innerHTML = celticDraw(width,height,shape1,shape2);
+     go();
+
+     document.getElementById('shape1').addEventListener('change', t => {
+       shape1 = t.target.value;
+       go();
+     });
+     document.getElementById('shape2').addEventListener('change', t => {
+       shape2 = t.target.value;
+       go();
+     });
+
+    </script>
+  </body>
+</html>

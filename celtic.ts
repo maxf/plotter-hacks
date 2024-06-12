@@ -390,7 +390,8 @@ class SplineSegment {
   }
 
   asSvg(): string {
-    return `<path class="spline-segment" d="M ${this.x1},${this.y1} C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}"/>`;
+    const colour = "red"; //`rgb(${random()%100+150},${random()%100+150},${random()%100+150})`;
+    return `<path stroke="${colour}" class="spline-segment" d="M ${this.x1},${this.y1} C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}"/>`;
   }
 }
 
@@ -416,29 +417,23 @@ class Spline {
   }
 
   asSvg(): string {
-    return `<g class="spline">${this.segments.map(s => s.asSvg()).join('')}</g>`;
+    return `<g class="spline">\n${this.segments.map(s => s.asSvg()).join('\n')}\n</g>`;
   }
 
 }
 
 /*======================================================================*/
 
-const WIDTH=800;
-const HEIGHT=800;
-
-
-const celticDraw = () => {
-  const shape1: number = (15+random()%15)/10.0 -1.0;
-  const shape2: number = (15+random()%15)/10.0 -1.0;
+const celticDraw = (width: number, height: number, shape1: number, shape2: number) => {
   const margin: number = 50;
-  const nbOrbits: number = 2+random()%10;
-  const nbNodesPerOrbit: number = 4+random()%10;
+  const nbOrbits: number = 2 //+random()%10;
+  const nbNodesPerOrbit: number = 4 //+random()%10;
 
   const graph: Graph = makePolarGraph(
     margin,
     margin,
-    WIDTH-2*margin,
-    HEIGHT-2*margin,
+    width-2*margin,
+    height-2*margin,
     nbNodesPerOrbit,
     nbOrbits
   );
@@ -447,20 +442,22 @@ const celticDraw = () => {
 
   pattern.makeCurves();
 
-  console.error(pattern.splines)
-
   // generate SVG for pattern
-  console.log(`
-    <svg height="${HEIGHT}" width="${WIDTH}" xmlns="http://www.w3.org/2000/svg">
+  return `
+    <svg height="${height}" width="${width}" xmlns="http://www.w3.org/2000/svg">
       <g id="graph" style="fill:none; stroke: #888">
         ${graph.asSvg()}
       </g>
-      <g id="pattern" style="fill:none; stroke: red">
-        ${pattern.splines.map(spline => spline.asSvg()).join('')}
+      <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">
+        ${pattern.splines.map(spline => spline.asSvg()).join('\n')}
       </g>
     </svg>
-  `);
+  `;
 };
 
+// const width: number = 600;
+// const height: number = 600;
+// const shape1: number = 1; //(15+random()%15)/10.0 -1.0;
+// const shape2: number = 1; //(15+random()%15)/10.0 -1.0;
 
-celticDraw();
+// celticDraw(width, height, shape1, shape2);
