@@ -424,7 +424,17 @@ class Spline {
 
 /*======================================================================*/
 
-const celticDraw = (width: number, height: number, shape1: number, shape2: number, nbOrbits: number, nbNodesPerOrbit: number) => {
+type Params = {
+  width: number,
+  height: number,
+  shape1: number,
+  shape2: number,
+  nbOrbits: number,
+  nbNodesPerOrbit: number
+}
+
+const celticDraw = (params: Params): string => {
+  let { width, height, shape1, shape2, nbOrbits, nbNodesPerOrbit } = params;
   const margin: number = 100;
 
   const graph: Graph = makePolarGraph(
@@ -453,11 +463,11 @@ const celticDraw = (width: number, height: number, shape1: number, shape2: numbe
   `;
 };
 
-// const width: number = 600;
-// const height: number = 600;
-// const shape1: number = 1; //(15+random()%15)/10.0 -1.0;
-// const shape2: number = 1; //(15+random()%15)/10.0 -1.0;
-// const nbOrbits: number = 2 //+random()%10;
-// const nbNodesPerOrbit: number = 4 //+random()%10;
-
-// celticDraw(width, height, shape1, shape2);
+console.log(celticDraw({
+  width: 1000,
+  height: 1000,
+  shape1: 1,
+  shape2: -0.03,
+  nbOrbits: 4,
+  nbNodesPerOrbit: 6
+}));

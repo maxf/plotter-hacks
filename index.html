@@ -6,6 +6,7 @@
     <style>
      body {
        margin: 0;
+       font-family: sans;
      }
      #canvas {
        width: 100vw;
@@ -21,10 +22,10 @@
   <body>
     <svg id="canvas"></svg>
     <div id="controls">
-      <input id="shape1" type="range" min="-2" max="2" step="0.01" /><span id="shape1-value"></span><br/>
-      <input id="shape2" type="range" min="-2" max="2" step="0.01" /><span id="shape2-value"></span><br/>
-      <input id="nbOrbits" type="range" min="1" max="20" step="1" /><span id="nbOrbits-value"></span><br/>
-      <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /><span id="nbNodesPerOrbit-value"></span><br/>
+      <input id="shape1" type="range" min="-2" max="2" step="0.01" /> shape1: <span id="shape1-value"></span><br/>
+      <input id="shape2" type="range" min="-2" max="2" step="0.01" /> shape2: <span id="shape2-value"></span><br/>
+      <input id="nbOrbits" type="range" min="1" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
+      <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /> nbNodesPerOrbits: <span id="nbNodesPerOrbit-value"></span><br/>
     </div>
 
     <script>
@@ -48,14 +49,14 @@
      document.getElementById('nbOrbits-value').innerText = nbOrbits;
      document.getElementById('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
      const go = () => {
-       document.getElementById('canvas').outerHTML = celticDraw(
+       document.getElementById('canvas').outerHTML = celticDraw({
          width,
          height,
          shape1,
          shape2,
          nbOrbits,
          nbNodesPerOrbit
-       );
+       });
      };
      go();
 
