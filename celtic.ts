@@ -247,7 +247,7 @@ class GraphNode {
   }
 
   asSvg(): string {
-    return `<circle cx="${this.x}" cy="${this.y}" r="10" stroke="black" fill="none" />`;
+    return `<circle cx="${this.x}" cy="${this.y}" r="10" fill="none" />`;
   }
 
   asText(): string {
@@ -279,7 +279,7 @@ class GraphEdge {
   }
 
   asSvg(): string {
-    return `<line x1="${this.node1.x}" y1="${this.node1.y}" x2="${this.node2.x}" y2="${this.node2.y}" stroke="black" fill="none" />`;
+    return `<line x1="${this.node1.x}" y1="${this.node1.y}" x2="${this.node2.x}" y2="${this.node2.y}" fill="none" />`;
   }
 
   asText(): string {
@@ -425,7 +425,7 @@ class Spline {
 /*======================================================================*/
 
 const celticDraw = (width: number, height: number, shape1: number, shape2: number, nbOrbits: number, nbNodesPerOrbit: number) => {
-  const margin: number = 50;
+  const margin: number = 100;
 
   const graph: Graph = makePolarGraph(
     margin,
@@ -442,8 +442,8 @@ const celticDraw = (width: number, height: number, shape1: number, shape2: numbe
 
   // generate SVG for pattern
   return `
-    <svg height="${height}" width="${width}" xmlns="http://www.w3.org/2000/svg">
-      <g id="graph" style="fill:none; stroke: #888">
+    <svg id="canvas" height="${height}" width="${width}" xmlns="http://www.w3.org/2000/svg">
+      <g id="graph" style="fill:none; stroke: #bbb">
         ${graph.asSvg()}
       </g>
       <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">

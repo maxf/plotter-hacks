@@ -3,18 +3,38 @@
   <head>
     <title>Celtic</title>
     <script src="celtic.js"></script>
+    <style>
+     body {
+       margin: 0;
+     }
+     #canvas {
+       width: 100vw;
+       height: 100vh;
+     }
+     #controls {
+       position: absolute;
+       top: 0;
+       background: #ddd;
+     }
+    </style>
   </head>
   <body>
-    <svg id="canvas" width="600" height="600" style="border: 1px solid black"></svg><br/>
-    <input id="shape1" type="range" min="-2" max="2" step="0.01" /><span id="shape1-value"></span><br/>
-    <input id="shape2" type="range" min="-2" max="2" step="0.01" /><span id="shape2-value"></span><br/>
-    <input id="nbOrbits" type="range" min="1" max="10" step="1" /><span id="nbOrbits-value"></span><br/>
-    <input id="nbNodesPerOrbit" type="range" min="4" max="15" step="1" /><span id="nbNodesPerOrbit-value"></span><br/>
-
+    <svg id="canvas"></svg>
+    <div id="controls">
+      <input id="shape1" type="range" min="-2" max="2" step="0.01" /><span id="shape1-value"></span><br/>
+      <input id="shape2" type="range" min="-2" max="2" step="0.01" /><span id="shape2-value"></span><br/>
+      <input id="nbOrbits" type="range" min="1" max="20" step="1" /><span id="nbOrbits-value"></span><br/>
+      <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /><span id="nbNodesPerOrbit-value"></span><br/>
+    </div>
 
     <script>
-     let width = 600;
-     let height = 600;
+     var canvas = document.getElementById("canvas");
+     var rect = canvas.getBoundingClientRect();
+     console.log( rect.width );
+     console.log( rect.height);
+
+     let width = rect.width;
+     let height = rect.height;
      let shape1 = 1;
      let shape2 = -1.2;
      let nbOrbits = 4;
@@ -28,7 +48,7 @@
      document.getElementById('nbOrbits-value').innerText = nbOrbits;
      document.getElementById('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
      const go = () => {
-       document.getElementById('canvas').innerHTML = celticDraw(
+       document.getElementById('canvas').outerHTML = celticDraw(
          width,
          height,
          shape1,
