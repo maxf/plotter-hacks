@@ -6,10 +6,10 @@
   </head>
   <body>
     <svg id="canvas" width="600" height="600" style="border: 1px solid black"></svg><br/>
-    <input id="shape1" type="range" min="-2" max="2" step="0.01" /><br/>
-    <input id="shape2" type="range" min="-2" max="2" step="0.01" /><br/>
-    <input id="nbOrbits" type="range" min="1" max="10" step="1" /><br/>
-    <input id="nbNodesPerOrbit" type="range" min="4" max="15" step="1" /><br/>
+    <input id="shape1" type="range" min="-2" max="2" step="0.01" /><span id="shape1-value"></span><br/>
+    <input id="shape2" type="range" min="-2" max="2" step="0.01" /><span id="shape2-value"></span><br/>
+    <input id="nbOrbits" type="range" min="1" max="10" step="1" /><span id="nbOrbits-value"></span><br/>
+    <input id="nbNodesPerOrbit" type="range" min="4" max="15" step="1" /><span id="nbNodesPerOrbit-value"></span><br/>
 
 
     <script>
@@ -21,6 +21,12 @@
      let nbNodesPerOrbit = 6;
      document.getElementById('shape1').value = shape1;
      document.getElementById('shape2').value = shape2;
+     document.getElementById('nbOrbits').value = nbOrbits;
+     document.getElementById('nbNodesPerOrbit').value = nbNodesPerOrbit;
+     document.getElementById('shape1-value').innerText = shape1;
+     document.getElementById('shape2-value').innerText = shape2;
+     document.getElementById('nbOrbits-value').innerText = nbOrbits;
+     document.getElementById('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
      const go = () => {
        document.getElementById('canvas').innerHTML = celticDraw(
          width,
@@ -35,18 +41,22 @@
 
      document.getElementById('shape1').addEventListener('change', t => {
        shape1 = t.target.value;
+       document.getElementById('shape1-value').innerText = shape1;
        go();
      });
      document.getElementById('shape2').addEventListener('change', t => {
        shape2 = t.target.value;
+       document.getElementById('shape2-value').innerText = shape2;
        go();
      });
      document.getElementById('nbOrbits').addEventListener('change', t => {
        nbOrbits = t.target.value;
+       document.getElementById('nbOrbits-value').innerText = nbOrbits;
        go();
      });
      document.getElementById('nbNodesPerOrbit').addEventListener('change', t => {
        nbNodesPerOrbit = t.target.value;
+       document.getElementById('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
        go();
      });
 
