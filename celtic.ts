@@ -399,11 +399,14 @@ const makeGridGraph = (
   const nbrow: number = cells;
   const grid: GraphNode[] = [];
 
+  const alpha = Math.min(width, height);
+  const beta = Math.min(xmin, ymin)
+
   /* create node grid */
   for (row=0;row<nbrow;row++) {
     for (col=0;col<nbcol;col++) {
-      x = xmin + row * (width - 2*xmin) / (cells - 1);
-      y = ymin + col * (width - 2*ymin) / (cells - 1);
+      x = xmin + row * (alpha - 2*beta) / (cells - 1);
+      y = ymin + col * (alpha - 2*beta) / (cells - 1);
       grid[row+col*nbrow]=new GraphNode(x, y);
       g.addNode(grid[row+col*nbrow]);
     }
@@ -499,6 +502,7 @@ type Params = {
   height: number,
   shape1: number,
   shape2: number,
+  margin: number,
 
   graphType: 'Polar' | 'Grid',
 
@@ -511,14 +515,12 @@ type Params = {
 }
 
 const celticDraw = (params: Params): string => {
-  const margin: number = 100;
   let graph: Graph;
-
   switch (params.graphType) {
   case 'Grid':
     graph = makeGridGraph(
-      margin,
-      margin,
+      params.margin,
+      params.margin,
       params.width || 1000,
       params.height || 1000,
       params.cells || 10
@@ -526,10 +528,10 @@ const celticDraw = (params: Params): string => {
     break;
   case 'Polar':
     graph = makePolarGraph(
-      margin,
-      margin,
-      params.width-2*margin,
-      params.height-2*margin,
+      params.margin,
+      params.margin,
+      params.width-2*params.margin,
+      params.height-2*params.margin,
       params.nbNodesPerOrbit || 10,
       params.nbOrbits || 4
     );
@@ -556,6 +558,7 @@ console.log(celticDraw({
   graphType: 'Grid',
   width: 1541,
   height: 882,
+  margin: 500,
   shape1: 1,
   shape2: -1.2,
   cells: 10
@@ -565,6 +568,7 @@ console.log(celticDraw({
 //   graphType: 'polar',
 //   width: 1000,
 //   height: 1000,
+//   margin: 100,
 //   shape1: 1,
 //   shape2: -0.03,
 //   nbOrbits: 4,

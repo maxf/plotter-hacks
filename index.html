@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Celtic</title>
-    <script src="celtic.js"></script>
+    <script src="celtic.js?x=2"></script>
     <style>
      body {
        margin: 0;
@@ -26,6 +26,7 @@
         <option>Polar</option>
         <option>Grid</option>
       </select><br/>
+      <input id="margin" type="range" min="0" max="500" step="1" /> margin: <span id="margin-value"></span><br/>
       <input id="shape1" type="range" min="-2" max="2" step="0.01" /> shape1: <span id="shape1-value"></span><br/>
       <input id="shape2" type="range" min="-2" max="2" step="0.01" /> shape2: <span id="shape2-value"></span><br/>
       <input id="nbOrbits" type="range" min="0" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
@@ -40,6 +41,7 @@
      var rect = canvas.getBoundingClientRect();
      let width = rect.width;
      let height = rect.height;
+     let margin = 100;
      let shape1 = 1;
      let shape2 = -1.2;
      let graphType = 'Polar';
@@ -48,6 +50,7 @@
      let cells = 10;
      $('shape1').value = shape1;
      $('shape2').value = shape2;
+     $('margin').value = margin;
      $('graph-type').value = graphType;
      $('nbOrbits').value = nbOrbits;
      $('nbNodesPerOrbit').value = nbNodesPerOrbit;
@@ -63,6 +66,7 @@
          height,
          shape1,
          shape2,
+         margin,
          graphType,
          nbOrbits,
          nbNodesPerOrbit,
@@ -81,9 +85,11 @@
        nbOrbits = parseInt($('nbOrbits').value);
        nbNodesPerOrbit = parseInt($('nbNodesPerOrbit').value);
        cells = parseInt($('cells').value);
+       margin = parseInt($('margin').value);
 
        $('shape1-value').innerText = shape1;
        $('shape2-value').innerText = shape2;
+       $('margin-value').innerText = margin;
        $('nbOrbits-value').innerText = nbOrbits;
        $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
        $('cells-value').innerText = cells;
@@ -92,6 +98,7 @@
 
      $('shape1').addEventListener('change', fetchParamsAndRun);
      $('shape2').addEventListener('change', fetchParamsAndRun);
+     $('margin').addEventListener('change', fetchParamsAndRun);
      $('graph-type').addEventListener('change', fetchParamsAndRun);
      $('nbOrbits').addEventListener('change', fetchParamsAndRun);
      $('nbNodesPerOrbit').addEventListener('change', fetchParamsAndRun);
