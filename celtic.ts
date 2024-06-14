@@ -381,6 +381,53 @@ const makePolarGraph = (
 
 /*---------------------------*/
 
+const makeGridGraph = (
+  xmin: number,
+  ymin: number,
+  width: number,
+  height: number,
+  cells: number,
+): Graph => {
+  /* make a simple grid graph */
+
+  const g = new Graph();
+  let row: number, col: number;
+  let x: number, y: number;
+  const size: number = width < height ? height : width;
+
+  const nbcol: number = cells;
+  const nbrow: number = cells;
+  const grid: GraphNode[] = [];
+
+  /* create node grid */
+  for (row=0;row<nbrow;row++) {
+    for (col=0;col<nbcol;col++) {
+      x = xmin + row * (width - 2*xmin) / (cells - 1);
+      y = ymin + col * (width - 2*ymin) / (cells - 1);
+      grid[row+col*nbrow]=new GraphNode(x, y);
+      g.addNode(grid[row+col*nbrow]);
+    }
+  }
+  //  console.error(grid);
+  /* create edges */
+  for (row=0; row<nbrow; row++) {
+    for (col=0; col<nbcol; col++) {
+      if (col != nbcol-1)
+        g.addEdge(new GraphEdge(grid[row+col*nbrow], grid[row+(col+1)*nbrow]));
+      if (row!=nbrow-1)
+        g.addEdge(new GraphEdge(grid[row+col*nbrow],grid[row+1+col*nbrow]));
+      if (col!=nbcol-1 && row!=nbrow-1) {
+        g.addEdge(new GraphEdge(grid[row+col*nbrow], grid[row+1+(col+1)*nbrow]));
+        g.addEdge(new GraphEdge(grid[row+1+col*nbrow], grid[row+(col+1)*nbrow]));
+      }
+    }
+  }
+  return g;
+}
+
+
+/*---------------------------*/
+
 // Cubic Bezier spline segment
 class SplineSegment {
   x1: number;
@@ -452,30 +499,49 @@ type Params = {
   height: number,
   shape1: number,
   shape2: number,
-  nbOrbits: number,
-  nbNodesPerOrbit: number
+
+  graphType: 'Polar' | 'Grid',
+
+  // for polar graph only
+  nbOrbits?: number,
+  nbNodesPerOrbit?: number
+
+  // for grid graph only
+  cells?: number
 }
 
 const celticDraw = (params: Params): string => {
-  let { width, height, shape1, shape2, nbOrbits, nbNodesPerOrbit } = params;
   const margin: number = 100;
+  let graph: Graph;
 
-  const graph: Graph = makePolarGraph(
-    margin,
-    margin,
-    width-2*margin,
-    height-2*margin,
-    nbNodesPerOrbit,
-    nbOrbits
-  );
-
-  const pattern = new Pattern(graph, shape1, shape2);
+  switch (params.graphType) {
+  case 'Grid':
+    graph = makeGridGraph(
+      margin,
+      margin,
+      params.width || 1000,
+      params.height || 1000,
+      params.cells || 10
+    );
+    break;
+  case 'Polar':
+    graph = makePolarGraph(
+      margin,
+      margin,
+      params.width-2*margin,
+      params.height-2*margin,
+      params.nbNodesPerOrbit || 10,
+      params.nbOrbits || 4
+    );
+    break;
+  }
+  const pattern = new Pattern(graph, params.shape1, params.shape2);
 
   pattern.makeCurves();
 
   // generate SVG for pattern
   return `
-    <svg id="canvas" height="${height}" width="${width}" xmlns="http://www.w3.org/2000/svg">
+    <svg id="canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
       <g id="graph" style="fill:none; stroke: #bbb">
         ${graph.asSvg()}
       </g>
@@ -487,10 +553,20 @@ const celticDraw = (params: Params): string => {
 };
 
 console.log(celticDraw({
-  width: 1000,
-  height: 1000,
+  graphType: 'Grid',
+  width: 1541,
+  height: 882,
   shape1: 1,
-  shape2: -0.03,
-  nbOrbits: 4,
-  nbNodesPerOrbit: 6
+  shape2: -1.2,
+  cells: 10
 }));
+
+// console.log(celticDraw({
+//   graphType: 'polar',
+//   width: 1000,
+//   height: 1000,
+//   shape1: 1,
+//   shape2: -0.03,
+//   nbOrbits: 4,
+//   nbNodesPerOrbit: 6
+// }));
