@@ -318,11 +318,34 @@ const makePolarGraph = (
   nbo: number /* number of orbits */
 ): Graph => {
   const g = new Graph()
-
   const cx: number = width / 2 + xmin; /* centre x */
   const cy: number = height / 2 + ymin; /* centre y */
-  const os: number = (width < height ? width : height) / (2 * nbo); /* orbit height */
   const grid: GraphNode[] = [];
+
+  if (nbo === 0) {
+    const os: number = (width < height ? width : height) / 2; /* orbit height */
+
+    // special case. Just nodes around an orbit, no centre
+
+    // Nodes
+    for (let p = 0; p < nbp; p++) {
+      const gridNode = new GraphNode(
+        cx + os * Math.sin(p * 2*Math.PI / nbp),
+        cy + os * Math.cos(p*2*Math.PI/nbp)
+      );
+      grid.push(gridNode);
+      g.addNode(gridNode);
+    }
+    // edges
+    for (let p = 0; p < nbp; p++) {
+      /* link along orbit */
+      g.addEdge(new GraphEdge(grid[p], grid[(p+1)%nbp]));
+    }
+
+    return g;
+  }
+
+  const os: number = (width < height ? width : height) / (2 * nbo); /* orbit height */
 
   /* generate nodes */
   const firstNode: GraphNode = new GraphNode(cx, cy);
