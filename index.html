@@ -31,9 +31,6 @@
     <script>
      var canvas = document.getElementById("canvas");
      var rect = canvas.getBoundingClientRect();
-     console.log( rect.width );
-     console.log( rect.height);
-
      let width = rect.width;
      let height = rect.height;
      let shape1 = 1;
@@ -61,22 +58,22 @@
      go();
 
      document.getElementById('shape1').addEventListener('change', t => {
-       shape1 = t.target.value;
+       shape1 = parseFloat(t.target.value);
        document.getElementById('shape1-value').innerText = shape1;
        go();
      });
      document.getElementById('shape2').addEventListener('change', t => {
-       shape2 = t.target.value;
+       shape2 = parseFloat(t.target.value);
        document.getElementById('shape2-value').innerText = shape2;
        go();
      });
      document.getElementById('nbOrbits').addEventListener('change', t => {
-       nbOrbits = t.target.value;
+       nbOrbits = parseInt(t.target.value);
        document.getElementById('nbOrbits-value').innerText = nbOrbits;
        go();
      });
      document.getElementById('nbNodesPerOrbit').addEventListener('change', t => {
-       nbNodesPerOrbit = t.target.value;
+       nbNodesPerOrbit = parseInt(t.target.value);
        document.getElementById('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
        go();
      });
