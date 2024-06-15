@@ -31,11 +31,61 @@
       <input id="shape2" type="range" min="-2" max="2" step="0.01" /> shape2: <span id="shape2-value"></span><br/>
       <input id="nbOrbits" type="range" min="0" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
       <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /> nbNodesPerOrbits: <span id="nbNodesPerOrbit-value"></span><br/>
-      <input id="cells" type="range" min="1" max="100" step="1" /> cells: <span id="cells-value"></span><br/>
+      <input id="cells" type="range" min="2" max="100" step="1" /> cells: <span id="cells-value"></span><br/>
     </div>
 
     <script>
      const $ = id => document.getElementById(id);
+
+     const go = () => {
+       const params = {
+         width,
+         height,
+         shape1,
+         shape2,
+         margin,
+         graphType,
+         nbOrbits,
+         nbNodesPerOrbit,
+         cells,
+       };
+       console.log(params);
+       $('canvas').outerHTML = celticDraw(params);
+     }
+
+     const fetchParamsAndRun = () => {
+       graphType = $('graph-type').value;
+       shape1 = parseFloat($('shape1').value);
+       shape2 = parseFloat($('shape2').value);
+       nbOrbits = parseInt($('nbOrbits').value);
+       nbNodesPerOrbit = parseInt($('nbNodesPerOrbit').value);
+       cells = parseInt($('cells').value);
+       margin = parseInt($('margin').value);
+
+       $('shape1-value').innerText = shape1;
+       $('shape2-value').innerText = shape2;
+       $('margin-value').innerText = margin;
+       $('nbOrbits-value').innerText = nbOrbits;
+       $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
+       $('cells-value').innerText = cells;
+       go()
+     }
+
+     const setGraphTypeControls = () => {
+       switch ($("graph-type").value) {
+         case "Polar":
+           $("cells").disabled = true;
+           $("nbOrbits").disabled = false;
+           $("nbNodesPerOrbit").disabled = false;
+           break;
+         case "Grid":
+           $("cells").disabled = false;
+           $("nbOrbits").disabled = true;
+           $("nbNodesPerOrbit").disabled = true;
+           break;
+       }
+       fetchParamsAndRun();
+     }
 
      var canvas = $("canvas");
      var rect = canvas.getBoundingClientRect();
@@ -60,46 +110,14 @@
      $('nbOrbits-value').innerText = nbOrbits;
      $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
 
-     const go = () => {
-       const params = {
-         width,
-         height,
-         shape1,
-         shape2,
-         margin,
-         graphType,
-         nbOrbits,
-         nbNodesPerOrbit,
-         cells,
-       };
-       console.log(params);
-       $('canvas').outerHTML = celticDraw(params);
-     }
+     setGraphTypeControls();
+
      go();
-
-
-     const fetchParamsAndRun = () => {
-       graphType = $('graph-type').value;
-       shape1 = parseFloat($('shape1').value);
-       shape2 = parseFloat($('shape2').value);
-       nbOrbits = parseInt($('nbOrbits').value);
-       nbNodesPerOrbit = parseInt($('nbNodesPerOrbit').value);
-       cells = parseInt($('cells').value);
-       margin = parseInt($('margin').value);
-
-       $('shape1-value').innerText = shape1;
-       $('shape2-value').innerText = shape2;
-       $('margin-value').innerText = margin;
-       $('nbOrbits-value').innerText = nbOrbits;
-       $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
-       $('cells-value').innerText = cells;
-       go()
-     }
 
      $('shape1').addEventListener('change', fetchParamsAndRun);
      $('shape2').addEventListener('change', fetchParamsAndRun);
      $('margin').addEventListener('change', fetchParamsAndRun);
-     $('graph-type').addEventListener('change', fetchParamsAndRun);
+     $('graph-type').addEventListener('change', setGraphTypeControls);
      $('nbOrbits').addEventListener('change', fetchParamsAndRun);
      $('nbNodesPerOrbit').addEventListener('change', fetchParamsAndRun);
      $('cells').addEventListener('change', fetchParamsAndRun);
