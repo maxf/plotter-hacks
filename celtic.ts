@@ -322,7 +322,7 @@ const makePolarGraph = (
   const cy: number = height / 2 + ymin; /* centre y */
   const grid: GraphNode[] = [];
 
-  if (nbo === 0) {
+  if (nbo === 1) {
     const os: number = (width < height ? width : height) / 2; /* orbit height */
 
     // special case. Just nodes around an orbit, no centre
@@ -345,6 +345,8 @@ const makePolarGraph = (
     return g;
   }
 
+
+  nbo = nbo - 1; // for all other cases, nbo should be the actual number of orbits
   const os: number = (width < height ? width : height) / (2 * nbo); /* orbit height */
 
   /* generate nodes */
@@ -463,8 +465,7 @@ class SplineSegment {
   }
 
   asSvg(): string {
-    const colour = "red"; //`rgb(${random()%100+150},${random()%100+150},${random()%100+150})`;
-    return `<path stroke="${colour}" class="spline-segment" d="M ${this.x1},${this.y1} C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}"/>`;
+    return `<path class="spline-segment" d="M ${this.x1},${this.y1} C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}"/>`;
   }
 }
 
@@ -490,7 +491,9 @@ class Spline {
   }
 
   asSvg(): string {
-    return `<g class="spline">\n${this.segments.map(s => s.asSvg()).join('\n')}\n</g>`;
+    const colour = `rgb(${random()%100+100},${random()%100+100},${random()%100+100})`;
+
+    return `<g stroke="${colour}" class="spline">\n${this.segments.map(s => s.asSvg()).join('\n')}\n</g>`;
   }
 
 }
