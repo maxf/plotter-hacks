@@ -28,6 +28,7 @@
       <select id="graph-type">
         <option>Polar</option>
         <option>Grid</option>
+        <option>Random</option>
       </select><br/>
       <input id="margin" type="range" min="0" max="500" step="1" /> margin: <span id="margin-value"></span><br/>
       <input id="shape1" type="range" min="-2" max="2" step="0.01" /> shape1: <span id="shape1-value"></span><br/>
@@ -35,6 +36,7 @@
       <input id="nbOrbits" type="range" min="1" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
       <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /> nbNodesPerOrbits: <span id="nbNodesPerOrbit-value"></span><br/>
       <input id="cells" type="range" min="2" max="100" step="1" /> cells: <span id="cells-value"></span><br/>
+      <input id="nbNodes" type="range" min="3" max="100" step="1" /> nbNodes: <span id="nbNodes-value"></span><br/>
       <button id="save-button">Save as SVG</button>
     </div>
 
@@ -96,11 +98,19 @@
            $("cells").disabled = true;
            $("nbOrbits").disabled = false;
            $("nbNodesPerOrbit").disabled = false;
+           $('nbNodes').disabled = true;
            break;
          case "Grid":
            $("cells").disabled = false;
            $("nbOrbits").disabled = true;
            $("nbNodesPerOrbit").disabled = true;
+           $('nbNodes').disabled = true;           
+           break;
+         case "Random":
+           $("cells").disabled = true;
+           $("nbOrbits").disabled = true;
+           $("nbNodesPerOrbit").disabled = true;
+           $('nbNodes').disabled = false;           
            break;
        }
        fetchParamsAndRun();
@@ -140,6 +150,7 @@
      $('nbOrbits').addEventListener('change', fetchParamsAndRun);
      $('nbNodesPerOrbit').addEventListener('change', fetchParamsAndRun);
      $('cells').addEventListener('change', fetchParamsAndRun);
+     $('nbNodes').addEventListener('change', fetchParamsAndRun);      
      $('save-button').addEventListener('click', saveSvg);
       
     </script>

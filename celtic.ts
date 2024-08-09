@@ -433,6 +433,23 @@ const makeGridGraph = (
 
 /*---------------------------*/
 
+const makeRandomGraph = (
+  xmin: number,
+  ymin: number,
+  width: number,
+  height: number,
+  nbNodes: number
+): Graph => {
+  // Create a random triangular graph
+  const g = new Graph()
+  // 1. Create random nodes, with a poisson distribution
+  // 2. Generate a Delauney triangulation
+  return g;
+};
+
+
+/*---------------------------*/
+
 // Cubic Bezier spline segment
 class SplineSegment {
   x1: number;
@@ -507,14 +524,17 @@ type Params = {
   shape2: number,
   margin: number,
 
-  graphType: 'Polar' | 'Grid',
+  graphType: 'Polar' | 'Grid' | 'Random',
 
   // for polar graph only
   nbOrbits?: number,
   nbNodesPerOrbit?: number
 
   // for grid graph only
-  cells?: number
+  cells?: number,
+
+  // for random graph only
+  nbNodes?: number
 }
 
 const celticDraw = (params: Params): string => {
@@ -539,6 +559,14 @@ const celticDraw = (params: Params): string => {
       params.nbOrbits || 4
     );
     break;
+  case 'Random':
+    graph = makeRandomGraph(
+      params.margin,
+      params.margin,
+      params.width || 1000,
+      params.height || 1000,
+      params.nNodes || 20
+    )
   }
   const pattern = new Pattern(graph, params.shape1, params.shape2);
 
