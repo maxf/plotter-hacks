@@ -35,11 +35,27 @@
       <input id="nbOrbits" type="range" min="1" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
       <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /> nbNodesPerOrbits: <span id="nbNodesPerOrbit-value"></span><br/>
       <input id="cells" type="range" min="2" max="100" step="1" /> cells: <span id="cells-value"></span><br/>
+      <button id="save-button">Save as SVG</button>
     </div>
 
     <script>
-     const $ = id => document.getElementById(id);
+      const $ = id => document.getElementById(id);
 
+      const saveSvg = function() {
+        const svgEl = $('canvas');
+        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var svgData = svgEl.outerHTML;
+        var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+        var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = 'celtic.svg';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      }
+      
      const go = () => {
        const params = {
          width,
@@ -124,6 +140,8 @@
      $('nbOrbits').addEventListener('change', fetchParamsAndRun);
      $('nbNodesPerOrbit').addEventListener('change', fetchParamsAndRun);
      $('cells').addEventListener('change', fetchParamsAndRun);
+     $('save-button').addEventListener('click', saveSvg);
+      
     </script>
   </body>
 </html>
