@@ -413,7 +413,7 @@ const makeGridGraph = (
       g.addNode(grid[row+col*nbrow]);
     }
   }
-  //  console.error(grid);
+
   /* create edges */
   for (row=0; row<nbrow; row++) {
     for (col=0; col<nbcol; col++) {
@@ -537,7 +537,16 @@ type Params = {
   nbNodes?: number
 }
 
-const celticDraw = (params: Params): string => {
+const render = (params: Params): string => {
+  params.graphType ||= 'Polar';
+  params.width ||= 1000;
+  params.height ||= 1000;
+  params.margin ||= 100;
+  params.cells ||= 10;
+  params.nbNodesPerOrbit ||= 10;
+  params.nbOrbits ||= 10;
+
+
   let graph: Graph;
   switch (params.graphType) {
   case 'Grid':
@@ -565,7 +574,7 @@ const celticDraw = (params: Params): string => {
       params.margin,
       params.width || 1000,
       params.height || 1000,
-      params.nNodes || 20
+      params.nbNodes || 20
     )
   }
   const pattern = new Pattern(graph, params.shape1, params.shape2);
@@ -584,24 +593,3 @@ const celticDraw = (params: Params): string => {
     </svg>
   `;
 };
-
-console.log(celticDraw({
-  graphType: 'Grid',
-  width: 1541,
-  height: 882,
-  margin: 500,
-  shape1: 1,
-  shape2: -1.2,
-  cells: 10
-}));
-
-// console.log(celticDraw({
-//   graphType: 'polar',
-//   width: 1000,
-//   height: 1000,
-//   margin: 100,
-//   shape1: 1,
-//   shape2: -0.03,
-//   nbOrbits: 4,
-//   nbNodesPerOrbit: 6
-// }));

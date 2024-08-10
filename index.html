@@ -2,7 +2,8 @@
 <html>
   <head>
     <title>Celtic</title>
-    <script src="celtic.js?x=2"></script>
+    <script src="common.js"></script>
+    <script src="celtic.js"></script>
     <style>
      body {
        margin: 0;
@@ -24,135 +25,26 @@
   </head>
   <body>
     <svg id="canvas"></svg>
-    <div id="controls">
-      <select id="graph-type">
-        <option>Polar</option>
-        <option>Grid</option>
-        <option>Random</option>
-      </select><br/>
-      <input id="margin" type="range" min="0" max="500" step="1" /> margin: <span id="margin-value"></span><br/>
-      <input id="shape1" type="range" min="-2" max="2" step="0.01" /> shape1: <span id="shape1-value"></span><br/>
-      <input id="shape2" type="range" min="-2" max="2" step="0.01" /> shape2: <span id="shape2-value"></span><br/>
-      <input id="nbOrbits" type="range" min="1" max="20" step="1" /> nbOrbits: <span id="nbOrbits-value"></span><br/>
-      <input id="nbNodesPerOrbit" type="range" min="4" max="20" step="1" /> nbNodesPerOrbits: <span id="nbNodesPerOrbit-value"></span><br/>
-      <input id="cells" type="range" min="2" max="100" step="1" /> cells: <span id="cells-value"></span><br/>
-      <input id="nbNodes" type="range" min="3" max="100" step="1" /> nbNodes: <span id="nbNodes-value"></span><br/>
-      <button id="save-button">Save as SVG</button>
-    </div>
+    <div id="controls"><div>
 
     <script>
-      const $ = id => document.getElementById(id);
+      const widgets = [];
+      widgets.push(htmlWidget('select', 'graphType', 'Graph type', 'Polar', {options: ['Polar', 'Grid', 'Random']}));                        
+      widgets.push(htmlWidget('slider', 'margin', 'Margin', 100, { min:0, max:500 }));
+      widgets.push(htmlWidget('slider', 'shape1', 'Shape 1', 1, { min:-2, max:2, step: 0.01 }));                   
+      widgets.push(htmlWidget('slider', 'shape2', 'Shape 2', 1, { min:-2, max:2, step: 0.01 }));
+      widgets.push(htmlWidget('slider', 'nbOrbits', 'Orbits', 3, { min:1, max:20 }));
+      widgets.push(htmlWidget('slider', 'nbNodesPerOrbit', 'Nodes per orbit', 3, { min:1, max:20 }));
+      widgets.push(htmlWidget('slider', 'cells', 'Cells', 4, { min:2, max:100 }));
+      widgets.push(htmlWidget('slider', 'nbNodes', 'Nodes', 4, { min:3, max:100 }));
+      widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'canvas', filename: 'celtic.svg' }));                  
 
-      const saveSvg = function() {
-        const svgEl = $('canvas');
-        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        var svgData = svgEl.outerHTML;
-        var preface = '<?xml version="1.0" standalone="no"?>\r\n';
-        var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
-        var svgUrl = URL.createObjectURL(svgBlob);
-        var downloadLink = document.createElement("a");
-        downloadLink.href = svgUrl;
-        downloadLink.download = 'celtic.svg';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-      }
+
+      document.getElementById('controls').innerHTML = widgets.join('');
+
+      activateWidgets();
       
-     const go = () => {
-       const params = {
-         width,
-         height,
-         shape1,
-         shape2,
-         margin,
-         graphType,
-         nbOrbits,
-         nbNodesPerOrbit,
-         cells,
-       };
-       console.log(params);
-       $('canvas').outerHTML = celticDraw(params);
-     }
-
-     const fetchParamsAndRun = () => {
-       graphType = $('graph-type').value;
-       shape1 = parseFloat($('shape1').value);
-       shape2 = parseFloat($('shape2').value);
-       nbOrbits = parseInt($('nbOrbits').value);
-       nbNodesPerOrbit = parseInt($('nbNodesPerOrbit').value);
-       cells = parseInt($('cells').value);
-       margin = parseInt($('margin').value);
-
-       $('shape1-value').innerText = shape1;
-       $('shape2-value').innerText = shape2;
-       $('margin-value').innerText = margin;
-       $('nbOrbits-value').innerText = nbOrbits;
-       $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
-       $('cells-value').innerText = cells;
-       go()
-     }
-
-     const setGraphTypeControls = () => {
-       switch ($("graph-type").value) {
-         case "Polar":
-           $("cells").disabled = true;
-           $("nbOrbits").disabled = false;
-           $("nbNodesPerOrbit").disabled = false;
-           $('nbNodes').disabled = true;
-           break;
-         case "Grid":
-           $("cells").disabled = false;
-           $("nbOrbits").disabled = true;
-           $("nbNodesPerOrbit").disabled = true;
-           $('nbNodes').disabled = true;           
-           break;
-         case "Random":
-           $("cells").disabled = true;
-           $("nbOrbits").disabled = true;
-           $("nbNodesPerOrbit").disabled = true;
-           $('nbNodes').disabled = false;           
-           break;
-       }
-       fetchParamsAndRun();
-     }
-
-     var canvas = $("canvas");
-     var rect = canvas.getBoundingClientRect();
-     let width = rect.width;
-     let height = rect.height;
-     let margin = 100;
-     let shape1 = 1;
-     let shape2 = -1.2;
-     let graphType = 'Polar';
-     let nbOrbits = 4;
-     let nbNodesPerOrbit = 6;
-     let cells = 10;
-     $('shape1').value = shape1;
-     $('shape2').value = shape2;
-     $('margin').value = margin;
-     $('graph-type').value = graphType;
-     $('nbOrbits').value = nbOrbits;
-     $('nbNodesPerOrbit').value = nbNodesPerOrbit;
-     $('cells').value = cells;
-     $('shape1-value').innerText = shape1;
-     $('shape2-value').innerText = shape2;
-     $('nbOrbits-value').innerText = nbOrbits;
-     $('nbNodesPerOrbit-value').innerText = nbNodesPerOrbit;
-
-     setGraphTypeControls();
-
-     go();
-
-     $('shape1').addEventListener('change', fetchParamsAndRun);
-     $('shape2').addEventListener('change', fetchParamsAndRun);
-     $('margin').addEventListener('change', fetchParamsAndRun);
-     $('graph-type').addEventListener('change', setGraphTypeControls);
-     $('nbOrbits').addEventListener('change', fetchParamsAndRun);
-     $('nbNodesPerOrbit').addEventListener('change', fetchParamsAndRun);
-     $('cells').addEventListener('change', fetchParamsAndRun);
-     $('nbNodes').addEventListener('change', fetchParamsAndRun);      
-     $('save-button').addEventListener('click', saveSvg);
-      
+      document.getElementById('canvas').innerHTML = render(widgetValues());
     </script>
   </body>
 </html>
