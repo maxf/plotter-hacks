@@ -13,6 +13,8 @@
  * See <http://www.entrelacs.net/>
  */
 
+var FastPoissonDiskSampling: any;
+var Delaunator: any;
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -440,12 +442,57 @@ const makeRandomGraph = (
   height: number,
   nbNodes: number
 ): Graph => {
-  // Create a random triangular graph
+  // Create a random graph
   const g = new Graph()
   // 1. Create random nodes, with a poisson distribution
+
+  const p = new FastPoissonDiskSampling({
+    shape: [width, height],
+    radius: 6,
+    tries: 20
+  });
+  const points: number[][] = p.fill();
+  // make a point array for running delauney
+  // [ x1, y1, x2, y2, x3, y3... ]
+  const delauneyPoints: number[] = [];
+
+
+  // Create our graph's nodes
+  points.forEach((point: number[]) => {
+    g.addNode(new GraphNode(point[0], point[1]));
+    delauneyPoints.push(point[0]);
+    delauneyPoints.push(point[1]);
+  });
+
+
   // 2. Generate a Delauney triangulation
+  const delaunay = new Delaunator(points);
+  // delaunay.triangles is triples of indices: [0,1,2,   3,4,1   3,4,5,...   ]
+
+  // we need to turn the triangles into a unique list of edges
+  const edges: number[][] = []; // array of arrays of 2 indices
+  const addToEdges = function(i1: number, i2: number) {
+    for (let edge of edges) {
+      if ((edge[0] == i1 && edge[0] == i2) || (edge[0] == i2 && edge[0] == i1)) {
+        return;
+      }
+    }
+    edges.push([i1, i2]);
+  }
+  for (let i=0; i<delaunay.triangles.length; i+=3) {
+    addToEdges(i, i+1);
+    addToEdges(i+1, i+2);
+    addToEdges(i+2, i);
+  }
+
+  // Add edges to our graph
+  edges.forEach(([nodeIndex1, nodeIndex2]) => g.addEdge(new GraphEdge(g.nodes[nodeIndex1], g.nodes[nodeIndex2])));
+
+
   return g;
 };
+
+
 
 
 /*---------------------------*/
@@ -545,7 +592,7 @@ const render = (params: Params): string => {
   params.cells ||= 10;
   params.nbNodesPerOrbit ||= 10;
   params.nbOrbits ||= 10;
-
+  params.nbNodes ||= 20;
 
   let graph: Graph;
   switch (params.graphType) {
@@ -553,9 +600,9 @@ const render = (params: Params): string => {
     graph = makeGridGraph(
       params.margin,
       params.margin,
-      params.width || 1000,
-      params.height || 1000,
-      params.cells || 10
+      params.width,
+      params.height,
+      params.cells
     );
     break;
   case 'Polar':
@@ -564,17 +611,17 @@ const render = (params: Params): string => {
       params.margin,
       params.width-2*params.margin,
       params.height-2*params.margin,
-      params.nbNodesPerOrbit || 10,
-      params.nbOrbits || 4
+      params.nbNodesPerOrbit,
+      params.nbOrbits
     );
     break;
   case 'Random':
     graph = makeRandomGraph(
       params.margin,
       params.margin,
-      params.width || 1000,
-      params.height || 1000,
-      params.nbNodes || 20
+      params.width,
+      params.height,
+      params.nbNodes
     )
   }
   const pattern = new Pattern(graph, params.shape1, params.shape2);
