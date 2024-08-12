@@ -253,7 +253,7 @@ class GraphNode {
   }
 
   asText(): string {
-    return `Node (${this.x.toFixed(0)}, ${this.y.toFixed(0)})`;
+    return `Node (${this.x}, ${this.y})`;
   }
 
   addEdge(e: GraphEdge) {
@@ -448,46 +448,47 @@ const makeRandomGraph = (
 
   const p = new FastPoissonDiskSampling({
     shape: [width, height],
-    radius: 6,
+    radius: 500,
     tries: 20
   });
   const points: number[][] = p.fill();
-  // make a point array for running delauney
+  // make a point array for running delaunay
   // [ x1, y1, x2, y2, x3, y3... ]
-  const delauneyPoints: number[] = [];
-
+  const delaunayPoints: number[] = [];
 
   // Create our graph's nodes
   points.forEach((point: number[]) => {
     g.addNode(new GraphNode(point[0], point[1]));
-    delauneyPoints.push(point[0]);
-    delauneyPoints.push(point[1]);
+    delaunayPoints.push(point[0]);
+    delaunayPoints.push(point[1]);
   });
 
+  // 2. Generate a Delaunay triangulation
+  const delaunay = new Delaunator(delaunayPoints);
 
-  // 2. Generate a Delauney triangulation
-  const delaunay = new Delaunator(points);
   // delaunay.triangles is triples of indices: [0,1,2,   3,4,1   3,4,5,...   ]
 
   // we need to turn the triangles into a unique list of edges
   const edges: number[][] = []; // array of arrays of 2 indices
   const addToEdges = function(i1: number, i2: number) {
     for (let edge of edges) {
-      if ((edge[0] == i1 && edge[0] == i2) || (edge[0] == i2 && edge[0] == i1)) {
+      if ((edge[0] == i1 && edge[1] == i2) || (edge[0] == i2 && edge[1] == i1)) {
         return;
       }
     }
     edges.push([i1, i2]);
   }
-  for (let i=0; i<delaunay.triangles.length; i+=3) {
-    addToEdges(i, i+1);
-    addToEdges(i+1, i+2);
-    addToEdges(i+2, i);
+  for (let i=0; i<delaunay.triangles.length / 3; i++) {
+    const te1 = delaunay.triangles[i*3];
+    const te2 = delaunay.triangles[i*3+1];
+    const te3 = delaunay.triangles[i*3+2];
+    addToEdges(te1, te2);
+    addToEdges(te2, te3);
+    addToEdges(te3, te1);
   }
 
   // Add edges to our graph
   edges.forEach(([nodeIndex1, nodeIndex2]) => g.addEdge(new GraphEdge(g.nodes[nodeIndex1], g.nodes[nodeIndex2])));
-
 
   return g;
 };

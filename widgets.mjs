@@ -8,7 +8,8 @@ const htmlWidget = function(type, id, label, value, params) {
     });
     html.push('</select><br/>');
     html.push(`
-      <script data-type="widget-script" id="${id}-script">
+      <script type="module" data-type="widget-script" id="${id}-script">
+        import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = '${value}';
         document.getElementById('${id}').addEventListener('change', () => {
           document.getElementById('canvas').innerHTML = render(widgetValues());
@@ -23,7 +24,8 @@ const htmlWidget = function(type, id, label, value, params) {
         ${label}:
         <span id="${id}-value">
       </span><br/>
-      <script data-type="widget-script" id="${id}-script">
+      <script type="module" data-type="widget-script" id="${id}-script">
+        import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = ${value};
         document.getElementById('${id}-value').innerText = ${value};
         document.getElementById('${id}').addEventListener('change', event => {
@@ -36,7 +38,7 @@ const htmlWidget = function(type, id, label, value, params) {
   case 'save-svg':
     html.push(`
       <button class="widget" id="${id}" onclick="saveSvg()">${label}</button><br/>
-      <script data-type="widget-script" id="${id}-script">
+      <script type="module" data-type="widget-script" id="${id}-script">
         const saveSvg = function() {
           const svgEl = document.getElementById('${params.svgId}');
           svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -72,18 +74,23 @@ const widgetValues = function() {
 };
 
 
-const activateWidgets = function() {
+const activateWidgetsAndRender = function() {
   // Move all widget scripts at the bottom of the page and run them
   document.querySelectorAll("script[data-type='widget-script']").forEach(script => {
     const newScript = document.createElement('script');
-    if (script.src) {
-      newScript.src = script.src;
-    } else {
-      newScript.textContent = script.innerHTML;
+    for (let i=0; i< script.attributes.length; i++) {
+      let attr=script.attributes[i];
+      newScript.setAttribute(attr.name, attr.value);
     }
+    newScript.textContent = script.innerHTML;
     document.body.appendChild(newScript);
     script.remove();
   });
+  // Add the render call at the end of all the scripts so it runs after each widget was executed
+  const renderScript = document.createElement('script');
+  renderScript.setAttribute('type', 'module');
+  renderScript.textContent = "import { widgetValues } from './widgets.mjs'; document.getElementById('canvas').innerHTML = render(widgetValues());";
+  document.body.appendChild(renderScript);
 };
 
 export { htmlWidget, widgetValues, activateWidgets }

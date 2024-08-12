@@ -43,12 +43,8 @@
       widgets.push(htmlWidget('slider', 'nbNodes', 'Nodes', 4, { min:3, max:100 }));
       widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'canvas', filename: 'celtic.svg' }));
 
-
       document.getElementById('controls').innerHTML = widgets.join('');
-
-      activateWidgets();
-      
-      document.getElementById('canvas').innerHTML = render(widgetValues());
+      activateWidgetsAndRender();
     </script>
   </body>
 </html>
