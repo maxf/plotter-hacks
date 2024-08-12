@@ -85,3 +85,5 @@ const activateWidgets = function() {
     script.remove();
   });
 };
+
+export { htmlWidget, widgetValues, activateWidgets }
