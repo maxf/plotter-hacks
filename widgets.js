@@ -9,7 +9,7 @@ const htmlWidget = function(type, id, label, value, params) {
     html.push('</select><br/>');
     html.push(`
       <script type="module" data-type="widget-script" id="${id}-script">
-        import { widgetValues } from "./widgets.mjs";
+        //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = '${value}';
         document.getElementById('${id}').addEventListener('change', () => {
           document.getElementById('canvas').innerHTML = render(widgetValues());
@@ -25,7 +25,7 @@ const htmlWidget = function(type, id, label, value, params) {
         <span id="${id}-value">
       </span><br/>
       <script type="module" data-type="widget-script" id="${id}-script">
-        import { widgetValues } from "./widgets.mjs";
+        //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = ${value};
         document.getElementById('${id}-value').innerText = ${value};
         document.getElementById('${id}').addEventListener('change', event => {
@@ -89,8 +89,11 @@ const activateWidgetsAndRender = function() {
   // Add the render call at the end of all the scripts so it runs after each widget was executed
   const renderScript = document.createElement('script');
   renderScript.setAttribute('type', 'module');
-  renderScript.textContent = "import { widgetValues } from './widgets.mjs'; document.getElementById('canvas').innerHTML = render(widgetValues());";
+  renderScript.textContent = `
+    //import { widgetValues } from './widgets.mjs';
+    document.getElementById('canvas').innerHTML = render(widgetValues());
+  `;
   document.body.appendChild(renderScript);
 };
 
-export { htmlWidget, widgetValues, activateWidgetsAndRender }
+//export { htmlWidget, widgetValues, activateWidgetsAndRender }

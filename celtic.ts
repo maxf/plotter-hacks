@@ -13,8 +13,11 @@
  * See <http://www.entrelacs.net/>
  */
 
+// var generatePoissonPoints: any;
+
 var FastPoissonDiskSampling: any;
 var Delaunator: any;
+var rng: any;
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -22,23 +25,6 @@ const assert = function(assertion: boolean) {
   }
 };
 
-// pseudo-random number generator
-// https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
-function sfc32(a: number, b: number, c: number, d: number) {
-  return function() {
-    a |= 0; b |= 0; c |= 0; d |= 0;
-    let t = (a + b | 0) + d | 0;
-    d = d + 1 | 0;
-    a = b ^ b >>> 9;
-    b = c + (c << 3) | 0;
-    c = (c << 21 | c >>> 11);
-    c = c + t | 0;
-    return (t >>> 0) / 4294967296;
-  }
-}
-
-const getRand = sfc32(1, 32, 3, 4); // random seed constants
-const random = () => Math.floor(getRand()*65535); // CHECK with shape1 and shape2
 
 /*-----------------------------------------*/
 
@@ -444,13 +430,13 @@ const makeRandomGraph = (
 ): Graph => {
   // Create a random graph
   const g = new Graph()
-  // 1. Create random nodes, with a poisson distribution
 
+  // 1. Create random nodes, with a poisson distribution
   const p = new FastPoissonDiskSampling({
-    shape: [width, height],
-    radius: 500,
+    shape: [width/2, height/2],
+    radius: (width+height)/20,
     tries: 20
-  });
+  }, rng(1,2,3,4));
   const points: number[][] = p.fill();
   // make a point array for running delaunay
   // [ x1, y1, x2, y2, x3, y3... ]
@@ -556,7 +542,7 @@ class Spline {
   }
 
   asSvg(): string {
-    const colour = `rgb(${random()%100+100},${random()%100+100},${random()%100+100})`;
+    const colour = `rgb(${Math.floor(Math.random())*100+100},${Math.floor(Math.random())*100+100},${Math.floor(Math.random())*100+100})`;
 
     return `<g stroke="${colour}" class="spline">\n${this.segments.map(s => s.asSvg()).join('\n')}\n</g>`;
   }

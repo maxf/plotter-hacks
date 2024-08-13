@@ -2,10 +2,11 @@
 <html>
   <head>
     <title>Celtic</title>
-    <script src="celtic.js"></script>
     <script src="delaunator.min.js"></script>
+    <script src="seeded-random.js"></script>
     <script src="fast-poisson-disk-sampling.min.js"></script>
-
+    <script src="widgets.js"></script>
+    <script src="celtic.js"></script>
     <style>
      body {
        margin: 0;
@@ -29,9 +30,7 @@
     <svg id="canvas"></svg>
     <div id="controls"><div>
 
-    <script type="module">
-      import { htmlWidget, widgetValues, activateWidgetsAndRender } from "./widgets.mjs";
-      
+    <script>
       const widgets = [];
       widgets.push(htmlWidget('select', 'graphType', 'Graph type', 'Random', {options: ['Polar', 'Grid', 'Random']}));                        
       widgets.push(htmlWidget('slider', 'margin', 'Margin', 100, { min:0, max:500 }));
