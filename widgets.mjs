@@ -93,4 +93,4 @@ const activateWidgetsAndRender = function() {
   document.body.appendChild(renderScript);
 };
 
-export { htmlWidget, widgetValues, activateWidgets }
+export { htmlWidget, widgetValues, activateWidgetsAndRender }
