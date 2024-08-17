@@ -31,7 +31,7 @@
     </style>
   </head>
   <body>
-    <svg id="canvas"></svg>
+    <div id="canvas"></div>
     <div id="controls"><div>
 
     <script>
@@ -44,7 +44,7 @@
       widgets.push(htmlWidget('slider', 'nbNodesPerOrbit', 'Nodes per orbit', 3, { min:1, max:20 }));
       widgets.push(htmlWidget('slider', 'cells', 'Cells', 4, { min:2, max:100 }));
       widgets.push(htmlWidget('slider', 'nbNodes', 'Nodes', 4, { min:3, max:100 }));
-      widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'canvas', filename: 'celtic.svg' }));
+      widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'svg-canvas', filename: 'celtic.svg' }));
 
       document.getElementById('controls').innerHTML = widgets.join('');
       activateWidgetsAndRender();
