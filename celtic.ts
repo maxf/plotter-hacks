@@ -527,8 +527,14 @@ class SplineSegment {
     this.y4 = y4;
   }
 
-  asSvg(): string {
-    return `<path class="spline-segment" d="M ${this.x1},${this.y1} C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}"/>`;
+  asSvg(index: number): string {
+    const bezier = `C ${this.x2},${this.y2} ${this.x3},${this.y3} ${this.x4},${this.y4}`;
+    if (index === 0) {
+      // This is the first bezier in the path, so start with an M
+      return `M ${this.x1},${this.y1} ${bezier}`;
+    } else {
+      return bezier;
+    }
   }
 }
 
@@ -554,9 +560,8 @@ class Spline {
   }
 
   asSvg(): string {
-    const colour = `rgb(${Math.floor(Math.random())*100+100},${Math.floor(Math.random())*100+100},${Math.floor(Math.random())*100+100})`;
-
-    return `<g stroke="${colour}" class="spline">\n${this.segments.map(s => s.asSvg()).join('\n')}\n</g>`;
+    const colour = `rgb(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)})`;
+    return `<path fill="${colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>\n`;
   }
 
 }
