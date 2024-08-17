@@ -590,9 +590,9 @@ type Params = {
 
 const render = (params: Params): string => {
   params.graphType ||= 'Polar';
-  params.width ||= 1000;
-  params.height ||= 1000;
-  params.margin ||= 100;
+  params.width ||= 500;
+  params.height ||= 500;
+  params.margin ||= 50;
   params.cells ||= 10;
   params.nbNodesPerOrbit ||= 10;
   params.nbOrbits ||= 10;
@@ -623,8 +623,8 @@ const render = (params: Params): string => {
     graph = makeRandomGraph(
       params.margin,
       params.margin,
-      params.width,
-      params.height,
+      params.width-2*params.margin,
+      params.height-2*params.margin,
       params.nbNodes
     )
   }
