@@ -431,6 +431,7 @@ const makeRandomGraph = (
   // Create a random graph
   const g = new Graph()
 
+/*
   // 1. Create random nodes, with a poisson distribution
   const p = new FastPoissonDiskSampling({
     shape: [width/2, height/2],
@@ -444,10 +445,21 @@ const makeRandomGraph = (
 
   // Create our graph's nodes
   points.forEach((point: number[]) => {
-    g.addNode(new GraphNode(point[0], point[1]));
+    g.addNode(new GraphNode(point[0]+xmin, point[1]+ymin));
     delaunayPoints.push(point[0]);
     delaunayPoints.push(point[1]);
   });
+*/
+  const delaunayPoints = [];
+  const rand = Math.random; // rng(1,2,3,4);
+  for (let i=0; i<7; i++) {
+    const x = rand()*width+xmin;
+    const y = rand()*height+ymin;
+    delaunayPoints.push(x);
+    delaunayPoints.push(y);
+    g.addNode(new GraphNode(x, y));
+
+  }
 
   // 2. Generate a Delaunay triangulation
   const delaunay = new Delaunator(delaunayPoints);
