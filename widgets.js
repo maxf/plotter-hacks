@@ -8,7 +8,7 @@ const htmlWidget = function(type, id, label, value, params) {
     });
     html.push('</select><br/>');
     html.push(`
-      <script type="module" data-type="widget-script" id="${id}-script">
+      <script data-type="widget-script" id="${id}-script">
         //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = '${value}';
         document.getElementById('${id}').addEventListener('change', () => {
@@ -24,7 +24,7 @@ const htmlWidget = function(type, id, label, value, params) {
         ${label}:
         <span id="${id}-value">
       </span><br/>
-      <script type="module" data-type="widget-script" id="${id}-script">
+      <script data-type="widget-script" id="${id}-script">
         //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = ${value};
         document.getElementById('${id}-value').innerText = ${value};
@@ -38,7 +38,7 @@ const htmlWidget = function(type, id, label, value, params) {
   case 'save-svg':
     html.push(`
       <button class="widget" id="${id}" onclick="saveSvg()">${label}</button><br/>
-      <script type="module" data-type="widget-script" id="${id}-script">
+      <script data-type="widget-script" id="${id}-script">
         const saveSvg = function() {
           const svgEl = document.getElementById('${params.svgId}');
           svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
