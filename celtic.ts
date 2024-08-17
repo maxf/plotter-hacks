@@ -421,6 +421,26 @@ const makeGridGraph = (
 
 /*---------------------------*/
 
+const dist2 = (a: GraphNode, b: GraphNode): number => (b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y);
+
+const randomNodes = (w: number, h: number, n: number, minDist: number, rand: any): GraphNode[] => {
+  const result: GraphNode[] = [];
+  for (let i=0; i<n; i++) {
+    do {
+      const node = new GraphNode(rand()*w, rand()*h);
+      const distances = result.map(r => dist2(r,node));
+      if (Math.min(...distances) >= minDist*minDist) {
+        result.push(node);
+        break;
+      }
+    } while(true);
+  }
+  return result;
+};
+
+
+/*---------------------------*/
+
 const makeRandomGraph = (
   xmin: number,
   ymin: number,
@@ -452,6 +472,7 @@ const makeRandomGraph = (
 */
   const delaunayPoints = [];
   const rand = Math.random; // rng(1,2,3,4);
+
   for (let i=0; i<7; i++) {
     const x = rand()*width+xmin;
     const y = rand()*height+ymin;
