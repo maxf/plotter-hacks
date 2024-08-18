@@ -17,12 +17,15 @@ const htmlWidget = function(type, id, label, value, params) {
       </script>
     `);
   break;
+  case 'hidden':
+    html.push(`<input class="widget" type="hidden" id="${id}" value="${value}"/>`);
+  break;
   case 'slider':
     html.push(`
       <span>
         <input class="widget" id="${id}" type="range" min="${params.min}" max="${params.max}" step="${params.step}" />
         ${label}:
-        <span id="${id}-value">
+        <span id="${id}-value"></span>
       </span><br/>
       <script data-type="widget-script" id="${id}-script">
         //import { widgetValues } from "./widgets.mjs";

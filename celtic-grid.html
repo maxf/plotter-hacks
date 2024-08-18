@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Celtic</title>
+    <script src="widgets.js"></script>
+    <script src="celtic.js"></script>
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+    <div id="canvas"></div>
+    <div id="controls"><div>
+    <script>
+      const widgets = [];
+      widgets.push(htmlWidget('hidden', 'graphType', 'Graph Type', 'Grid'));      
+      widgets.push(htmlWidget('slider', 'margin', 'Margin', 100, { min:0, max:500 }));
+      widgets.push(htmlWidget('slider', 'shape1', 'Shape 1', 0.3, { min:-2, max:2, step: 0.01 }));
+      widgets.push(htmlWidget('slider', 'shape2', 'Shape 2', 0.3, { min:-2, max:2, step: 0.01 }));
+      widgets.push(htmlWidget('slider', 'cells', 'Cells', 4, { min:2, max:100 }));
+      widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'svg-canvas', filename: 'celtic.svg' }));
+      document.getElementById('controls').innerHTML = widgets.join('');
+      activateWidgetsAndRender();
+    </script>
+  </body>
+</html>
