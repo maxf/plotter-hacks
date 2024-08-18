@@ -14,7 +14,7 @@
  */
 
 var Delaunator: any;
-var rng: any;
+var seedRNG: any;
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -433,7 +433,6 @@ const randomNodes = (w: number, h: number, xmin: number, ymin: number, n: number
         break;
       }
     } while(iter++ < maxIterations);
-    console.log('Failed to find a point, skipping');
   }
   return result;
 };
@@ -476,7 +475,6 @@ const makeRandomGraph = (
     }
     edges.push([i1, i2]);
   }
-  console.log(edges)
   for (let i=0; i<delaunay.triangles.length / 3; i++) {
     const te1 = delaunay.triangles[i*3];
     const te2 = delaunay.triangles[i*3+1];
@@ -623,14 +621,13 @@ const render = (params: Params): string => {
     );
     break;
   case 'Random':
-    const rand = rng(params.seed,2,3,4);
     graph = makeRandomGraph(
       params.margin,
       params.margin,
       params.width-2*params.margin,
       params.height-2*params.margin,
       params.nbNodes,
-      rand
+      seedRNG(params.seed.toString())
     )
   }
   const pattern = new Pattern(graph, params.shape1, params.shape2);
@@ -640,13 +637,10 @@ const render = (params: Params): string => {
   // generate SVG for pattern
   return `
     <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
-<!--
       <rect x="0" y="0" width="${params.width}" height="${params.height}" fill="#eee"/>
       <g id="graph" style="fill:none; stroke: #888">
         ${graph.asSvg()}
       </g>
--->
-
       <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">
         ${pattern.splines.map(spline => spline.asSvg()).join('\n')}
       </g>
