@@ -425,7 +425,9 @@ const dist2 = (a: GraphNode, b: GraphNode): number => (b.x-a.x)*(b.x-a.x) + (b.y
 
 const randomNodes = (w: number, h: number, xmin: number, ymin: number, n: number, minDist: number, rand: any): GraphNode[] => {
   const result: GraphNode[] = [];
+  const maxIterations = 100;
   for (let i=0; i<n; i++) {
+    let iter = 0;
     do {
       const node = new GraphNode(rand()*w + xmin, rand()*h + ymin);
       const distances = result.map(r => dist2(r,node));
@@ -433,7 +435,8 @@ const randomNodes = (w: number, h: number, xmin: number, ymin: number, n: number
         result.push(node);
         break;
       }
-    } while(true);
+    } while(iter++ < maxIterations);
+    console.log('Failed to find a point, skipping');
   }
   return result;
 };
@@ -446,7 +449,8 @@ const makeRandomGraph = (
   ymin: number,
   width: number,
   height: number,
-  nbNodes: number
+  nbNodes: number,
+  rng: any
 ): Graph => {
   // Create a random graph
   const g = new Graph()
@@ -471,8 +475,8 @@ const makeRandomGraph = (
   });
 */
 
-  const rand = Math.random; // rng(1,2,3,4);
-  const rNodes = randomNodes(width, height, xmin, ymin, 7, 100, rand);
+
+  const rNodes = randomNodes(width, height, xmin, ymin, nbNodes, 20, rng);
   const delaunayPoints: number[] = [];
   for (let node of rNodes) {
     delaunayPoints.push(node.x);
@@ -480,7 +484,6 @@ const makeRandomGraph = (
     g.addNode(node);
   }
 
-  console.log(delaunayPoints)
 
   // 2. Generate a Delaunay triangulation
   const delaunay = new Delaunator(delaunayPoints);
@@ -582,7 +585,7 @@ class Spline {
   }
 
   asSvg(): string {
-    const colour = `rgb(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)})`;
+    const colour = `rgba(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},0.3)`;
     return `<path fill="${colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>\n`;
   }
 
@@ -607,7 +610,8 @@ type Params = {
   cells?: number,
 
   // for random graph only
-  nbNodes?: number
+  nbNodes?: number,
+  seed?: number,
 }
 
 const render = (params: Params): string => {
@@ -619,6 +623,7 @@ const render = (params: Params): string => {
   params.nbNodesPerOrbit ||= 10;
   params.nbOrbits ||= 10;
   params.nbNodes ||= 20;
+  params.seed ||= 3;
 
   let graph: Graph;
   switch (params.graphType) {
@@ -642,12 +647,14 @@ const render = (params: Params): string => {
     );
     break;
   case 'Random':
+    const rand = rng(params.seed,2,3,4);
     graph = makeRandomGraph(
       params.margin,
       params.margin,
       params.width-2*params.margin,
       params.height-2*params.margin,
-      params.nbNodes
+      params.nbNodes,
+      rand
     )
   }
   const pattern = new Pattern(graph, params.shape1, params.shape2);
