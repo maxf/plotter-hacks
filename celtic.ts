@@ -423,11 +423,11 @@ const makeGridGraph = (
 
 const dist2 = (a: GraphNode, b: GraphNode): number => (b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y);
 
-const randomNodes = (w: number, h: number, n: number, minDist: number, rand: any): GraphNode[] => {
+const randomNodes = (w: number, h: number, xmin: number, ymin: number, n: number, minDist: number, rand: any): GraphNode[] => {
   const result: GraphNode[] = [];
   for (let i=0; i<n; i++) {
     do {
-      const node = new GraphNode(rand()*w, rand()*h);
+      const node = new GraphNode(rand()*w + xmin, rand()*h + ymin);
       const distances = result.map(r => dist2(r,node));
       if (Math.min(...distances) >= minDist*minDist) {
         result.push(node);
@@ -470,23 +470,23 @@ const makeRandomGraph = (
     delaunayPoints.push(point[1]);
   });
 */
-  const delaunayPoints = [];
+
   const rand = Math.random; // rng(1,2,3,4);
-
-  for (let i=0; i<7; i++) {
-    const x = rand()*width+xmin;
-    const y = rand()*height+ymin;
-    delaunayPoints.push(x);
-    delaunayPoints.push(y);
-    g.addNode(new GraphNode(x, y));
-
+  const rNodes = randomNodes(width, height, xmin, ymin, 7, 100, rand);
+  const delaunayPoints: number[] = [];
+  for (let node of rNodes) {
+    delaunayPoints.push(node.x);
+    delaunayPoints.push(node.y);
+    g.addNode(node);
   }
+
+  console.log(delaunayPoints)
 
   // 2. Generate a Delaunay triangulation
   const delaunay = new Delaunator(delaunayPoints);
 
-  // delaunay.triangles is triples of indices: [0,1,2,   3,4,1   3,4,5,...   ]
 
+  // delaunay.triangles is triples of indices: [0,1,2,   3,4,1   3,4,5,...   ]
   // we need to turn the triangles into a unique list of edges
   const edges: number[][] = []; // array of arrays of 2 indices
   const addToEdges = function(i1: number, i2: number) {
@@ -497,6 +497,7 @@ const makeRandomGraph = (
     }
     edges.push([i1, i2]);
   }
+  console.log(edges)
   for (let i=0; i<delaunay.triangles.length / 3; i++) {
     const te1 = delaunay.triangles[i*3];
     const te2 = delaunay.triangles[i*3+1];
