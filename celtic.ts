@@ -13,9 +13,6 @@
  * See <http://www.entrelacs.net/>
  */
 
-// var generatePoissonPoints: any;
-
-var FastPoissonDiskSampling: any;
 var Delaunator: any;
 var rng: any;
 
@@ -454,27 +451,6 @@ const makeRandomGraph = (
 ): Graph => {
   // Create a random graph
   const g = new Graph()
-
-/*
-  // 1. Create random nodes, with a poisson distribution
-  const p = new FastPoissonDiskSampling({
-    shape: [width/2, height/2],
-    radius: (width+height)/20,
-    tries: 20
-  }, rng(1,2,3,4));
-  const points: number[][] = p.fill();
-  // make a point array for running delaunay
-  // [ x1, y1, x2, y2, x3, y3... ]
-  const delaunayPoints: number[] = [];
-
-  // Create our graph's nodes
-  points.forEach((point: number[]) => {
-    g.addNode(new GraphNode(point[0]+xmin, point[1]+ymin));
-    delaunayPoints.push(point[0]);
-    delaunayPoints.push(point[1]);
-  });
-*/
-
 
   const rNodes = randomNodes(width, height, xmin, ymin, nbNodes, 20, rng);
   const delaunayPoints: number[] = [];
