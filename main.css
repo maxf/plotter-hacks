@@ -2,17 +2,10 @@ body {
     margin: 0;
     font-family: sans;
 }
-#canvas {
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    width: 500px;
-}
 #controls {
     position: absolute;
-    top: 0;
+    bottom: 0;
+    right: 0;
     background: #ddd;
     padding: 5px;
     border: 1px solid black;

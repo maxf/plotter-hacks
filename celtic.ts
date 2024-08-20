@@ -590,8 +590,8 @@ type Params = {
 
 const render = (params: Params): string => {
   params.graphType ||= 'Polar';
-  params.width ||= 500;
-  params.height ||= 500;
+  params.width ||= 800;
+  params.height ||= 800;
   params.margin ||= 50;
   params.cells ||= 10;
   params.nbNodesPerOrbit ||= 10;
@@ -631,7 +631,7 @@ const render = (params: Params): string => {
       seedRNG(params.seed.toString())
     )
   }
-  const pattern = new Pattern(graph, params.shape1, params.shape2);
+  const pattern = new Pattern(graph, params.shape, params.shape);
 
   pattern.makeCurves();
 
