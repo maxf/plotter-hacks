@@ -559,8 +559,8 @@ class Spline {
   }
 
   asSvg(): string {
-    const colour = `rgba(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},0.3)`;
-    return `<path fill="${colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>\n`;
+    //    const colour = `rgba(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},0.3)`;
+    return `<path fill="none" stroke="#88f" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>\n`;
   }
 
 }
@@ -598,6 +598,7 @@ const render = (params: Params): string => {
   params.nbOrbits ||= 10;
   params.nbNodes ||= 20;
   params.seed ||= 3;
+  params.showGraph ||= false;
 
   let graph: Graph;
   switch (params.graphType) {
@@ -635,12 +636,16 @@ const render = (params: Params): string => {
   pattern.makeCurves();
 
   // generate SVG for pattern
+  const renderedGraph = params.showGraph ? `
+    <g id="graph" style="fill:none; stroke: #888">
+      ${graph.asSvg()}
+    </g>
+  ` : '';
+
   return `
     <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
       <rect x="0" y="0" width="${params.width}" height="${params.height}" fill="#eee"/>
-      <g id="graph" style="fill:none; stroke: #888">
-        ${graph.asSvg()}
-      </g>
+      ${renderedGraph}
       <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">
         ${pattern.splines.map(spline => spline.asSvg()).join('\n')}
       </g>

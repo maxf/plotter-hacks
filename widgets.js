@@ -1,6 +1,19 @@
 const htmlWidget = function(type, id, label, value, params) {
   const html = [];
   switch (type) {
+  case 'checkbox':
+    html.push(`
+      <span><input class="widget" type="checkbox" id="${id}"> ${label}</span><br/>
+    `);
+    html.push(`
+      <script data-type="widget-script" id="${id}-script">
+        document.getElementById('${id}').checked = '${value}';
+        document.getElementById('${id}').addEventListener('change', () => {
+          document.getElementById('canvas').innerHTML = render(widgetValues());
+        })
+      </script>
+    `);
+  break;
   case 'select':
     html.push(`<select class="widget" id="${id}">`);
     params.options.forEach(option => {
@@ -9,7 +22,6 @@ const htmlWidget = function(type, id, label, value, params) {
     html.push('</select><br/>');
     html.push(`
       <script data-type="widget-script" id="${id}-script">
-        //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = '${value}';
         document.getElementById('${id}').addEventListener('change', () => {
           document.getElementById('canvas').innerHTML = render(widgetValues());
@@ -28,7 +40,6 @@ const htmlWidget = function(type, id, label, value, params) {
         <span id="${id}-value"></span>
       </span><br/>
       <script data-type="widget-script" id="${id}-script">
-        //import { widgetValues } from "./widgets.mjs";
         document.getElementById('${id}').value = ${value};
         document.getElementById('${id}-value').innerText = ${value};
         document.getElementById('${id}').addEventListener('change', event => {
@@ -69,6 +80,8 @@ const widgetValues = function() {
   document.querySelectorAll('.widget').forEach(widget => {
     if (widget.type === 'range') {
       values[widget.id] = parseFloat(widget.value);
+    } else if (widget.type === 'checkbox') {
+      values[widget.id] = widget.checked;
     } else {
       values[widget.id] = widget.value;
     }
