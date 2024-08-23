@@ -13,8 +13,8 @@
  * See <http://www.entrelacs.net/>
  */
 
-var Delaunator: any;
-var seedRNG: any;
+import Delaunator from './delaunator.min.js';
+import { seedRNG } from './seeded-random.js';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -588,7 +588,7 @@ type Params = {
   seed?: number,
 }
 
-const render = (params: Params): string => {
+export const render = (params: Params): string => {
   params.graphType ||= 'Polar';
   params.width ||= 500;
   params.height ||= 500;

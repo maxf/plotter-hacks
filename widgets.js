@@ -1,3 +1,5 @@
+import render from './celtic';
+
 const htmlWidget = function(type, id, label, value, params) {
   const html = [];
   switch (type) {
@@ -112,4 +114,4 @@ const activateWidgetsAndRender = function() {
   document.body.appendChild(renderScript);
 };
 
-//export { htmlWidget, widgetValues, activateWidgetsAndRender }
+export { htmlWidget, widgetValues, activateWidgetsAndRender }

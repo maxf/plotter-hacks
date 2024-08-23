@@ -35,3 +35,5 @@ function SimpleFastCounter32(seed_1, seed_2, seed_3, seed_4) {
 }
 
 var seedRNG = (seed) => SimpleFastCounter32(MurmurHash3(seed)(), MurmurHash3(seed)());
+
+export { seedRNG }
