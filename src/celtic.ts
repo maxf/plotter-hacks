@@ -13,8 +13,8 @@
  * See <http://www.entrelacs.net/>
  */
 
-var Delaunator: any;
-var seedRNG: any;
+import Delaunator from 'delaunator';
+import seedrandom from 'seedrandom';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -459,7 +459,6 @@ const makeRandomGraph = (
     g.addNode(node);
   }
 
-
   // 2. Generate a Delaunay triangulation
   const delaunay = new Delaunator(delaunayPoints);
 
@@ -575,6 +574,7 @@ type Params = {
   margin: number,
 
   graphType: 'Polar' | 'Grid' | 'Random',
+  showGraph: boolean,
 
   // for polar graph only
   nbOrbits?: number,
@@ -628,10 +628,10 @@ const render = (params: Params): string => {
       params.width-2*params.margin,
       params.height-2*params.margin,
       params.nbNodes,
-      seedRNG(params.seed.toString())
+      seedrandom(params.seed.toString())
     )
   }
-  const pattern = new Pattern(graph, params.shape, params.shape);
+  const pattern = new Pattern(graph, params.shape1, params.shape2);
 
   pattern.makeCurves();
 
@@ -652,3 +652,5 @@ const render = (params: Params): string => {
     </svg>
   `;
 };
+
+export { render };

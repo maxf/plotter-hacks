@@ -2,26 +2,53 @@
 <html>
   <head>
     <title>Celtic</title>
-    <script src="delaunator.min.js"></script>
-    <script src="seeded-random.js"></script>
-    <script src="widgets.js"></script>
-    <script src="celtic.js"></script>
+    <!--
+    <script src="src/delaunator.min.js"></script>
+    <script src="src/seeded-random.js"></script>
+    <script src="src/widgets.js"></script>
+    <script src="src/celtic.js"></script> 
+      -->
     <link rel="stylesheet" href="main.css"/>
   </head>
   <body>
     <div id="canvas"></div>
-    <div id="controls"><div>
-    <script>
-      const widgets = [];
-      widgets.push(htmlWidget('hidden', 'graphType', 'Graph Type', 'Random'));
-      widgets.push(htmlWidget('slider', 'margin', 'Margin', 100, { min:0, max:500 }));
-      widgets.push(htmlWidget('slider', 'seed', 'Seed', 100, { min:0, max:500 }));
-      widgets.push(htmlWidget('slider', 'shape', 'Shape', 0.3, { min:-2, max:2, step: 0.01 }));
-      widgets.push(htmlWidget('slider', 'nbNodes', 'Nodes', 4, { min:3, max:40 }));
-      widgets.push(htmlWidget('checkbox', 'showGraph', 'Show graph', true));
-      widgets.push(htmlWidget('save-svg', 'save', 'Save SVG', null, { svgId: 'svg-canvas', filename: 'celtic.svg' }));
-      document.getElementById('controls').innerHTML = widgets.join('');
-      activateWidgetsAndRender();
-    </script>
+    <div id="controls">
+      <input type="hidden" id="graphType" value="Random"/>
+      
+      <span>
+        <input id="margin" type="range" min="0" max="500" value="100"/>
+        Margin
+        <span id="margin-value">100</span>
+      </span><br/>
+      
+      <span>
+        <input id="seed" type="range" min="0" max="500" value="100"/>
+        Seed
+        <span id="seed-value">100</span>
+      </span><br/>
+      
+      <span>
+        <input id="shape1" type="range" min="-2" max="2" value="0.3" step="0.01"/>
+        Shape 1
+        <span id="shape1-value">0.3</span>
+      </span><br/>
+      
+      <span>
+        <input id="shape2" type="range" min="-2" max="2" value="0.3" step="0.01"/>
+        Shape 2
+        <span id="shape2-value">0.3</span>
+      </span><br/>
+      
+      <span>
+        <input id="nbNodes" type="range" min="3" max="40" value="4"/>
+        Nodes
+        <span id="nbNodes-value">4</span>
+      </span><br/>
+
+     <span><input type="checkbox" id="showGraph"> Show graph</span><br/>
+     
+     <button id="saveSvg">Save SVG</button><br/>      
+    </div>
+    <script src="dist/bundle.js"></script>
   </body>
 </html>

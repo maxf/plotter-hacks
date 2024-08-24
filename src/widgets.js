@@ -90,7 +90,7 @@ const widgetValues = function() {
 };
 
 
-const activateWidgetsAndRender = function() {
+const activateWidgetsAndRender = function(renderFunction) {
   // Move all widget scripts at the bottom of the page and run them
   document.querySelectorAll("script[data-type='widget-script']").forEach(script => {
     const newScript = document.createElement('script');
@@ -107,9 +107,9 @@ const activateWidgetsAndRender = function() {
   renderScript.setAttribute('type', 'module');
   renderScript.textContent = `
     //import { widgetValues } from './widgets.mjs';
-    document.getElementById('canvas').innerHTML = render(widgetValues());
+    document.getElementById('canvas').innerHTML = renderFunction(widgetValues());
   `;
   document.body.appendChild(renderScript);
 };
 
-//export { htmlWidget, widgetValues, activateWidgetsAndRender }
+export { htmlWidget, widgetValues, activateWidgetsAndRender }

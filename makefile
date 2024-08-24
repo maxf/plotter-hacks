@@ -1,5 +1,5 @@
-celtic.js: celtic.ts tsconfig.json
-	npx tsc
+build:
+	npx webpack
 
 watch:
-	ls *.ts | entr -rc npx tsc
+	ls src/* | entr -rc npx webpack
