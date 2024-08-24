@@ -567,11 +567,7 @@ class Spline {
   }
 
   asSvg(): string {
-    return `
-      <g id="layer-${this.layerNumber}" inkscape:label="${this.layerNumber}-layer">
-        <path fill="none" stroke="${this.colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>
-      </g>
-    `;
+    return `<path fill="none" stroke="${this.colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>`;
   }
 }
 
@@ -611,7 +607,7 @@ const render = (params: Params): string => {
   params.nbNodes ||= 20;
   params.seed ||= 3;
   params.showGraph ||= false;
-  params.palette = ['#131842', '#E68369', '#ECCEAE', '#FBF6E2'];
+  params.palette = ['#522258', '#8C3061', '#C63C51', '#D95F59'];
 
   let graph: Graph;
   switch (params.graphType) {
@@ -663,7 +659,7 @@ const render = (params: Params): string => {
   return `
     <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
       ${renderedGraph}
-      <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">
+      <g id="pattern" style="fill:none; stroke: red; stroke-width: 10">
         ${pattern.splines.map(spline => spline.asSvg()).join('\n')}
       </g>
     </svg>
