@@ -17,24 +17,23 @@ $('showGraph').addEventListener('change', () => {
 })
 
 const saveSvg = function() {
-  const svgEl = $('${params.svgId}');
+  const svgEl = $('svg-canvas');
   svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   var svgData = svgEl.outerHTML;
-  var preface = '<?xml version="1.0" standalone="no"?>\\r\\n';
+  var preface = '<?xml version="1.0" standalone="no"?>';
   var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
   var svgUrl = URL.createObjectURL(svgBlob);
   var downloadLink = document.createElement("a");
   downloadLink.href = svgUrl;
-  downloadLink.download = '${params.filename}';
+  downloadLink.download = 'celtic.svg';
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
 
-$('saveSvg').addEventListener('change', saveSvg);
+// ============ Add event listeners ============
 
-
-// add event listeners
+$('saveSvg').addEventListener('click', saveSvg);
 
 ['margin', 'seed', 'shape1', 'shape2', 'nbNodes'].forEach(id => {
   $(id).addEventListener('change', event => {
@@ -46,5 +45,8 @@ $('saveSvg').addEventListener('change', saveSvg);
 $('showGraph').addEventListener('change', event => {
   $('canvas').innerHTML = render(widgetValues());
 });
+
+
+// =========== First render =============
 
 $('canvas').innerHTML = render(widgetValues());
