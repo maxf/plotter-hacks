@@ -19,6 +19,10 @@ $('showGraph').addEventListener('change', () => {
 const saveSvg = function() {
   const svgEl = $('svg-canvas');
   svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svgEl.setAttribute("xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
+//  svgEl.setAttribute("width", "297mm");
+//  svgEl.setAttribute("height", "420mm");
+//  svgEl.setAttribute("viewBox", "0 0 297 420");    
   var svgData = svgEl.outerHTML;
   var preface = '<?xml version="1.0" standalone="no"?>';
   var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});

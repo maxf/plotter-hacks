@@ -112,11 +112,14 @@ class Pattern {
   // The actual knot as a list of bezier splines
   splines: Spline[];
 
-  constructor(g: Graph, shape1: number, shape2: number) {
+  palette: string[];
+
+  constructor(g: Graph, shape1: number, shape2: number, palette: string[]) {
     this.shape1 = shape1;
     this.shape2 = shape2;
     this.graph = g;
     this.splines = [];
+    this.palette = palette;
   }
 
   drawSplineDirection(s: Spline, node: GraphNode, edge1: GraphEdge, edge2: GraphEdge, direction: Direction) {
@@ -175,13 +178,15 @@ class Pattern {
     let currentDirection: Direction, firstDirection: Direction;
     let s: Spline;
     let nextEdgeDirection: any = this.nextUnprocessedEdgeDirection();
+    let colourIndex = 0;
 
     while (nextEdgeDirection !== 0) {
       firstEdge = nextEdgeDirection.edge;
       firstDirection = nextEdgeDirection.direction;
 
       /* start a new loop */
-      s = new Spline();
+      colourIndex++;
+      s = new Spline(colourIndex, this.palette[colourIndex % this.palette.length]);
       this.splines.push(s);
 
       currentEdge = firstEdge;
@@ -539,9 +544,13 @@ class SplineSegment {
 
 class Spline {
   segments: SplineSegment[];
+  colour: string;
+  layerNumber: number;
 
-  constructor() {
-    this.segments = []
+  constructor(layerNumber: number, colour: string) {
+    this.segments = [];
+    this.colour = colour;
+    this.layerNumber = layerNumber;
   }
 
   addSegment(
@@ -558,10 +567,12 @@ class Spline {
   }
 
   asSvg(): string {
-    //    const colour = `rgba(${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},${Math.floor(Math.random()*100+100)},0.3)`;
-    return `<path fill="none" stroke="#88f" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>\n`;
+    return `
+      <g id="layer-${this.layerNumber}" inkscape:label="${this.layerNumber}-layer">
+        <path fill="none" stroke="${this.colour}" class="spline" d="${this.segments.map((s, i) => s.asSvg(i)).join(' ')}"/>
+      </g>
+    `;
   }
-
 }
 
 /*======================================================================*/
@@ -575,6 +586,7 @@ type Params = {
 
   graphType: 'Polar' | 'Grid' | 'Random',
   showGraph: boolean,
+  palette: string[],
 
   // for polar graph only
   nbOrbits?: number,
@@ -599,6 +611,7 @@ const render = (params: Params): string => {
   params.nbNodes ||= 20;
   params.seed ||= 3;
   params.showGraph ||= false;
+  params.palette = ['#131842', '#E68369', '#ECCEAE', '#FBF6E2'];
 
   let graph: Graph;
   switch (params.graphType) {
@@ -631,7 +644,12 @@ const render = (params: Params): string => {
       seedrandom(params.seed.toString())
     )
   }
-  const pattern = new Pattern(graph, params.shape1, params.shape2);
+  const pattern = new Pattern(
+    graph,
+    params.shape1,
+    params.shape2,
+    params.palette
+  );
 
   pattern.makeCurves();
 
@@ -644,7 +662,6 @@ const render = (params: Params): string => {
 
   return `
     <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="${params.width}" height="${params.height}" fill="#eee"/>
       ${renderedGraph}
       <g id="pattern" style="fill:none; stroke: red; stroke-width: 2">
         ${pattern.splines.map(spline => spline.asSvg()).join('\n')}
