@@ -2,18 +2,16 @@
 <html>
   <head>
     <title>Celtic</title>
-    <!--
-    <script src="src/delaunator.min.js"></script>
-    <script src="src/seeded-random.js"></script>
-    <script src="src/widgets.js"></script>
-    <script src="src/celtic.js"></script> 
-      -->
     <link rel="stylesheet" href="main.css"/>
   </head>
   <body>
     <div id="canvas"></div>
     <div id="controls">
-      <input type="hidden" id="graphType" value="Random"/>
+      <select id="graphType">
+        <option>Random</option>
+        <option>Grid</option>
+        <option>Polar</option>
+      </select><br/>
       
       <span>
         <input id="margin" type="range" min="0" max="500" value="100"/>
@@ -43,6 +41,24 @@
         <input id="nbNodes" type="range" min="3" max="40" value="4"/>
         Nodes
         <span id="nbNodes-value">4</span>
+      </span><br/>
+
+      <span>
+        <input id="cells" type="range" min="2" max="100" value="4"/>
+        Cells
+        <span id="cells-value">4</span>
+      </span><br/>
+
+      <span>
+        <input id="nbOrbits" type="range" min="1" max="20" value="3"/>
+        Orbits
+        <span id="nbOrbits-value">3</span>
+      </span><br/>
+
+      <span>
+        <input id="nbNodesPerOrbit" type="range" min="1" max="20" value="3"/>
+        Noder per orbit
+        <span id="nbNodesPerOrbit-value">3</span>
       </span><br/>
 
      <span><input type="checkbox" id="showGraph"> Show graph</span><br/>
