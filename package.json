@@ -1,16 +1,16 @@
 {
   "devDependencies": {
+    "parcel": "^2.12.0",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.5.4",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^5.1.4"
+    "typescript": "^5.5.4"
   },
   "name": "celtic-plot",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx webpack --config webpack.config.js"
+    "start": "npx parcel index.html",
+    "build": "npx parcel build index.html"
   },
   "author": "",
   "license": "ISC",
