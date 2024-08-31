@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 const widgetValues = () => {
   const params = {};
   // Common params
-  ['margin', 'seed', 'shape1', 'shape2'].forEach(id => {
+  ['margin', 'seed', 'shape1', 'shape2', 'perturbation'].forEach(id => {
     params[id] = parseFloat($(id).value);
   });
   params['showGraph'] = $('showGraph').checked;
@@ -59,7 +59,7 @@ $('graphType').addEventListener('change', () => {
 
 $('saveSvg').addEventListener('click', saveSvg);
 
-['margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits', 'nbNodesPerOrbit'].forEach(id => {
+['margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(id => {
   $(id).addEventListener('change', event => {
     $(`${id}-value`).innerText = event.target.value;
     $('canvas').innerHTML = render(widgetValues());

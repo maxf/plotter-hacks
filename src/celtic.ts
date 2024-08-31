@@ -18,7 +18,7 @@ import seedrandom from 'seedrandom';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
-    console.log("Assertion FALSE. Expect errors")
+    console.warn("Assertion FALSE. Expect errors")
   }
 };
 
@@ -299,15 +299,16 @@ class GraphEdge {
 
 /*-----------------------------------------*/
 
-const makePolarGraph = (
-  xmin: number,
-  ymin: number,
-  width: number,
-  height: number,
-  nbp: number,  /* number of points on each orbit */
-  nbo: number /* number of orbits */
-): Graph => {
-  const g = new Graph()
+const makePolarGraph = (params: Params) => {
+  const xmin: number = params.margin;
+  const ymin: number = params.margin;
+  const width: number = params.width - 2*params.margin;
+  const height: number = params.width - 2*params.margin;
+  const nbp: number = params.nbNodesPerOrbit;
+  let nbo: number = params.nbOrbits;
+  const perturbation: number = params.perturbation;
+  const rng: any = seedrandom(params.seed.toString());
+  const g = new Graph();
   const cx: number = width / 2 + xmin; /* centre x */
   const cy: number = height / 2 + ymin; /* centre y */
   const grid: GraphNode[] = [];
@@ -320,9 +321,9 @@ const makePolarGraph = (
     // Nodes
     for (let p = 0; p < nbp; p++) {
       const gridNode = new GraphNode(
-        cx + os * Math.sin(p * 2*Math.PI / nbp),
-        cy + os * Math.cos(p*2*Math.PI/nbp)
-      );
+        cx + os * Math.sin(p * 2*Math.PI / nbp) + perturbation * (rng()-0.5), 
+        cy + os * Math.sin(p * 2*Math.PI / nbp) + perturbation * (rng()-0.5)
+      )
       grid.push(gridNode);
       g.addNode(gridNode);
     }
@@ -347,8 +348,8 @@ const makePolarGraph = (
   for (let o = 0; o < nbo; o++) {
     for (let p = 0; p < nbp; p++) {
       const gridNode = new GraphNode(
-        cx + (o+1) * os * Math.sin(p * 2*Math.PI / nbp),
-        cy + (o+1) * os * Math.cos(p*2*Math.PI/nbp)
+        cx + (o+1) * os * Math.sin(p * 2*Math.PI / nbp) + perturbation * (rng()-0.5),
+        cy + (o+1) * os * Math.cos(p*2*Math.PI/nbp) + perturbation * (rng()-0.5)
       );
       grid.push(gridNode);
       g.addNode(gridNode);
@@ -373,13 +374,15 @@ const makePolarGraph = (
 
 /*---------------------------*/
 
-const makeGridGraph = (
-  xmin: number,
-  ymin: number,
-  width: number,
-  height: number,
-  cells: number,
-): Graph => {
+const makeGridGraph = (params: Params): Graph => {
+  const xmin: number = params.margin;
+  const ymin: number = params.margin;
+  const width: number = params.width;
+  const height: number = params.height;
+  const cells: number = params.cells;
+  const rng: any = seedrandom(params.seed.toString());
+  const perturbation: number = params.perturbation;
+
   /* make a simple grid graph */
 
   const g = new Graph();
@@ -399,6 +402,12 @@ const makeGridGraph = (
     for (col=0;col<nbcol;col++) {
       x = xmin + row * (alpha - 2*beta) / (cells - 1);
       y = ymin + col * (alpha - 2*beta) / (cells - 1);
+
+      if (perturbation !== 0) {
+        x += perturbation * (rng()-0.5);
+        y += perturbation * (rng()-0.5);
+      }
+      
       grid[row+col*nbrow]=new GraphNode(x, y);
       g.addNode(grid[row+col*nbrow]);
     }
@@ -584,6 +593,8 @@ type Params = {
   showGraph: boolean,
   palette: string[],
 
+  perturbation: number,
+
   // for polar graph only
   nbOrbits?: number,
   nbNodesPerOrbit?: number
@@ -606,29 +617,17 @@ const render = (params: Params): string => {
   params.nbOrbits ||= 10;
   params.nbNodes ||= 20;
   params.seed ||= 3;
+  params.perturbation ||= 0;  
   params.showGraph ||= false;
   params.palette = ['#522258', '#8C3061', '#C63C51', '#D95F59'];
 
   let graph: Graph;
   switch (params.graphType) {
   case 'Grid':
-    graph = makeGridGraph(
-      params.margin,
-      params.margin,
-      params.width,
-      params.height,
-      params.cells
-    );
+    graph = makeGridGraph(params);
     break;
   case 'Polar':
-    graph = makePolarGraph(
-      params.margin,
-      params.margin,
-      params.width-2*params.margin,
-      params.height-2*params.margin,
-      params.nbNodesPerOrbit,
-      params.nbOrbits
-    );
+    graph = makePolarGraph(params);
     break;
   case 'Random':
     graph = makeRandomGraph(
@@ -637,7 +636,8 @@ const render = (params: Params): string => {
       params.width-2*params.margin,
       params.height-2*params.margin,
       params.nbNodes,
-      seedrandom(params.seed.toString())
+      seedrandom(params.seed.toString()),
+      params.perturbation      
     )
   }
   const pattern = new Pattern(
