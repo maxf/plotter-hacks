@@ -607,7 +607,7 @@ type Params = {
   seed?: number,
 }
 
-const render = (params: Params): string => {
+const renderCeltic = (params: Params): string => {
   params.graphType ||= 'Polar';
   params.width ||= 800;
   params.height ||= 800;
@@ -666,4 +666,4 @@ const render = (params: Params): string => {
   `;
 };
 
-export { render };
+export { renderCeltic };

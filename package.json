@@ -18,6 +18,7 @@
   "dependencies": {
     "@types/delaunator": "^5.0.3",
     "@types/seedrandom": "^3.0.8",
+    "boids": "^2.0.0",
     "delaunator": "^5.0.1",
     "seedrandom": "^3.0.5"
   }

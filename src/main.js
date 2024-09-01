@@ -1,4 +1,5 @@
-import { render } from './celtic';
+import { renderCeltic } from './celtic';
+import { renderBoids } from './boids-plot';
 
 const $ = (id) => document.getElementById(id);
 
@@ -45,23 +46,36 @@ const saveSvg = function() {
 
 const activateControls = graphType => {
   document.querySelectorAll('.control').forEach(control => control.style.display = 'none');
-  ['margin', 'seed', 'perturbation'].forEach(control =>
+  ['margin', 'seed'].forEach(control =>
     $(`${control}-control`).style.display = 'inline');
   switch (graphType) {
   case 'Random':
-    ['shape1', 'shape2', 'nbNodes'].forEach(
+    ['shape1', 'shape2', 'nbNodes', 'perturbation'].forEach(
       control => $(`${control}-control`).style.display = 'inline');
     break;
   case 'Grid':
-    ['shape1', 'shape2', 'cells'].forEach(
+    ['shape1', 'shape2', 'cells', 'perturbation'].forEach(
       control => $(`${control}-control`).style.display = 'inline');
     break;
   case 'Polar':
-    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit'].forEach(
+    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(
       control => $(`${control}-control`).style.display = 'inline');
     break;
+  case 'Boids':
+    break; 
   }
 };
+
+const render = params => {
+  params.width ||= 800;
+  params.height ||= 800;
+
+  const renderFn = (['Random', 'Grid', 'Polar'].includes(params.graphType))
+        ? renderCeltic
+        : renderBoids;
+
+  return renderFn(params);
+}
 
 // ============ Add event listeners ============
 
