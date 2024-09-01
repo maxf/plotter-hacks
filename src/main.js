@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const widgetValues = () => {
   const params = {};
   // Common params
-  ['margin', 'seed', 'shape1', 'shape2', 'perturbation'].forEach(id => {
+  ['margin', 'seed', 'shape1', 'shape2'].forEach(id => {
     params[id] = parseFloat($(id).value);
   });
   params['showGraph'] = $('showGraph').checked;
@@ -15,17 +15,19 @@ const widgetValues = () => {
   // Random only
   params['nbNodes'] = parseInt($('nbNodes').value);
 
-  // Grid only
-  params['cells'] = parseInt($('cells').value);
+  // Grid
+  ['cells', 'perturbation'].forEach(id => {
+    params[id] = parseInt($(id).value);
+  });
 
-  // Polar only
-  params['cells'] = parseInt($('cells').value);
-  params['nbOrbits'] = parseInt($('nbOrbits').value);
-  params['nbNodesPerOrbit'] = parseInt($('nbNodesPerOrbit').value);
+  // Polar
+  ['cells', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(id => {
+    params[id] = parseInt($(id).value);
+  });
 
   // Boids
-  ['iterations', 'nboids'].forEach(id => {
-    params[id] = parseInt($(id).value);
+  ['iterations', 'nboids', 'speedLimit'].forEach(id => {
+    params[id] = parseFloat($(id).value);
   });
   
   return params;
@@ -54,7 +56,7 @@ const activateControls = plotType => {
   ['margin', 'seed'].forEach(show);
   switch (plotType) {
   case 'Random':
-    ['shape1', 'shape2', 'nbNodes', 'perturbation'].forEach(show);
+    ['shape1', 'shape2', 'nbNodes'].forEach(show);
     break;
   case 'Grid':
     ['shape1', 'shape2', 'cells', 'perturbation'].forEach(show);
@@ -63,7 +65,7 @@ const activateControls = plotType => {
     ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
     break;
   case 'Boids':
-    ['iterations', 'nboids'].forEach(show);
+    ['iterations', 'nboids', 'speedLimit'].forEach(show);
     break; 
   }
 };
@@ -95,7 +97,7 @@ $('saveSvg').addEventListener('click', saveSvg);
 
 [
   'margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits',
-  'nbNodesPerOrbit', 'perturbation', 'iterations', 'nboids'
+  'nbNodesPerOrbit', 'perturbation', 'iterations', 'nboids', 'speedLimit'
 ].forEach(id => {
   $(id).addEventListener('change', event => {
     $(`${id}-value`).innerText = event.target.value;

@@ -1,19 +1,61 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
 
- const POSITIONX = 0
-  , POSITIONY = 1
-  , SPEEDX = 2
-  , SPEEDY = 3
-  , ACCELERATIONX = 4
-  , ACCELERATIONY = 5;
+
+type Params = {
+  width: number,
+  height: number,
+  margin: number,
+  plotType: 'Boids',
+  iterations: number,
+  nboids: number,
+  speedLimit: number,
+  seed: number,
+  accelerationLimitRoot: number,
+  separationDistance: number,
+  alignmentDistance: number,
+  separationForce: number,
+  cohesionForce: number,
+  alignmentForce: number,
+  accelerationLimit: number,
+  cohesionDistance: number,
+  alignment: number,
+  attractors: number[][]
+}
+
+
+// Indices for boid array
+const POSITIONX = 0;
+const POSITIONY = 1;
+const SPEEDX = 2;
+const SPEEDY = 3;
+const ACCELERATIONX = 4;
+const ACCELERATIONY = 5;
 
 
 class Boids {
-  constructor(opts) {
+  rng: () => number;
+  width: number;
+  height: number;
+  speedLimit: number;
+  speedLimitRoot: number;
+  accelerationLimit: number;
+  accelerationLimitRoot: number;
+  separationDistance: number;
+  alignmentDistance: number;
+  alignmentForce: number;
+  cohesionDistance: number;
+  cohesionForce: number;
+  separationForce: number;
+  attractors: number[][];
+  iterations: number;
+  nboids: number;
+  boids: [number, number, number, number, number, number][];
+
+  constructor(opts: Params) {
     opts = opts || {}
 
-    this.rng = seedrandom(opts.seed.toString()) || Math.random();
+    this.rng = seedrandom(opts.seed.toString()) || Math.random;
     this.width = opts.width;
     this.height = opts.height;  
     this.speedLimitRoot = opts.speedLimit || 0
@@ -30,10 +72,10 @@ class Boids {
     this.iterations = opts.iterations || 100;
     this.nboids = opts.nboids || 10;
 
-    var boids = this.boids = []
+    this.boids = []
 
-    for (var i = 0, l = opts.nboids; i < l; i += 1) {
-      boids[i] = [
+    for (let i = 0, l = opts.nboids; i < l; i += 1) {
+      this.boids[i] = [
         (this.rng()-0.5)*this.width/10 + this.width/2,
         (this.rng()-0.5)*this.height/10 + this.height/2, // position
         0, 0,                               // speed
@@ -44,7 +86,7 @@ class Boids {
 
   
   tick() {
-    var boids = this.boids
+    let boids: [number, number, number, number, number, number][] = this.boids
       , sepDist = this.separationDistance
       , sepForce = this.separationForce
       , cohDist = this.cohesionDistance
@@ -75,6 +117,7 @@ class Boids {
       cforceX = 0; cforceY = 0
       aforceX = 0; aforceY = 0
       currPos = boids[current]
+
 
       // Attractors
       target = attractorCount
@@ -151,7 +194,6 @@ class Boids {
           boids[current][SPEEDY] *= ratio
         }
       }
-
       boids[current][POSITIONX] += boids[current][SPEEDX]
       boids[current][POSITIONY] += boids[current][SPEEDY]
     }
@@ -160,15 +202,15 @@ class Boids {
 
 // double-dog-leg hypothenuse approximation
 // http://forums.parallax.com/discussion/147522/dog-leg-hypotenuse-approximation
-function hypot(a, b) {
-  a = Math.abs(a)
-  b = Math.abs(b)
-  var lo = Math.min(a, b)
-  var hi = Math.max(a, b)
+function hypot(a: number, b: number): number {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  const lo: number = Math.min(a, b);
+  const hi: number = Math.max(a, b)
   return hi + 3 * lo / 32 + Math.max(0, 2 * lo - hi) / 8 + Math.max(0, 4 * lo - hi) / 16
 }
 
-const renderBoids = params => {
+const renderBoids = (params: Params) => {
   const b = new Boids(params);
 
   const boidPathsDs = [];
@@ -197,5 +239,5 @@ const renderBoids = params => {
   `;
 };
 
-  
+
 export { renderBoids };

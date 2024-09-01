@@ -8,7 +8,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "npx tsc --noEmit",
     "start": "npx parcel index.html",
     "build": "npx parcel build index.html"
   },

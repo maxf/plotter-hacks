@@ -299,15 +299,16 @@ class GraphEdge {
 
 /*-----------------------------------------*/
 
-const makePolarGraph = (params: Params) => {
+const makePolarGraph = (params: Params): Graph => {
   const xmin: number = params.margin;
   const ymin: number = params.margin;
   const width: number = params.width - 2*params.margin;
   const height: number = params.width - 2*params.margin;
-  const nbp: number = params.nbNodesPerOrbit;
-  let nbo: number = params.nbOrbits;
+  const nbp: number = params.nbNodesPerOrbit || 6;
+  let nbo: number = params.nbOrbits || 3;
   const perturbation: number = params.perturbation;
-  const rng: any = seedrandom(params.seed.toString());
+  const seed = params.seed || "someseed";
+  const rng: any = seedrandom(seed.toString());
   const g = new Graph();
   const cx: number = width / 2 + xmin; /* centre x */
   const cy: number = height / 2 + ymin; /* centre y */
@@ -379,8 +380,9 @@ const makeGridGraph = (params: Params): Graph => {
   const ymin: number = params.margin;
   const width: number = params.width;
   const height: number = params.height;
-  const cells: number = params.cells;
-  const rng: any = seedrandom(params.seed.toString());
+  const cells: number = params.cells || 5;
+  const seed = params.seed || "someseed";
+  const rng: any = seedrandom(seed.toString());
   const perturbation: number = params.perturbation;
 
   /* make a simple grid graph */
@@ -388,7 +390,6 @@ const makeGridGraph = (params: Params): Graph => {
   const g = new Graph();
   let row: number, col: number;
   let x: number, y: number;
-  const size: number = width < height ? height : width;
 
   const nbcol: number = cells;
   const nbrow: number = cells;
@@ -454,14 +455,15 @@ const randomNodes = (w: number, h: number, xmin: number, ymin: number, n: number
 
 /*---------------------------*/
 
-const makeRandomGraph = (
-  xmin: number,
-  ymin: number,
-  width: number,
-  height: number,
-  nbNodes: number,
-  rng: any
-): Graph => {
+const makeRandomGraph = (params: Params): Graph => {
+  const xmin: number = params.margin;
+  const ymin: number = params.margin;
+  const width: number = params.width - 2*params.margin;
+  const height: number = params.height - 2*params.margin;
+  const nbNodes: number = params.nbNodes || 4;
+  const seed = params.seed || "someseed";
+  const rng: any = seedrandom(seed.toString());
+
   // Create a random graph
   const g = new Graph()
 
@@ -589,7 +591,7 @@ type Params = {
   shape2: number,
   margin: number,
 
-  graphType: 'Polar' | 'Grid' | 'Random',
+  plotType: 'Polar' | 'Grid' | 'Random',
   showGraph: boolean,
   palette: string[],
 
@@ -608,7 +610,7 @@ type Params = {
 }
 
 const renderCeltic = (params: Params): string => {
-  params.graphType ||= 'Polar';
+  params.plotType ||= 'Polar';
   params.width ||= 800;
   params.height ||= 800;
   params.margin ||= 50;
@@ -622,7 +624,7 @@ const renderCeltic = (params: Params): string => {
   params.palette = ['#522258', '#8C3061', '#C63C51', '#D95F59'];
 
   let graph: Graph;
-  switch (params.graphType) {
+  switch (params.plotType) {
   case 'Grid':
     graph = makeGridGraph(params);
     break;
@@ -630,15 +632,7 @@ const renderCeltic = (params: Params): string => {
     graph = makePolarGraph(params);
     break;
   case 'Random':
-    graph = makeRandomGraph(
-      params.margin,
-      params.margin,
-      params.width-2*params.margin,
-      params.height-2*params.margin,
-      params.nbNodes,
-      seedrandom(params.seed.toString()),
-      params.perturbation      
-    )
+    graph = makeRandomGraph(params);
   }
   const pattern = new Pattern(
     graph,
