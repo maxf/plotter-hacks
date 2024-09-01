@@ -28,10 +28,11 @@ function Boids(opts) {
   this.alignmentForce = opts.alignmentForce || opts.alignment || 0.25
   this.attractors = opts.attractors || []
   this.iterations = opts.iterations || 100;
+  this.nboids = opts.nboids || 10;
   
   var boids = this.boids = []
 
-  for (var i = 0, l = opts.boids === undefined ? 50 : opts.boids; i < l; i += 1) {
+  for (var i = 0, l = opts.nboids; i < l; i += 1) {
     boids[i] = [
       (this.rng()-0.5)*this.width/10 + this.width/2,
       (this.rng()-0.5)*this.height/10 + this.height/2, // position

@@ -24,7 +24,9 @@ const widgetValues = () => {
   params['nbNodesPerOrbit'] = parseInt($('nbNodesPerOrbit').value);
 
   // Boids
-  params['iterations'] = parseInt($('iterations').value);
+  ['iterations', 'nboids'].forEach(id => {
+    params[id] = parseInt($(id).value);
+  });
   
   return params;
 };
@@ -61,7 +63,7 @@ const activateControls = plotType => {
     ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
     break;
   case 'Boids':
-    ['iterations'].forEach(show);
+    ['iterations', 'nboids'].forEach(show);
     break; 
   }
 };
@@ -91,7 +93,10 @@ $('plotType').addEventListener('change', () => {
 
 $('saveSvg').addEventListener('click', saveSvg);
 
-['margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation', 'iterations'].forEach(id => {
+[
+  'margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits',
+  'nbNodesPerOrbit', 'perturbation', 'iterations', 'nboids'
+].forEach(id => {
   $(id).addEventListener('change', event => {
     $(`${id}-value`).innerText = event.target.value;
     $('canvas').innerHTML = render(widgetValues());
