@@ -23,6 +23,9 @@ const widgetValues = () => {
   params['nbOrbits'] = parseInt($('nbOrbits').value);
   params['nbNodesPerOrbit'] = parseInt($('nbNodesPerOrbit').value);
 
+  // Boids
+  params['iterations'] = parseInt($('iterations').value);
+  
   return params;
 };
 
@@ -43,28 +46,26 @@ const saveSvg = function() {
 }
 
 
-
 const activateControls = plotType => {
-  document.querySelectorAll('.control').forEach(control => control.style.display = 'none');
-  ['margin', 'seed'].forEach(control =>
-    $(`${control}-control`).style.display = 'inline');
+  const show = id => $(`${id}-control`).style.display = 'inline';
+  document.querySelectorAll('.control').forEach(el => el.style.display = 'none');
+  ['margin', 'seed'].forEach(show);
   switch (plotType) {
   case 'Random':
-    ['shape1', 'shape2', 'nbNodes', 'perturbation'].forEach(
-      control => $(`${control}-control`).style.display = 'inline');
+    ['shape1', 'shape2', 'nbNodes', 'perturbation'].forEach(show);
     break;
   case 'Grid':
-    ['shape1', 'shape2', 'cells', 'perturbation'].forEach(
-      control => $(`${control}-control`).style.display = 'inline');
+    ['shape1', 'shape2', 'cells', 'perturbation'].forEach(show);
     break;
   case 'Polar':
-    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(
-      control => $(`${control}-control`).style.display = 'inline');
+    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
     break;
   case 'Boids':
+    ['iterations'].forEach(show);
     break; 
   }
 };
+
 
 const render = params => {
   params.width ||= 800;
@@ -90,7 +91,7 @@ $('plotType').addEventListener('change', () => {
 
 $('saveSvg').addEventListener('click', saveSvg);
 
-['margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(id => {
+['margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation', 'iterations'].forEach(id => {
   $(id).addEventListener('change', event => {
     $(`${id}-value`).innerText = event.target.value;
     $('canvas').innerHTML = render(widgetValues());

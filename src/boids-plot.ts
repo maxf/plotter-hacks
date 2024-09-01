@@ -1,4 +1,5 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
+import seedrandom from 'seedrandom';
 
  const POSITIONX = 0
   , POSITIONY = 1
@@ -12,6 +13,7 @@ function Boids(opts) {
 
   opts = opts || {}
 
+  this.rng = seedrandom(opts.seed.toString()) || Math.random();
   this.width = opts.width;
   this.height = opts.height;  
   this.speedLimitRoot = opts.speedLimit || 0
@@ -25,13 +27,14 @@ function Boids(opts) {
   this.cohesionForce = opts.cohesionForce || 0.5
   this.alignmentForce = opts.alignmentForce || opts.alignment || 0.25
   this.attractors = opts.attractors || []
-
+  this.iterations = opts.iterations || 100;
+  
   var boids = this.boids = []
 
   for (var i = 0, l = opts.boids === undefined ? 50 : opts.boids; i < l; i += 1) {
     boids[i] = [
-      (Math.random()-0.5)*this.width/10 + this.width/2,
-      (Math.random()-0.5)*this.height/10 + this.height/2, // position
+      (this.rng()-0.5)*this.width/10 + this.width/2,
+      (this.rng()-0.5)*this.height/10 + this.height/2, // position
       0, 0,                               // speed
       0, 0                               // acceleration
     ]
@@ -171,7 +174,7 @@ const renderBoids = params => {
     boidPathsDs[i] = [`M${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`];
   }
     
-  for (let iteration = 0; iteration < 100; iteration++) {
+  for (let iteration = 0; iteration < b.iterations; iteration++) {
     b.tick();
     for (let i=0; i<b.boids.length; i++) { 
       boidPathsDs[i].push(`L${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`);
