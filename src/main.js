@@ -10,7 +10,7 @@ const widgetValues = () => {
     params[id] = parseFloat($(id).value);
   });
   params['showGraph'] = $('showGraph').checked;
-  params['graphType'] = $('graphType').value;
+  params['plotType'] = $('plotType').value;
 
   // Random only
   params['nbNodes'] = parseInt($('nbNodes').value);
@@ -44,11 +44,11 @@ const saveSvg = function() {
 
 
 
-const activateControls = graphType => {
+const activateControls = plotType => {
   document.querySelectorAll('.control').forEach(control => control.style.display = 'none');
   ['margin', 'seed'].forEach(control =>
     $(`${control}-control`).style.display = 'inline');
-  switch (graphType) {
+  switch (plotType) {
   case 'Random':
     ['shape1', 'shape2', 'nbNodes', 'perturbation'].forEach(
       control => $(`${control}-control`).style.display = 'inline');
@@ -70,7 +70,7 @@ const render = params => {
   params.width ||= 800;
   params.height ||= 800;
 
-  const renderFn = (['Random', 'Grid', 'Polar'].includes(params.graphType))
+  const renderFn = (['Random', 'Grid', 'Polar'].includes(params.plotType))
         ? renderCeltic
         : renderBoids;
 
@@ -83,8 +83,8 @@ $('showGraph').addEventListener('change', () => {
   $('canvas').innerHTML = render(widgetValues());
 });
 
-$('graphType').addEventListener('change', () => {
-  activateControls($('graphType').value);
+$('plotType').addEventListener('change', () => {
+  activateControls($('plotType').value);
   $('canvas').innerHTML = render(widgetValues());
 });
 
@@ -100,5 +100,5 @@ $('saveSvg').addEventListener('click', saveSvg);
 
 // =========== First render =============
 
-activateControls($('graphType').value);
+activateControls($('plotType').value);
 $('canvas').innerHTML = render(widgetValues());
