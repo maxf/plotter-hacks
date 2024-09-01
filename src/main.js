@@ -41,6 +41,28 @@ const saveSvg = function() {
   document.body.removeChild(downloadLink);
 }
 
+
+
+const activateControls = graphType => {
+  document.querySelectorAll('.control').forEach(control => control.style.display = 'none');
+  ['margin', 'seed', 'perturbation'].forEach(control =>
+    $(`${control}-control`).style.display = 'inline');
+  switch (graphType) {
+  case 'Random':
+    ['shape1', 'shape2', 'nbNodes'].forEach(
+      control => $(`${control}-control`).style.display = 'inline');
+    break;
+  case 'Grid':
+    ['shape1', 'shape2', 'cells'].forEach(
+      control => $(`${control}-control`).style.display = 'inline');
+    break;
+  case 'Polar':
+    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit'].forEach(
+      control => $(`${control}-control`).style.display = 'inline');
+    break;
+  }
+};
+
 // ============ Add event listeners ============
 
 $('showGraph').addEventListener('change', () => {
@@ -48,12 +70,7 @@ $('showGraph').addEventListener('change', () => {
 });
 
 $('graphType').addEventListener('change', () => {
-  $('canvas').innerHTML = render(widgetValues());
-});
-
-
-
-$('graphType').addEventListener('change', () => {
+  activateControls($('graphType').value);
   $('canvas').innerHTML = render(widgetValues());
 });
 
@@ -69,4 +86,5 @@ $('saveSvg').addEventListener('click', saveSvg);
 
 // =========== First render =============
 
+activateControls($('graphType').value);
 $('canvas').innerHTML = render(widgetValues());
