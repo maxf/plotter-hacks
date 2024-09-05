@@ -1,24 +1,17 @@
 {
   "devDependencies": {
-    "parcel": "^2.12.0",
-    "ts-loader": "^9.5.1",
+    "esbuild": "0.23.1",
     "typescript": "^5.5.4"
   },
-  "name": "celtic-plot",
-  "version": "1.0.0",
-  "private": true,
   "scripts": {
     "check": "npx tsc --noEmit",
-    "start": "npx parcel index.html",
-    "build": "npx parcel build index.html"
+    "build": "npx esbuild src/main.js --bundle --outfile=build/out.js",
+    "watch-ts": "ls src/*.ts | entr npx tsc --noEmit",
+    "watch": "ls src/* | entr npx esbuild src/main.js --bundle --outfile=build/out.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@types/delaunator": "^5.0.3",
     "@types/seedrandom": "^3.0.8",
-    "boids": "^2.0.0",
     "delaunator": "^5.0.1",
     "seedrandom": "^3.0.5"
   }
