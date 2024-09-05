@@ -81,7 +81,7 @@
      </span>
 
      <span class="control" id="nboids-control">
-       <input id="nboids" type="range" min="1" max="300" value="10"/>
+       <input id="nboids" type="range" min="1" max="100" value="10"/>
        Boids:
        <span id="nboids-value">10</span><br/>
      </span>
@@ -90,6 +90,12 @@
        <input id="speedLimit" type="range" min="0" max="30" value="30" step="0.1"/>
        Speed limit:
        <span id="speedLimit-value">30</span><br/>
+     </span>
+
+     <span class="control" id="cohesionForce-control">
+       <input id="cohesionForce" type="range" min="0" max="1" value="0.5" step="0.01"/>
+       Cohesion force:
+       <span id="cohesionForce-value">0.5</span><br/>
      </span>
 
      <!-- SVG save -->

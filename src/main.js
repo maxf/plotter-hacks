@@ -26,7 +26,7 @@ const widgetValues = () => {
   });
 
   // Boids
-  ['iterations', 'nboids', 'speedLimit'].forEach(id => {
+  ['iterations', 'nboids', 'speedLimit', 'cohesionForce'].forEach(id => {
     params[id] = parseFloat($(id).value);
   });
   
@@ -65,7 +65,7 @@ const activateControls = plotType => {
     ['showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
     break;
   case 'Boids':
-    ['iterations', 'nboids', 'speedLimit'].forEach(show);
+    ['iterations', 'nboids', 'speedLimit', 'cohesionForce'].forEach(show);
     break; 
   }
 };
@@ -97,7 +97,8 @@ $('saveSvg').addEventListener('click', saveSvg);
 
 [
   'margin', 'seed', 'shape1', 'shape2', 'nbNodes', 'cells', 'nbOrbits',
-  'nbNodesPerOrbit', 'perturbation', 'iterations', 'nboids', 'speedLimit'
+  'nbNodesPerOrbit', 'perturbation', 'iterations', 'nboids', 'speedLimit',
+  'cohesionForce'
 ].forEach(id => {
   $(id).addEventListener('change', event => {
     $(`${id}-value`).innerText = event.target.value;
