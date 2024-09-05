@@ -56,13 +56,13 @@ const activateControls = plotType => {
   ['margin', 'seed'].forEach(show);
   switch (plotType) {
   case 'Random':
-    ['shape1', 'shape2', 'nbNodes'].forEach(show);
+    ['showGraph', 'shape1', 'shape2', 'nbNodes'].forEach(show);
     break;
   case 'Grid':
-    ['shape1', 'shape2', 'cells', 'perturbation'].forEach(show);
+    ['showGraph', 'shape1', 'shape2', 'cells', 'perturbation'].forEach(show);
     break;
   case 'Polar':
-    ['shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
+    ['showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'].forEach(show);
     break;
   case 'Boids':
     ['iterations', 'nboids', 'speedLimit'].forEach(show);
