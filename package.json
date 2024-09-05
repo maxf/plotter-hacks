@@ -1,13 +1,14 @@
 {
   "devDependencies": {
     "esbuild": "0.23.1",
+    "nodemon": "^3.1.4",
     "typescript": "^5.5.4"
   },
   "scripts": {
     "check": "npx tsc --noEmit",
     "build": "npx esbuild src/main.js --bundle --outfile=build/out.js",
-    "watch-ts": "ls src/*.ts | entr npx tsc --noEmit",
-    "watch": "ls src/* | entr npx esbuild src/main.js --bundle --outfile=build/out.js"
+    "watch-check": "ls src/*.ts | entr npx tsc --noEmit",
+    "watch": "npx esbuild src/main.js --bundle --outfile=build/out.js --watch"
   },
   "dependencies": {
     "@types/delaunator": "^5.0.3",
