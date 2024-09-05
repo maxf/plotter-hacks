@@ -232,6 +232,12 @@ const renderBoids = (params: Params) => {
 
   return `
     <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
+      <rect
+        x="${params.margin}"
+        y="${params.margin}"
+        width="${params.width-2*params.margin}"
+        height="${params.width-2*params.margin}"
+        style="fill:none; stroke: black"/>
       <g id="pattern" style="fill:none; stroke: red">
         ${boidsPaths.join('')}
       </g>
