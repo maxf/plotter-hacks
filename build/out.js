@@ -2063,7 +2063,16 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     const params2 = new URLSearchParams(window.location.search);
     const result = defaults;
     for (const [key, value] of params2) {
-      result[key] = isNaN(value) ? value : parseFloat(value);
+      const num = Number(value);
+      if (!isNaN(num)) {
+        result[key] = num;
+      } else if (value === "true") {
+        result[key] = true;
+      } else if (value === "false") {
+        result[key] = false;
+      } else {
+        result[key] = value;
+      }
     }
     return result;
   };

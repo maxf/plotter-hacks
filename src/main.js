@@ -59,7 +59,16 @@ const paramsFromUrl = (defaults) => {
   const params = new URLSearchParams(window.location.search);
   const result = defaults;
   for (const [key, value] of params) {
-    result[key] = isNaN(value) ? value : parseFloat(value);
+    const num = Number(value);
+    if (!isNaN(num)) {
+      result[key] = num;
+    } else if (value === 'true') {
+      result[key] = true;
+    } else if (value === 'false') {
+      result[key] = false;
+    } else {
+      result[key] = value;
+    }
   }
   return result;
 };
@@ -164,6 +173,5 @@ $('plotType').value = params.plotType;
 
 // only show the relevant ones
 activateControls(params.plotType);
-
 
 $('canvas').innerHTML = render(params);
