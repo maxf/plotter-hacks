@@ -2021,42 +2021,87 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
   `;
   };
 
-  // src/main.js
+  // src/main.ts
   var $ = (id) => document.getElementById(id);
+  var plotTypeEl = document.getElementById("plotType");
+  var Control = class {
+    constructor(name, type, value) {
+      this.name = name;
+      this.type = type;
+      this.wrapper = document.getElementById(`${name}-control`);
+      this.widget = document.getElementById(name);
+      this.widget.value = value;
+      this.widget.value = value;
+      if (this.type === "number") {
+        this.value = document.getElementById(`${name}-value`);
+        this.value.innerText = value;
+      }
+      this.widget.addEventListener("change", (event) => {
+        this.widget.value = event.target.value;
+        if (this.value) {
+          this.value.innerText = this.widget.value;
+        }
+        $("canvas").innerHTML = render(paramsFromWidgets());
+      });
+    }
+    set(newValue) {
+      this.widget.value = newValue;
+      if (this.value) {
+        this.value.innerText = newValue;
+      }
+    }
+    val() {
+      switch (this.type) {
+        case "string":
+        case "select":
+          return this.widget.value;
+        case "boolean":
+          return this.widget.checked;
+        case "number":
+          return parseFloat(this.widget.value);
+      }
+    }
+    show() {
+      this.wrapper.style.display = "block";
+    }
+    hide() {
+      this.wrapper.style.display = "none";
+    }
+  };
   var defaultParams = {
-    "plotType": "Polar",
-    "margin": 100,
-    "seed": 100,
-    "shape1": 0.3,
-    "shape2": 0.3,
-    "showGraph": false,
-    "nbNodes": 4,
-    "cells": 4,
-    "perturbation": 0,
-    "nbOrbits": 3,
-    "nbNodesPerOrbit": 3,
-    "iterations": 100,
-    "nboids": 10,
-    "speedLimit": 30,
-    "cohesionForce": 0.5
+    width: 800,
+    height: 800,
+    plotType: "Polar",
+    margin: 100,
+    seed: 100,
+    shape1: 0.3,
+    shape2: 0.3,
+    showGraph: false,
+    nbNodes: 4,
+    cells: 4,
+    perturbation: 0,
+    nbOrbits: 3,
+    nbNodesPerOrbit: 3,
+    iterations: 100,
+    nboids: 10,
+    speedLimit: 30,
+    cohesionForce: 0.5
   };
   var paramsFromWidgets = () => {
-    const params2 = {};
-    ["margin", "seed", "shape1", "shape2"].forEach((id) => {
-      params2[id] = parseFloat($(id).value);
-    });
-    params2["showGraph"] = $("showGraph").checked;
-    params2["plotType"] = $("plotType").value;
-    params2["nbNodes"] = parseInt($("nbNodes").value);
-    ["cells", "perturbation"].forEach((id) => {
-      params2[id] = parseInt($(id).value);
-    });
-    ["cells", "nbOrbits", "nbNodesPerOrbit", "perturbation"].forEach((id) => {
-      params2[id] = parseInt($(id).value);
-    });
-    ["iterations", "nboids", "speedLimit", "cohesionForce"].forEach((id) => {
-      params2[id] = parseFloat($(id).value);
-    });
+    const params2 = { ...defaultParams };
+    params2.margin = controls.margin.val();
+    params2.shape1 = controls.shape1.val();
+    params2.shape2 = controls.shape2.val();
+    params2.showGraph = controls.showGraph.val();
+    params2.seed = controls.seed.val();
+    params2.nbNodes = controls.nbNodes.val();
+    params2.cells = controls.cells.val();
+    params2.perturbation = controls.perturbation.val();
+    params2.nboids = controls.nboids.val();
+    params2.speedLimit = controls.speedLimit.val();
+    params2.cohesionForce = controls.cohesionForce.val();
+    params2.iterations = controls.iterations.val();
+    params2.plotType = plotTypeEl.value;
     return params2;
   };
   var paramsFromUrl = (defaults) => {
@@ -2100,13 +2145,15 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
   var activateControls = (plotType) => {
     const show = (id) => $(`${id}-control`).style.display = "inline";
     document.querySelectorAll(".control").forEach((el) => el.style.display = "none");
-    ["margin", "seed"].forEach(show);
+    controls.margin.show();
+    controls.seed.show();
     paramsPerType[plotType].forEach(show);
   };
   var updateUrl = (params2) => {
-    const url = new URL(window.location);
+    const url = new URL(window.location.toString());
     url.search = "";
-    const qsParams = paramsPerType.common.concat(paramsPerType[params2.plotType]);
+    const pt = params2.plotType;
+    const qsParams = paramsPerType.common.concat(paramsPerType[pt]);
     qsParams.forEach((key) => {
       url.searchParams.set(key, params2[key]);
     });
@@ -2119,54 +2166,41 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     const renderFn = ["Random", "Grid", "Polar"].includes(params2.plotType) ? renderCeltic : renderBoids;
     return renderFn(params2);
   };
-  $("showGraph").addEventListener("change", () => {
-    $("canvas").innerHTML = render(paramsFromWidgets());
-  });
-  $("plotType").addEventListener("change", () => {
-    activateControls($("plotType").value);
+  var controls = {
+    margin: new Control("margin", "number", defaultParams["margin"]),
+    shape1: new Control("shape1", "number", defaultParams["shape1"]),
+    shape2: new Control("shape2", "number", defaultParams["shape2"]),
+    showGraph: new Control("showGraph", "boolean", defaultParams["showGraph"]),
+    seed: new Control("seed", "number", defaultParams["seed"]),
+    nbNodes: new Control("nbNodes", "number", defaultParams["nbNodes"]),
+    cells: new Control("cells", "number", defaultParams["cells"]),
+    nbOrbits: new Control("nbOrbits", "number", defaultParams["nbOrbits"]),
+    nbNodesPerOrbit: new Control("nbNodesPerOrbit", "number", defaultParams["nbNodesPerOrbit"]),
+    cohesionForce: new Control("cohesionForce", "number", defaultParams["cohesionForce"]),
+    iterations: new Control("iterations", "number", defaultParams["iterations"]),
+    speedLimit: new Control("speedLimit", "number", defaultParams["speedLimit"]),
+    perturbation: new Control("perturbation", "number", defaultParams["perturbation"]),
+    nboids: new Control("nboids", "number", defaultParams["nboids"])
+  };
+  plotTypeEl.addEventListener("change", () => {
+    activateControls(plotTypeEl.value);
     $("canvas").innerHTML = render(paramsFromWidgets());
   });
   $("saveSvg").addEventListener("click", saveSvg);
-  [
-    "margin",
-    "seed",
-    "shape1",
-    "shape2",
-    "nbNodes",
-    "cells",
-    "nbOrbits",
-    "nbNodesPerOrbit",
-    "perturbation",
-    "iterations",
-    "nboids",
-    "speedLimit",
-    "cohesionForce"
-  ].forEach((id) => {
-    $(id).addEventListener("change", (event) => {
-      $(`${id}-value`).innerText = event.target.value;
-      $("canvas").innerHTML = render(paramsFromWidgets());
-    });
-  });
+  window.onerror = function(message, _, lineno, colno) {
+    const displayArea = document.getElementById("errors");
+    displayArea.textContent += `Error: ${message} at ${lineno}:${colno}
+`;
+    return true;
+  };
   var params = paramsFromUrl(defaultParams);
-  [
-    "margin",
-    "seed",
-    "shape1",
-    "shape2",
-    "nbNodes",
-    "cells",
-    "nbOrbits",
-    "nbNodesPerOrbit",
-    "perturbation",
-    "iterations",
-    "nboids",
-    "speedLimit",
-    "cohesionForce"
-  ].forEach((key) => {
-    $(key).value = $(`${key}-value`).innerText = params[key];
+  Object.keys(params).forEach((key) => {
+    if (key in controls) {
+      controls[key].set(params[key]);
+    }
   });
   $("showGraph").checked = params.showGraph;
-  $("plotType").value = params.plotType;
+  plotTypeEl.value = params.plotType;
   activateControls(params.plotType);
   $("canvas").innerHTML = render(params);
 })();
