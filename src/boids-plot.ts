@@ -8,6 +8,7 @@ type Params = {
   margin: number,
   plotType: 'Boids',
   iterations: number,
+  startIteration: number,
   nboids: number,
   speedLimit: number,
   seed: number,
@@ -49,6 +50,7 @@ class Boids {
   separationForce: number;
   attractors: number[][];
   iterations: number;
+  startIteration: number;
   nboids: number;
   boids: [number, number, number, number, number, number][];
 
@@ -70,6 +72,7 @@ class Boids {
     this.alignmentForce = opts.alignmentForce || opts.alignment || 0.25
     this.attractors = opts.attractors || []
     this.iterations = opts.iterations || 100;
+    this.startIteration = opts.startIteration || 0;
     this.nboids = opts.nboids || 10;
 
     this.boids = []
@@ -213,12 +216,16 @@ function hypot(a: number, b: number): number {
 const renderBoids = (params: Params) => {
   const b = new Boids(params);
 
+  for (let iteration = 0; iteration < b.startIteration; iteration++) {
+    b.tick();
+  }
+
   const boidPathsDs = [];
   for (let i=0; i<b.boids.length; i++) { 
     boidPathsDs[i] = [`M${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`];
   }
-    
-  for (let iteration = 0; iteration < b.iterations; iteration++) {
+
+  for (let iteration = b.startIteration; iteration < b.startIteration + b.iterations; iteration++) {
     b.tick();
     for (let i=0; i<b.boids.length; i++) { 
       boidPathsDs[i].push(`L${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`);

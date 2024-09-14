@@ -88,6 +88,7 @@ type Params = {
 
   // for boids
   iterations?: number,
+  startIteration?: number,
   nboids?: number,
   speedLimit?: number,
   cohesionForce?: number
@@ -108,7 +109,8 @@ const defaultParams: Params = {
   perturbation: 0,
   nbOrbits: 3,
   nbNodesPerOrbit: 3,
-  iterations: 100,
+  iterations: 10,
+  startIteration: 0,
   nboids: 10,
   speedLimit: 30,
   cohesionForce: 0.5
@@ -130,6 +132,7 @@ const paramsFromWidgets = () => {
   params.speedLimit = controls.speedLimit.val() as number;
   params.cohesionForce = controls.cohesionForce.val() as number;
   params.iterations = controls.iterations.val() as number;
+  params.startIteration = controls.startIteration.val() as number;
 
   params.plotType = plotTypeEl.value as PlotType;
 
@@ -175,7 +178,7 @@ const paramsPerType = {
   Random: ['showGraph', 'shape1', 'shape2', 'nbNodes'],
   Grid: ['showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
   Polar: ['showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'],
-  Boids: ['iterations', 'nboids', 'speedLimit', 'cohesionForce'],
+  Boids: ['iterations', 'startIteration', 'nboids', 'speedLimit', 'cohesionForce'],
   common: ['seed', 'plotType', 'margin']
 };
 
@@ -229,6 +232,7 @@ const controls = {
   nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'number', defaultParams['nbNodesPerOrbit']),
   cohesionForce: new Control('cohesionForce', 'number', defaultParams['cohesionForce']),
   iterations: new Control('iterations', 'number', defaultParams['iterations']),
+  startIteration: new Control('startIteration', 'number', defaultParams['startIteration']),
   speedLimit: new Control('speedLimit', 'number', defaultParams['speedLimit']),
   perturbation: new Control('perturbation', 'number', defaultParams['perturbation']),
   nboids: new Control('nboids', 'number', defaultParams['nboids'])
@@ -246,13 +250,6 @@ $('saveSvg').addEventListener('click', saveSvg);
 
 
 // =========== First render =============
-
-window.onerror = function (message, _, lineno, colno) {
-  const displayArea = document.getElementById('errors')!;
-  displayArea.textContent += `Error: ${message} at ${lineno}:${colno}\n`;
-  return true; // Prevents the firing of the default event handler
-};
-
 
 // Fetch plot parameters from the query string
 const params = paramsFromUrl(defaultParams);

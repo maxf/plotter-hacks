@@ -1890,6 +1890,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
       this.alignmentForce = opts.alignmentForce || opts.alignment || 0.25;
       this.attractors = opts.attractors || [];
       this.iterations = opts.iterations || 100;
+      this.startIteration = opts.startIteration || 0;
       this.nboids = opts.nboids || 10;
       this.boids = [];
       for (let i = 0, l = opts.nboids; i < l; i += 1) {
@@ -1992,11 +1993,14 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
   }
   var renderBoids = (params2) => {
     const b = new Boids(params2);
+    for (let iteration = 0; iteration < b.startIteration; iteration++) {
+      b.tick();
+    }
     const boidPathsDs = [];
     for (let i = 0; i < b.boids.length; i++) {
       boidPathsDs[i] = [`M${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`];
     }
-    for (let iteration = 0; iteration < b.iterations; iteration++) {
+    for (let iteration = b.startIteration; iteration < b.startIteration + b.iterations; iteration++) {
       b.tick();
       for (let i = 0; i < b.boids.length; i++) {
         boidPathsDs[i].push(`L${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`);
@@ -2082,7 +2086,8 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     perturbation: 0,
     nbOrbits: 3,
     nbNodesPerOrbit: 3,
-    iterations: 100,
+    iterations: 10,
+    startIteration: 0,
     nboids: 10,
     speedLimit: 30,
     cohesionForce: 0.5
@@ -2101,6 +2106,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     params2.speedLimit = controls.speedLimit.val();
     params2.cohesionForce = controls.cohesionForce.val();
     params2.iterations = controls.iterations.val();
+    params2.startIteration = controls.startIteration.val();
     params2.plotType = plotTypeEl.value;
     return params2;
   };
@@ -2139,7 +2145,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     Random: ["showGraph", "shape1", "shape2", "nbNodes"],
     Grid: ["showGraph", "shape1", "shape2", "cells", "perturbation"],
     Polar: ["showGraph", "shape1", "shape2", "nbOrbits", "nbNodesPerOrbit", "perturbation"],
-    Boids: ["iterations", "nboids", "speedLimit", "cohesionForce"],
+    Boids: ["iterations", "startIteration", "nboids", "speedLimit", "cohesionForce"],
     common: ["seed", "plotType", "margin"]
   };
   var activateControls = (plotType) => {
@@ -2178,6 +2184,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     nbNodesPerOrbit: new Control("nbNodesPerOrbit", "number", defaultParams["nbNodesPerOrbit"]),
     cohesionForce: new Control("cohesionForce", "number", defaultParams["cohesionForce"]),
     iterations: new Control("iterations", "number", defaultParams["iterations"]),
+    startIteration: new Control("startIteration", "number", defaultParams["startIteration"]),
     speedLimit: new Control("speedLimit", "number", defaultParams["speedLimit"]),
     perturbation: new Control("perturbation", "number", defaultParams["perturbation"]),
     nboids: new Control("nboids", "number", defaultParams["nboids"])
@@ -2187,12 +2194,6 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     $("canvas").innerHTML = render(paramsFromWidgets());
   });
   $("saveSvg").addEventListener("click", saveSvg);
-  window.onerror = function(message, _, lineno, colno) {
-    const displayArea = document.getElementById("errors");
-    displayArea.textContent += `Error: ${message} at ${lineno}:${colno}
-`;
-    return true;
-  };
   var params = paramsFromUrl(defaultParams);
   Object.keys(params).forEach((key) => {
     if (key in controls) {
