@@ -162,6 +162,8 @@ const paramsFromWidgets = () => {
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
   params.plotType = controls.plotType.val() as PlotType;
+  params.nbOrbits = controls.nbOrbits.val() as number;
+  params.nbNodesPerOrbit = controls.nbNodesPerOrbit.val() as number;
 
   return params;
 };

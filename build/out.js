@@ -2135,6 +2135,8 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     params2.iterations = controls.iterations.val();
     params2.startIteration = controls.startIteration.val();
     params2.plotType = controls.plotType.val();
+    params2.nbOrbits = controls.nbOrbits.val();
+    params2.nbNodesPerOrbit = controls.nbNodesPerOrbit.val();
     return params2;
   };
   var paramsFromUrl = (defaults) => {
