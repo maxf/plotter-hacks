@@ -2027,49 +2027,76 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
 
   // src/main.ts
   var $ = (id) => document.getElementById(id);
-  var plotTypeEl = document.getElementById("plotType");
   var Control = class {
-    constructor(name, type, value) {
-      this.name = name;
-      this.type = type;
-      this.wrapper = document.getElementById(`${name}-control`);
-      this.widget = document.getElementById(name);
-      this.widget.value = value;
-      this.widget.value = value;
-      if (this.type === "number") {
-        this.value = document.getElementById(`${name}-value`);
-        this.value.innerText = value;
+    #name;
+    #wrapperEl;
+    #widgetEl;
+    #valueEl;
+    #type;
+    #value;
+    //constructor(name: string, label: string, type: ControlType, value: any) {
+    constructor(name, label, type, value, options) {
+      this.#name = name;
+      this.#type = type;
+      this.#value = value;
+      this.#createHtmlControl("controls", label, options);
+      this.#wrapperEl = document.getElementById(`${name}-control`);
+      this.#widgetEl = document.getElementById(name);
+      this.#widgetEl.value = value;
+      if (this.#type === "number") {
+        this.#valueEl = document.getElementById(`${name}-value`);
+        this.#valueEl.innerText = value;
       }
-      this.widget.addEventListener("change", (event) => {
-        this.widget.value = event.target.value;
-        if (this.value) {
-          this.value.innerText = this.widget.value;
+      this.#widgetEl.onchange = (event) => {
+        this.#value = this.#widgetEl.value = event.target.value;
+        if (this.#valueEl) {
+          this.#valueEl.innerText = this.#value;
         }
-        $("canvas").innerHTML = render(paramsFromWidgets());
-      });
+        $("canvas").innerHTML = render();
+      };
+    }
+    #createHtmlControl(anchor, label, options) {
+      const html = [];
+      html.push(`<span class="control" id="${this.#name}-control">`);
+      switch (this.#type) {
+        case "number":
+          const step = options.step ? `step="${options.step}"` : "";
+          html.push(`
+        <input id="${this.#name}" type="range" min="${options.min}" max="${options.max}" value="${this.#value}" ${step}"/>
+        ${label}
+        <span id="${this.#name}-value">${this.#value}</span>
+      `);
+          break;
+        case "boolean":
+          html.push(`<input type="checkbox" id="${this.#name}"> ${label}`);
+          break;
+        case "select":
+          if (label) html.push(`${label}: `);
+          html.push(`<select id="${this.#name}">`);
+          options.choices.forEach((choice) => html.push(`<option>${choice}</option>`));
+          html.push("</select>");
+      }
+      html.push(`<br/></span>`);
+      const anchorElement = $(anchor);
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
     }
     set(newValue) {
-      this.widget.value = newValue;
-      if (this.value) {
-        this.value.innerText = newValue;
+      this.#value = newValue;
+      this.#widgetEl.value = newValue;
+      if (this.#valueEl) {
+        this.#valueEl.innerText = newValue;
       }
     }
     val() {
-      switch (this.type) {
-        case "string":
-        case "select":
-          return this.widget.value;
-        case "boolean":
-          return this.widget.checked;
-        case "number":
-          return parseFloat(this.widget.value);
-      }
+      return this.#value;
     }
     show() {
-      this.wrapper.style.display = "block";
+      this.#wrapperEl.style.display = "block";
     }
     hide() {
-      this.wrapper.style.display = "none";
+      this.#wrapperEl.style.display = "none";
     }
   };
   var defaultParams = {
@@ -2107,7 +2134,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     params2.cohesionForce = controls.cohesionForce.val();
     params2.iterations = controls.iterations.val();
     params2.startIteration = controls.startIteration.val();
-    params2.plotType = plotTypeEl.value;
+    params2.plotType = controls.plotType.val();
     return params2;
   };
   var paramsFromUrl = (defaults) => {
@@ -2142,30 +2169,28 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     document.body.removeChild(downloadLink);
   };
   var paramsPerType = {
-    Random: ["showGraph", "shape1", "shape2", "nbNodes"],
-    Grid: ["showGraph", "shape1", "shape2", "cells", "perturbation"],
-    Polar: ["showGraph", "shape1", "shape2", "nbOrbits", "nbNodesPerOrbit", "perturbation"],
-    Boids: ["iterations", "startIteration", "nboids", "speedLimit", "cohesionForce"],
-    common: ["seed", "plotType", "margin"]
+    Random: ["seed", "plotType", "margin", "showGraph", "shape1", "shape2", "nbNodes"],
+    Grid: ["seed", "plotType", "margin", "showGraph", "shape1", "shape2", "cells", "perturbation"],
+    Polar: ["seed", "plotType", "margin", "showGraph", "shape1", "shape2", "nbOrbits", "nbNodesPerOrbit", "perturbation"],
+    Boids: ["seed", "plotType", "margin", "iterations", "startIteration", "nboids", "speedLimit", "cohesionForce"]
   };
   var activateControls = (plotType) => {
-    const show = (id) => $(`${id}-control`).style.display = "inline";
-    document.querySelectorAll(".control").forEach((el) => el.style.display = "none");
-    controls.margin.show();
-    controls.seed.show();
-    paramsPerType[plotType].forEach(show);
+    Object.values(controls).forEach((c) => c.hide());
+    paramsPerType[plotType].forEach((name) => controls[name].show());
   };
   var updateUrl = (params2) => {
     const url = new URL(window.location.toString());
     url.search = "";
     const pt = params2.plotType;
-    const qsParams = paramsPerType.common.concat(paramsPerType[pt]);
-    qsParams.forEach((key) => {
+    paramsPerType[pt].forEach((key) => {
       url.searchParams.set(key, params2[key]);
     });
     history.pushState(null, "", url);
   };
   var render = (params2) => {
+    if (!params2) {
+      params2 = paramsFromWidgets();
+    }
     params2.width ||= 800;
     params2.height ||= 800;
     updateUrl(params2);
@@ -2173,25 +2198,26 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     return renderFn(params2);
   };
   var controls = {
-    margin: new Control("margin", "number", defaultParams["margin"]),
-    shape1: new Control("shape1", "number", defaultParams["shape1"]),
-    shape2: new Control("shape2", "number", defaultParams["shape2"]),
-    showGraph: new Control("showGraph", "boolean", defaultParams["showGraph"]),
-    seed: new Control("seed", "number", defaultParams["seed"]),
-    nbNodes: new Control("nbNodes", "number", defaultParams["nbNodes"]),
-    cells: new Control("cells", "number", defaultParams["cells"]),
-    nbOrbits: new Control("nbOrbits", "number", defaultParams["nbOrbits"]),
-    nbNodesPerOrbit: new Control("nbNodesPerOrbit", "number", defaultParams["nbNodesPerOrbit"]),
-    cohesionForce: new Control("cohesionForce", "number", defaultParams["cohesionForce"]),
-    iterations: new Control("iterations", "number", defaultParams["iterations"]),
-    startIteration: new Control("startIteration", "number", defaultParams["startIteration"]),
-    speedLimit: new Control("speedLimit", "number", defaultParams["speedLimit"]),
-    perturbation: new Control("perturbation", "number", defaultParams["perturbation"]),
-    nboids: new Control("nboids", "number", defaultParams["nboids"])
+    plotType: new Control("plotType", "", "select", defaultParams["plotType"], { choices: ["Polar", "Grid", "Random", "Boids"] }),
+    margin: new Control("margin", "Margin", "number", defaultParams["margin"], { min: 0, max: 500 }),
+    shape1: new Control("shape1", "Shape1", "number", defaultParams["shape1"], { min: -2, max: 2, step: 0.01 }),
+    shape2: new Control("shape2", "Shape2", "number", defaultParams["shape2"], { min: -2, max: 2, step: 0.01 }),
+    showGraph: new Control("showGraph", "Graph", "boolean", defaultParams["showGraph"], {}),
+    seed: new Control("seed", "RNG seed", "number", defaultParams["seed"], { min: 0, max: 500 }),
+    nbNodes: new Control("nbNodes", "Nodes", "number", defaultParams["nbNodes"], { min: 3, max: 40 }),
+    cells: new Control("cells", "Cells", "number", defaultParams["cells"], { min: 2, max: 100 }),
+    nbOrbits: new Control("nbOrbits", "Orbits", "number", defaultParams["nbOrbits"], { min: 1, max: 20 }),
+    nbNodesPerOrbit: new Control("nbNodesPerOrbit", "Nodes per orbit", "number", defaultParams["nbNodesPerOrbit"], { min: 1, max: 20 }),
+    cohesionForce: new Control("cohesionForce", "Cohesion", "number", defaultParams["cohesionForce"], { min: 0, max: 1, step: 0.01 }),
+    iterations: new Control("iterations", "Iterations", "number", defaultParams["iterations"], { min: 1, max: 100 }),
+    startIteration: new Control("startIteration", "Start iteration", "number", defaultParams["startIteration"], { min: 1, max: 1e3 }),
+    speedLimit: new Control("speedLimit", "Max speed", "number", defaultParams["speedLimit"], { min: 0, max: 30, step: 0.01 }),
+    perturbation: new Control("perturbation", "Perturbation", "number", defaultParams["perturbation"], { min: 0, max: 300 }),
+    nboids: new Control("nboids", "Boids", "number", defaultParams["nboids"], { min: 1, max: 100 })
   };
-  plotTypeEl.addEventListener("change", () => {
-    activateControls(plotTypeEl.value);
-    $("canvas").innerHTML = render(paramsFromWidgets());
+  $("plotType").addEventListener("change", () => {
+    const plotType = $("plotType");
+    activateControls(plotType.value);
   });
   $("saveSvg").addEventListener("click", saveSvg);
   var params = paramsFromUrl(defaultParams);
@@ -2201,7 +2227,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     }
   });
   $("showGraph").checked = params.showGraph;
-  plotTypeEl.value = params.plotType;
+  controls.plotType.set(params.plotType);
   activateControls(params.plotType);
   $("canvas").innerHTML = render(params);
 })();

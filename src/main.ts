@@ -3,64 +3,93 @@ import { renderBoids } from './boids-plot';
 
 const $ = (id: string) => document.getElementById(id)!;
 
-const plotTypeEl = document.getElementById('plotType') as HTMLInputElement;
-
 type ControlType = 'string'|'select'|'boolean'|'number';
 class Control {
-  name: string;
-  wrapper: HTMLDivElement;
-  widget: HTMLInputElement;
-  value: HTMLSpanElement | undefined;
-  type: ControlType;
+  #name: string;
+  #wrapperEl: HTMLDivElement;
+  #widgetEl: HTMLInputElement;
+  #valueEl: HTMLSpanElement | undefined;
+  #type: ControlType;
+  #value: any;
 
-  constructor(name: string, type: ControlType, value: any) {
-    this.name = name;
-    this.type = type;
-    this.wrapper = document.getElementById(`${name}-control`) as HTMLDivElement;
-    this.widget = document.getElementById(name) as HTMLInputElement;
-    this.widget.value = value;
-    this.widget.value = value;
-    if (this.type === 'number') {
-      this.value = document.getElementById(`${name}-value`) as HTMLSpanElement;
-      this.value.innerText = value;
+  //constructor(name: string, label: string, type: ControlType, value: any) {
+  constructor(name: string, label: string, type: ControlType, value: any, options: any) {
+    this.#name = name;
+    this.#type = type;
+    this.#value = value;
+
+    this.#createHtmlControl("controls", label, options);
+    this.#wrapperEl = document.getElementById(`${name}-control`) as HTMLDivElement;
+    this.#widgetEl = document.getElementById(name) as HTMLInputElement;
+    this.#widgetEl.value = value;
+    if (this.#type === 'number') {
+      this.#valueEl = document.getElementById(`${name}-value`) as HTMLSpanElement;
+      this.#valueEl.innerText = value;
     }
-
-    this.widget.addEventListener('change', event => {
-      this.widget.value = (event.target as HTMLInputElement).value;
-      if (this.value) {
-        this.value.innerText = this.widget.value;
+    this.#widgetEl.onchange = event => {
+      this.#value = this.#widgetEl.value = (event.target as HTMLInputElement).value;
+      if (this.#valueEl) {
+        this.#valueEl.innerText = this.#value;
       }
-      $('canvas').innerHTML = render(paramsFromWidgets());
-    });
+      $('canvas').innerHTML = render();
+    };
+  }
+
+
+  #createHtmlControl(anchor: string, label: string, options: any) {
+    const html = [];
+    html.push(`<span class="control" id="${this.#name}-control">`);
+    switch (this.#type) {
+      case 'number':
+        const step = options.step ? `step="${options.step}"` : '';
+        html.push(`
+        <input id="${this.#name}" type="range" min="${options.min}" max="${options.max}" value="${this.#value}" ${step}"/>
+        ${label}
+        <span id="${this.#name}-value">${this.#value}</span>
+      `);
+      break;
+      case 'boolean':
+        html.push(`<input type="checkbox" id="${this.#name}"> ${label}`);
+      break;
+      case 'select':
+        if (label) html.push(`${label}: `);
+        html.push(`<select id="${this.#name}">`);
+        options.choices.forEach((choice: string) => html.push(`<option>${choice}</option>`));
+        html.push('</select>');
+    }
+    html.push(`<br/></span>`);
+
+    // Find the anchor element and insert the constructed HTML as the last child
+    const anchorElement = $(anchor);
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html.join(''));
+    }
   }
 
   set(newValue : number|string|boolean) {
-    this.widget.value = newValue as string;
-    if (this.value) {
-      this.value.innerText = newValue as string;
+    this.#value = newValue;
+    this.#widgetEl.value = newValue as string;
+    if (this.#valueEl) {
+      this.#valueEl.innerText = newValue as string;
     }
   }
 
   val(): number|string|boolean {
-    switch(this.type) {
-      case 'string': case 'select': return this.widget.value;
-      case 'boolean': return this.widget.checked;
-      case 'number': return parseFloat(this.widget.value);
-    }
+    return this.#value;
   }
 
   show() {
-    this.wrapper.style.display = 'block';
+    this.#wrapperEl.style.display = 'block';
   }
 
   hide() {
-    this.wrapper.style.display = 'none';
+    this.#wrapperEl.style.display = 'none';
   }
 }
 
 
 
-type PlotType = 'Random'|'Grid'|'Polar'|'Boids'|'common';
+type PlotType = 'Random'|'Grid'|'Polar'|'Boids';
 
 type Params = {
   width: number,
@@ -119,7 +148,6 @@ const defaultParams: Params = {
 
 const paramsFromWidgets = () => {
   const params: Params = {...defaultParams};
-  // Common params
   params.margin = controls.margin.val() as number;
   params.shape1 = controls.shape1.val() as number;
   params.shape2 = controls.shape2.val() as number;
@@ -133,8 +161,7 @@ const paramsFromWidgets = () => {
   params.cohesionForce = controls.cohesionForce.val() as number;
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
-
-  params.plotType = plotTypeEl.value as PlotType;
+  params.plotType = controls.plotType.val() as PlotType;
 
   return params;
 };
@@ -174,28 +201,24 @@ const saveSvg = function() {
   document.body.removeChild(downloadLink);
 }
 
-const paramsPerType = {
-  Random: ['showGraph', 'shape1', 'shape2', 'nbNodes'],
-  Grid: ['showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
-  Polar: ['showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'],
-  Boids: ['iterations', 'startIteration', 'nboids', 'speedLimit', 'cohesionForce'],
-  common: ['seed', 'plotType', 'margin']
+const paramsPerType: Record<PlotType, ControlKeys[]>  = {
+  Random: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes'],
+  Grid: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
+  Polar: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'],
+  Boids: ['seed', 'plotType', 'margin', 'iterations', 'startIteration', 'nboids', 'speedLimit', 'cohesionForce'],
 };
 
 const activateControls = (plotType: PlotType) => {
-  const show = (id: string) => $(`${id}-control`).style.display = 'inline';
-  document.querySelectorAll('.control').forEach(el => (el as HTMLElement).style.display = 'none');
-  controls.margin.show();
-  controls.seed.show();
-  paramsPerType[plotType].forEach(show);
+  Object.values(controls).forEach(c => c.hide());
+  paramsPerType[plotType].forEach(name => controls[name].show());
+
 };
 
 const updateUrl = (params: any) => {
   const url = new URL(window.location.toString());
   url.search = '';
   const pt: PlotType = params.plotType
-  const qsParams = paramsPerType.common.concat(paramsPerType[pt]);
-  qsParams.forEach(key => {
+  paramsPerType[pt].forEach(key => {
     url.searchParams.set(key, params[key]);
   });
   history.pushState(null, '', url);
@@ -203,7 +226,12 @@ const updateUrl = (params: any) => {
 
 // ========== Main rendering function ===========
 
-const render = (params: any) => {
+const render = (params?: any) => {
+
+  if (!params) {
+    params = paramsFromWidgets();
+  }
+
   params.width ||= 800;
   params.height ||= 800;
 
@@ -221,31 +249,38 @@ const render = (params: any) => {
 
 
 const controls = {
-  margin: new Control('margin', 'number', defaultParams['margin']),
-  shape1: new Control('shape1', 'number', defaultParams['shape1']),
-  shape2: new Control('shape2', 'number', defaultParams['shape2']),
-  showGraph: new Control('showGraph', 'boolean', defaultParams['showGraph']),
-  seed: new Control('seed', 'number', defaultParams['seed']),
-  nbNodes: new Control('nbNodes', 'number', defaultParams['nbNodes']),
-  cells: new Control('cells', 'number', defaultParams['cells']),
-  nbOrbits: new Control('nbOrbits', 'number', defaultParams['nbOrbits']),
-  nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'number', defaultParams['nbNodesPerOrbit']),
-  cohesionForce: new Control('cohesionForce', 'number', defaultParams['cohesionForce']),
-  iterations: new Control('iterations', 'number', defaultParams['iterations']),
-  startIteration: new Control('startIteration', 'number', defaultParams['startIteration']),
-  speedLimit: new Control('speedLimit', 'number', defaultParams['speedLimit']),
-  perturbation: new Control('perturbation', 'number', defaultParams['perturbation']),
-  nboids: new Control('nboids', 'number', defaultParams['nboids'])
-}
+  plotType: new Control('plotType', '', 'select', defaultParams['plotType'], { choices: ['Polar', 'Grid', 'Random', 'Boids'] }),
+  margin: new Control('margin', 'Margin', 'number', defaultParams['margin'], { min: 0, max: 500}),
+  shape1: new Control('shape1', 'Shape1', 'number', defaultParams['shape1'], { min: -2, max: 2, step: 0.01}),
+  shape2: new Control('shape2', 'Shape2', 'number', defaultParams['shape2'], { min: -2, max: 2, step: 0.01}),
+  showGraph: new Control('showGraph', 'Graph', 'boolean', defaultParams['showGraph'], {}),
+  seed: new Control('seed', 'RNG seed', 'number', defaultParams['seed'], { min: 0, max: 500}),
+  nbNodes: new Control('nbNodes', 'Nodes', 'number', defaultParams['nbNodes'], { min: 3, max: 40 }),
+  cells: new Control('cells', 'Cells', 'number', defaultParams['cells'], { min: 2, max: 100 }),
+  nbOrbits: new Control('nbOrbits', 'Orbits', 'number', defaultParams['nbOrbits'], { min: 1, max: 20}),
+  nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'Nodes per orbit', 'number', defaultParams['nbNodesPerOrbit'], { min: 1, max: 20}),
+  cohesionForce: new Control('cohesionForce', 'Cohesion', 'number', defaultParams['cohesionForce'], { min: 0, max: 1, step: 0.01}),
+  iterations: new Control('iterations', 'Iterations', 'number', defaultParams['iterations'], { min: 1, max: 100}),
+  startIteration: new Control('startIteration', 'Start iteration', 'number', defaultParams['startIteration'], { min: 1, max: 1000}),
+  speedLimit: new Control('speedLimit', 'Max speed', 'number', defaultParams['speedLimit'], { min: 0 , max: 30, step: 0.01}),
+  perturbation: new Control('perturbation', 'Perturbation', 'number', defaultParams['perturbation'], { min: 0, max: 300 }),
+  nboids: new Control('nboids', 'Boids', 'number', defaultParams['nboids'], { min: 1, max: 100 })
+};
 
-// ============ Add event listeners ============
+
+type ControlKeys = keyof typeof controls;
 
 
-plotTypeEl.addEventListener('change', () => {
-  activateControls(plotTypeEl.value as PlotType);
-  $('canvas').innerHTML = render(paramsFromWidgets());
+
+
+// We need an extra event listener on plottype to hide and show the controls
+// that depend on the plot type
+$('plotType').addEventListener('change', () => {
+  const plotType = $('plotType') as HTMLInputElement;
+  activateControls(plotType.value as PlotType);
 });
 
+// save as SVG button
 $('saveSvg').addEventListener('click', saveSvg);
 
 
@@ -265,7 +300,7 @@ Object.keys(params).forEach(key => {
 
 
 ($('showGraph') as HTMLInputElement).checked = params.showGraph;
-plotTypeEl.value = params.plotType;
+controls.plotType.set(params.plotType);
 
 // only show the relevant ones
 activateControls(params.plotType);
