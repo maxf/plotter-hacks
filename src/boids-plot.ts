@@ -215,26 +215,41 @@ function hypot(a: number, b: number): number {
 
 const renderBoids = (params: Params) => {
   const b = new Boids(params);
+  const boids = b.boids;
 
   for (let iteration = 0; iteration < b.startIteration; iteration++) {
     b.tick();
   }
 
-  const boidPathsDs = [];
-  for (let i=0; i<b.boids.length; i++) { 
-    boidPathsDs[i] = [`M${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`];
+  const boidPaths = [];
+  for (let i=0; i<boids.length; i++) {
+    //boidPaths[i] = [`M${boids[i][POSITIONX]} ${boids[i][POSITIONY]}`];
+    boidPaths[i] = [{
+      x: boids[i][POSITIONX],
+      y: boids[i][POSITIONY]
+    }];
   }
 
   for (let iteration = b.startIteration; iteration < b.startIteration + b.iterations; iteration++) {
     b.tick();
-    for (let i=0; i<b.boids.length; i++) { 
-      boidPathsDs[i].push(`L${b.boids[i][POSITIONX]} ${b.boids[i][POSITIONY]}`);
+    for (let i=0; i<boids.length; i++) {
+      // add the half point
+      const lastPos = boidPaths[i][boidPaths[i].length - 1];
+      boidPaths[i].push({
+        x: (boids[i][POSITIONX] + lastPos.x)/2,
+        y: (boids[i][POSITIONY] + lastPos.y)/2
+      });
+      // add the new point
+      boidPaths[i].push({ x: boids[i][POSITIONX], y: boids[i][POSITIONY]});
     }
   }
 
-  const boidsPaths = boidPathsDs.map(boidPathArray => {
-    const d = boidPathArray.join(' ');
-    return `<path d="${d}"/>`;
+  const svgPaths = boidPaths.map(ps => {
+    let d = `M ${ps[0].x} ${ps[0].y} L ${ps[1].x} ${ps[1].y}`;
+    for (let i=2; i < ps.length - 1; i+= 2) {
+      d = d + `C ${ps[i].x} ${ps[i].y}, ${ps[i].x} ${ps[i].y}, ${ps[i+1].x} ${ps[i+1].y} `
+    }
+    return `<path d="${d}"/>\n`;
   });
 
   return `
@@ -246,7 +261,7 @@ const renderBoids = (params: Params) => {
         height="${params.width-2*params.margin}"
         style="fill:none; stroke: black"/>
       <g id="pattern" style="fill:none; stroke: red">
-        ${boidsPaths.join('')}
+        ${svgPaths.join('')}
       </g>
     </svg>
   `;

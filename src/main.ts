@@ -27,12 +27,13 @@ class Control {
       this.#valueEl.innerText = value;
     }
     this.#widgetEl.onchange = event => {
+      this.#widgetEl.value = (event.target as HTMLInputElement).value;
       switch (this.#type) {
         case 'number':
-          this.#value = this.#widgetEl.value = parseFloat((event.target as HTMLInputElement).value);
+          this.#value = parseFloat(this.#widgetEl.value);
           break;
         default:
-          this.#value = this.#widgetEl.value = (event.target as HTMLInputElement).value;
+          this.#value = this.#widgetEl.value;
       }
       if (this.#valueEl) {
         this.#valueEl.innerText = this.#value;
@@ -126,7 +127,8 @@ type Params = {
   startIteration?: number,
   nboids?: number,
   speedLimit?: number,
-  cohesionForce?: number
+  cohesionForce?: number,
+  cohesionDistance?: number
 }
 
 
@@ -148,7 +150,8 @@ const defaultParams: Params = {
   startIteration: 0,
   nboids: 10,
   speedLimit: 30,
-  cohesionForce: 0.5
+  cohesionForce: 0.5,
+  cohesionDistance: 180
 }
 
 
@@ -165,6 +168,7 @@ const paramsFromWidgets = () => {
   params.nboids = controls.nboids.val() as number;
   params.speedLimit = controls.speedLimit.val() as number;
   params.cohesionForce = controls.cohesionForce.val() as number;
+  params.cohesionDistance = controls.cohesionDistance.val() as number;
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
   params.plotType = controls.plotType.val() as PlotType;
@@ -213,7 +217,7 @@ const paramsPerType: Record<PlotType, ControlKeys[]>  = {
   Random: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes'],
   Grid: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
   Polar: ['seed', 'plotType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation'],
-  Boids: ['seed', 'plotType', 'margin', 'iterations', 'startIteration', 'nboids', 'speedLimit', 'cohesionForce'],
+  Boids: ['seed', 'plotType', 'margin', 'iterations', 'startIteration', 'nboids', 'speedLimit', 'cohesionForce', 'cohesionDistance'],
 };
 
 const activateControls = (plotType: PlotType) => {
@@ -268,6 +272,7 @@ const controls = {
   nbOrbits: new Control('nbOrbits', 'Orbits', 'number', defaultParams['nbOrbits'], { min: 1, max: 20}),
   nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'Nodes per orbit', 'number', defaultParams['nbNodesPerOrbit'], { min: 1, max: 20}),
   cohesionForce: new Control('cohesionForce', 'Cohesion', 'number', defaultParams['cohesionForce'], { min: 0, max: 1, step: 0.01}),
+  cohesionDistance: new Control('cohesionDistance', 'Cohesion distance', 'number', defaultParams['cohesionDistance'], { min: 10, max: 300 }),
   iterations: new Control('iterations', 'Iterations', 'number', defaultParams['iterations'], { min: 1, max: 500}),
   startIteration: new Control('startIteration', 'Start iteration', 'number', defaultParams['startIteration'], { min: 1, max: 1000}),
   speedLimit: new Control('speedLimit', 'Max speed', 'number', defaultParams['speedLimit'], { min: 0 , max: 30, step: 0.01}),
