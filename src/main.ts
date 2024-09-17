@@ -27,7 +27,13 @@ class Control {
       this.#valueEl.innerText = value;
     }
     this.#widgetEl.onchange = event => {
-      this.#value = this.#widgetEl.value = (event.target as HTMLInputElement).value;
+      switch (this.#type) {
+        case 'number':
+          this.#value = this.#widgetEl.value = parseFloat((event.target as HTMLInputElement).value);
+          break;
+        default:
+          this.#value = this.#widgetEl.value = (event.target as HTMLInputElement).value;
+      }
       if (this.#valueEl) {
         this.#valueEl.innerText = this.#value;
       }
@@ -262,7 +268,7 @@ const controls = {
   nbOrbits: new Control('nbOrbits', 'Orbits', 'number', defaultParams['nbOrbits'], { min: 1, max: 20}),
   nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'Nodes per orbit', 'number', defaultParams['nbNodesPerOrbit'], { min: 1, max: 20}),
   cohesionForce: new Control('cohesionForce', 'Cohesion', 'number', defaultParams['cohesionForce'], { min: 0, max: 1, step: 0.01}),
-  iterations: new Control('iterations', 'Iterations', 'number', defaultParams['iterations'], { min: 1, max: 100}),
+  iterations: new Control('iterations', 'Iterations', 'number', defaultParams['iterations'], { min: 1, max: 500}),
   startIteration: new Control('startIteration', 'Start iteration', 'number', defaultParams['startIteration'], { min: 1, max: 1000}),
   speedLimit: new Control('speedLimit', 'Max speed', 'number', defaultParams['speedLimit'], { min: 0 , max: 30, step: 0.01}),
   perturbation: new Control('perturbation', 'Perturbation', 'number', defaultParams['perturbation'], { min: 0, max: 300 }),

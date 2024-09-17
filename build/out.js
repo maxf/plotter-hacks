@@ -2048,7 +2048,13 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
         this.#valueEl.innerText = value;
       }
       this.#widgetEl.onchange = (event) => {
-        this.#value = this.#widgetEl.value = event.target.value;
+        switch (this.#type) {
+          case "number":
+            this.#value = this.#widgetEl.value = parseFloat(event.target.value);
+            break;
+          default:
+            this.#value = this.#widgetEl.value = event.target.value;
+        }
         if (this.#valueEl) {
           this.#valueEl.innerText = this.#value;
         }
@@ -2211,7 +2217,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     nbOrbits: new Control("nbOrbits", "Orbits", "number", defaultParams["nbOrbits"], { min: 1, max: 20 }),
     nbNodesPerOrbit: new Control("nbNodesPerOrbit", "Nodes per orbit", "number", defaultParams["nbNodesPerOrbit"], { min: 1, max: 20 }),
     cohesionForce: new Control("cohesionForce", "Cohesion", "number", defaultParams["cohesionForce"], { min: 0, max: 1, step: 0.01 }),
-    iterations: new Control("iterations", "Iterations", "number", defaultParams["iterations"], { min: 1, max: 100 }),
+    iterations: new Control("iterations", "Iterations", "number", defaultParams["iterations"], { min: 1, max: 500 }),
     startIteration: new Control("startIteration", "Start iteration", "number", defaultParams["startIteration"], { min: 1, max: 1e3 }),
     speedLimit: new Control("speedLimit", "Max speed", "number", defaultParams["speedLimit"], { min: 0, max: 30, step: 0.01 }),
     perturbation: new Control("perturbation", "Perturbation", "number", defaultParams["perturbation"], { min: 0, max: 300 }),
