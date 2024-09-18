@@ -15,11 +15,29 @@
 
 import Delaunator from 'delaunator';
 import seedrandom from 'seedrandom';
+import { Control, paramsFromUrl, updateUrl, $ } from './controls';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
     console.warn("Assertion FALSE. Expect errors")
   }
+};
+
+const defaultParams: Params = {
+  width: 800,
+  height: 800,
+  graphType: 'Polar',
+  perturbation: 0,
+  margin: 100,
+  seed: 128,
+  shape1: 0.3,
+  shape2: 1.4,
+  showGraph: false,
+  nbNodes: 4,
+  cells: 4,
+  nbOrbits: 3,
+  nbNodesPerOrbit: 10,
+  palette: ['#522258', '#8C3061', '#C63C51', '#D95F59']
 };
 
 
@@ -584,6 +602,8 @@ class Spline {
 
 /*======================================================================*/
 
+type GraphType = 'Polar' | 'Grid' | 'Random';
+
 type Params = {
   width: number,
   height: number,
@@ -591,7 +611,7 @@ type Params = {
   shape2: number,
   margin: number,
 
-  plotType: 'Polar' | 'Grid' | 'Random',
+  graphType: GraphType,
   showGraph: boolean,
   palette: string[],
 
@@ -610,7 +630,7 @@ type Params = {
 }
 
 const renderCeltic = (params: Params): string => {
-  params.plotType ||= 'Polar';
+  params.graphType ||= 'Polar';
   params.width ||= 800;
   params.height ||= 800;
   params.margin ||= 50;
@@ -624,7 +644,7 @@ const renderCeltic = (params: Params): string => {
   params.palette = ['#522258', '#8C3061', '#C63C51', '#D95F59'];
 
   let graph: Graph;
-  switch (params.plotType) {
+  switch (params.graphType) {
   case 'Grid':
     graph = makeGridGraph(params);
     break;
@@ -634,6 +654,7 @@ const renderCeltic = (params: Params): string => {
   case 'Random':
     graph = makeRandomGraph(params);
   }
+
   const pattern = new Pattern(
     graph,
     params.shape1,
@@ -660,4 +681,85 @@ const renderCeltic = (params: Params): string => {
   `;
 };
 
-export { renderCeltic };
+const paramsFromWidgets = () => {
+  const params: Params = {...defaultParams};
+  params.graphType = controls.graphType.val() as GraphType;
+  params.margin = controls.margin.val() as number;
+  params.shape1 = controls.shape1.val() as number;
+  params.shape2 = controls.shape2.val() as number;
+  params.showGraph = controls.showGraph.val() as boolean;
+  params.seed = controls.seed.val() as number;
+  params.nbNodes = controls.nbNodes.val() as number;
+  params.cells = controls.cells.val() as number;
+  params.perturbation = controls.perturbation.val() as number;
+  params.nbOrbits = controls.nbOrbits.val() as number;
+  params.nbNodesPerOrbit = controls.nbNodesPerOrbit.val() as number;
+
+  return params;
+};
+
+
+const render = (params?: any) => {
+  if (!params) {
+    params = paramsFromWidgets();
+  }
+
+  params.width ||= 800;
+  params.height ||= 800;
+
+  updateUrl(params);
+
+  return renderCeltic(params);
+};
+
+
+const controls = {
+  graphType: new Control('graphType', '', 'select', defaultParams['graphType'], render, { choices: ['Polar', 'Grid', 'Random'] }),
+  margin: new Control('margin', 'Margin', 'number', defaultParams['margin'], render, { min: 0, max: 500}),
+  shape1: new Control('shape1', 'Shape1', 'number', defaultParams['shape1'], render, { min: -2, max: 2, step: 0.01}),
+  shape2: new Control('shape2', 'Shape2', 'number', defaultParams['shape2'], render, { min: -2, max: 2, step: 0.01}),
+  perturbation: new Control('perturbation', 'Perturbation', 'number', defaultParams['perturbation'], render, { min: 0, max: 300 }),
+  showGraph: new Control('showGraph', 'Graph', 'boolean', defaultParams['showGraph'], render, {}),
+  seed: new Control('seed', 'RNG seed', 'number', defaultParams['seed'], render, { min: 0, max: 500}),
+  nbNodes: new Control('nbNodes', 'Nodes', 'number', defaultParams['nbNodes'], render, { min: 3, max: 40 }),
+  cells: new Control('cells', 'Cells', 'number', defaultParams['cells'], render, { min: 2, max: 100 }),
+  nbOrbits: new Control('nbOrbits', 'Orbits', 'number', defaultParams['nbOrbits'], render, { min: 1, max: 20}),
+  nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'Nodes per orbit', 'number', defaultParams['nbNodesPerOrbit'], render, { min: 1, max: 20})
+};
+
+type ControlKeys = keyof typeof controls;
+
+const paramsPerType: Record<GraphType, ControlKeys[]>  = {
+  Random: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes'],
+  Grid: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
+  Polar: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation']
+};
+
+const activateControls = (graphType: GraphType) => {
+  Object.values(controls).forEach(c => c.hide());
+  paramsPerType[graphType].forEach(name => controls[name].show());
+};
+
+// We need an extra event listener on plottype to hide and show the controls
+// that depend on the plot type
+$('graphType').addEventListener('change', () => {
+  const graphType = $('graphType') as HTMLInputElement;
+  activateControls(graphType.value as GraphType);
+  render();
+});
+
+
+// =========== First render =============
+
+// Fetch plot parameters from the query string
+const params = paramsFromUrl(defaultParams);
+
+// populate the form controls from controls.params
+activateControls(params.graphType as GraphType);
+Object.keys(params).forEach(key => {
+  if (key in controls) {
+    controls[key as keyof typeof controls].set(params[key as keyof typeof params]);
+  }
+});
+
+$('canvas').innerHTML = render(params);

@@ -8,7 +8,9 @@
     "check": "npx tsc --noEmit",
     "build": "npx esbuild src/main.ts --bundle --outfile=build/out.js",
     "watch-check": "ls src/*.ts | entr -cdr npx tsc --noEmit",
-    "watch": "npx esbuild src/main.ts --bundle --outfile=build/out.js --watch"
+    "watch": "npx esbuild src/main.ts --bundle --outfile=build/out.js --watch",
+    "watch-boids": "npx esbuild src/boids.ts --bundle --outfile=build/boids.js --watch",
+    "watch-celtic": "npx esbuild src/celtic.ts --bundle --outfile=build/celtic.js --watch"
   },
   "dependencies": {
     "@types/delaunator": "^5.0.3",
