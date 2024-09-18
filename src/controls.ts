@@ -1,6 +1,6 @@
 const $ = (id: string) => document.getElementById(id)!;
 
-type ControlType = 'string'|'select'|'boolean'|'number';
+type ControlType = 'string'|'select'|'boolean'|'number'|'file';
 class Control {
   #name: string;
   #wrapperEl: HTMLDivElement;
@@ -14,11 +14,15 @@ class Control {
     this.#name = name;
     this.#type = type;
     this.#value = value;
-
     this.#createHtmlControl("controls", label, options);
     this.#wrapperEl = document.getElementById(`${name}-control`) as HTMLDivElement;
     this.#widgetEl = document.getElementById(name) as HTMLInputElement;
-    this.#widgetEl.value = value;
+    if (this.#type === 'file') {
+      this.#valueEl = document.getElementById(`${name}-value`) as HTMLImgElement;
+      this.#valueEl.src = this.#value;
+    } else {
+      this.#widgetEl.value = value;
+    }
     if (this.#type === 'number') {
       this.#valueEl = document.getElementById(`${name}-value`) as HTMLSpanElement;
       this.#valueEl.innerText = value;
@@ -47,15 +51,24 @@ class Control {
         ${label}
         <span id="${this.#name}-value">${this.#value}</span>
       `);
-      break;
+        break;
       case 'boolean':
         html.push(`<input type="checkbox" id="${this.#name}"> ${label}`);
-      break;
+        break;
       case 'select':
         if (label) html.push(`${label}: `);
         html.push(`<select id="${this.#name}">`);
         options.choices.forEach((choice: string) => html.push(`<option>${choice}</option>`));
         html.push('</select>');
+        break;
+      case 'file':
+        html.push(`
+          <input id="${this.#name}" type="file" accept="image/*;capture=camera"/>
+          <img id="${this.#name}-value" height="100px" src="${this.#value}"/> <!-- must be visible -->
+        `);
+        break;
+      default:
+        console.warning('unknown control type', this.#type);
     }
     html.push(`<br/></span>`);
 
@@ -68,7 +81,9 @@ class Control {
 
   set(newValue : number|string|boolean) {
     this.#value = newValue;
-    this.#widgetEl.value = newValue as string;
+    if (this.#type !== 'file') {
+      this.#widgetEl.value = newValue as string;
+    }
     if (this.#valueEl) {
       this.#valueEl.innerText = newValue as string;
     }
