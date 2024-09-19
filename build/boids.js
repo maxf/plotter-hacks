@@ -728,68 +728,41 @@
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var Control = class {
-    #name;
+  var NumberControl = class {
+    #value;
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    #type;
-    #value;
-    //constructor(name: string, label: string, type: ControlType, value: any) {
-    constructor(name, label, type, value, renderFn, options) {
-      this.#name = name;
-      this.#type = type;
-      this.#value = value;
-      this.#createHtmlControl("controls", label, options);
-      this.#wrapperEl = document.getElementById(`${name}-control`);
-      this.#widgetEl = document.getElementById(name);
-      this.#widgetEl.value = value;
-      if (this.#type === "number") {
-        this.#valueEl = document.getElementById(`${name}-value`);
-        this.#valueEl.innerText = value;
-      }
+    constructor(params2) {
+      this.#value = params2.value;
+      this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
+      this.#widgetEl = $(params2.name);
+      this.#valueEl = $(`${params2.name}-value`);
+      this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = this.#type === "number" ? parseInt(event.target.value) : event.target.value;
-        this.#widgetEl.value = this.#value;
-        if (this.#valueEl) {
-          this.#valueEl.innerText = this.#value;
-        }
-        $("canvas").innerHTML = renderFn();
+        this.#value = parseFloat(event.target.value);
+        this.#valueEl.innerText = this.#value.toString();
+        $("canvas").innerHTML = params2.renderFn();
       };
     }
-    #createHtmlControl(anchor, label, options) {
+    #createHtmlControl(name, label, value, min, max, step) {
       const html = [];
-      html.push(`<span class="control" id="${this.#name}-control">`);
-      switch (this.#type) {
-        case "number":
-          const step = options.step ? `step="${options.step}"` : "";
-          html.push(`
-        <input id="${this.#name}" type="range" min="${options.min}" max="${options.max}" value="${this.#value}" ${step}"/>
-        ${label}
-        <span id="${this.#name}-value">${this.#value}</span>
-      `);
-          break;
-        case "boolean":
-          html.push(`<input type="checkbox" id="${this.#name}"> ${label}`);
-          break;
-        case "select":
-          if (label) html.push(`${label}: `);
-          html.push(`<select id="${this.#name}">`);
-          options.choices.forEach((choice) => html.push(`<option>${choice}</option>`));
-          html.push("</select>");
-      }
-      html.push(`<br/></span>`);
-      const anchorElement = $(anchor);
+      html.push(`<span class="control" id="${name}-control">`);
+      const stepAttr = step ? `step="${step}"` : "";
+      html.push(`
+      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${label}
+      <span id="${name}-value">${value}</span>
+    `);
+      html.push("<br/></span>");
+      const anchorElement = $("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
       }
     }
     set(newValue) {
       this.#value = newValue;
-      this.#widgetEl.value = newValue;
-      if (this.#valueEl) {
-        this.#valueEl.innerText = newValue;
-      }
+      this.#valueEl.innerText = newValue.toString();
     }
     val() {
       return this.#value;
@@ -1040,14 +1013,14 @@
     return renderBoids(params2);
   };
   var controls = {
-    margin: new Control("margin", "Margin", "number", defaultParams["margin"], render, { min: 0, max: 500 }),
-    seed: new Control("seed", "RNG seed", "number", defaultParams["seed"], render, { min: 0, max: 500 }),
-    cohesionForce: new Control("cohesionForce", "Cohesion", "number", defaultParams["cohesionForce"], render, { min: 0, max: 1, step: 0.01 }),
-    cohesionDistance: new Control("cohesionDistance", "Cohesion distance", "number", defaultParams["cohesionDistance"], render, { min: 10, max: 300 }),
-    iterations: new Control("iterations", "Iterations", "number", defaultParams["iterations"], render, { min: 1, max: 100 }),
-    startIteration: new Control("startIteration", "Start iteration", "number", defaultParams["startIteration"], render, { min: 1, max: 1e3 }),
-    speedLimit: new Control("speedLimit", "Max speed", "number", defaultParams["speedLimit"], render, { min: 0, max: 30, step: 0.01 }),
-    nboids: new Control("nboids", "Boids", "number", defaultParams["nboids"], render, { min: 1, max: 100 })
+    margin: new NumberControl({ name: "margin", label: "Margin", value: defaultParams["margin"], renderFn: render, min: 0, max: 500 }),
+    seed: new NumberControl({ name: "seed", label: "RNG seed", value: defaultParams["seed"], renderFn: render, min: 0, max: 500 }),
+    cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], renderFn: render, min: 0, max: 1, step: 0.01 }),
+    cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], renderFn: render, min: 10, max: 300 }),
+    iterations: new NumberControl({ name: "iterations", label: "Iterations", value: defaultParams["iterations"], renderFn: render, min: 1, max: 100 }),
+    startIteration: new NumberControl({ name: "startIteration", label: "Start iteration", value: defaultParams["startIteration"], renderFn: render, min: 1, max: 1e3 }),
+    speedLimit: new NumberControl({ name: "speedLimit", label: "Max speed", value: defaultParams["speedLimit"], renderFn: render, min: 0, max: 20, step: 0.1 }),
+    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 })
   };
   var params = paramsFromUrl(defaultParams);
   Object.keys(params).forEach((key) => {

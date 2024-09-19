@@ -15,7 +15,7 @@
 
 import Delaunator from 'delaunator';
 import seedrandom from 'seedrandom';
-import { Control, paramsFromUrl, updateUrl, $ } from './controls';
+import { SelectControl, NumberControl, CheckboxControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -713,18 +713,94 @@ const render = (params?: any) => {
 };
 
 
-const controls = {
-  graphType: new Control('graphType', '', 'select', defaultParams['graphType'], render, { choices: ['Polar', 'Grid', 'Random'] }),
-  margin: new Control('margin', 'Margin', 'number', defaultParams['margin'], render, { min: 0, max: 500}),
-  shape1: new Control('shape1', 'Shape1', 'number', defaultParams['shape1'], render, { min: -2, max: 2, step: 0.01}),
-  shape2: new Control('shape2', 'Shape2', 'number', defaultParams['shape2'], render, { min: -2, max: 2, step: 0.01}),
-  perturbation: new Control('perturbation', 'Perturbation', 'number', defaultParams['perturbation'], render, { min: 0, max: 300 }),
-  showGraph: new Control('showGraph', 'Graph', 'boolean', defaultParams['showGraph'], render, {}),
-  seed: new Control('seed', 'RNG seed', 'number', defaultParams['seed'], render, { min: 0, max: 500}),
-  nbNodes: new Control('nbNodes', 'Nodes', 'number', defaultParams['nbNodes'], render, { min: 3, max: 40 }),
-  cells: new Control('cells', 'Cells', 'number', defaultParams['cells'], render, { min: 2, max: 100 }),
-  nbOrbits: new Control('nbOrbits', 'Orbits', 'number', defaultParams['nbOrbits'], render, { min: 1, max: 20}),
-  nbNodesPerOrbit: new Control('nbNodesPerOrbit', 'Nodes per orbit', 'number', defaultParams['nbNodesPerOrbit'], render, { min: 1, max: 20})
+const controls: any = {
+  graphType: new SelectControl({
+    name:'graphType',
+    label:'',
+    value: defaultParams['graphType'],
+    renderFn: render,
+    choices: ['Polar', 'Grid', 'Random']
+  }),
+  margin: new NumberControl({
+    name: 'margin',
+    label: 'Margin',
+    value: defaultParams['margin'],
+    renderFn: render,
+    min: 0,
+    max: 500
+  }),
+  shape1: new NumberControl({
+    name: 'shape1',
+    label: 'Shape1',
+    value: defaultParams['shape1'],
+    renderFn: render,
+    min: -2,
+    max: 2,
+    step: 0.01
+  }),
+  shape2: new NumberControl({
+    name: 'shape2',
+    label: 'Shape2',
+    value: defaultParams['shape2'],
+    renderFn: render,
+    min: -2,
+    max: 2,
+    step: 0.01
+  }),
+  perturbation: new NumberControl({
+    name: 'perturbation',
+    label: 'Perturbation',
+    value: defaultParams['perturbation'],
+    renderFn: render,
+    min: 0,
+    max: 300
+  }),
+  showGraph: new CheckboxControl({
+    name: 'showGraph',
+    label: 'Graph',
+    value: defaultParams['showGraph'],
+    renderFn: render
+  }),
+  seed: new NumberControl({
+    name: 'seed',
+    label: 'seed',
+    value: defaultParams['seed'],
+    renderFn: render,
+    min: 0,
+    max: 500
+  }),
+  nbNodes: new NumberControl({
+    name: 'nbNodes',
+    label: 'Nodes',
+    value: defaultParams['nbNodes'],
+    renderFn: render,
+    min: 3,
+    max: 40
+  }),
+  cells: new NumberControl({
+    name: 'cells',
+    label: 'Cells',
+    value: defaultParams['cells'],
+    renderFn: render,
+    min: 2,
+    max: 100
+  }),
+  nbOrbits: new NumberControl({
+    name: 'nbOrbits',
+    label: 'Orbits',
+    value: defaultParams['nbOrbits'],
+    renderFn: render,
+    min: 1,
+    max: 20
+  }),
+  nbNodesPerOrbit: new NumberControl({
+    name: 'nbNodesPerOrbit',
+    label: 'Nodes per orbit',
+    value: defaultParams['nbNodesPerOrbit'],
+    renderFn: render,
+    min: 1,
+    max: 20
+  })
 };
 
 type ControlKeys = keyof typeof controls;
@@ -736,7 +812,7 @@ const paramsPerType: Record<GraphType, ControlKeys[]>  = {
 };
 
 const activateControls = (graphType: GraphType) => {
-  Object.values(controls).forEach(c => c.hide());
+  Object.values(controls).forEach((c: any) => c.hide());
   paramsPerType[graphType].forEach(name => controls[name].show());
 };
 
@@ -758,7 +834,9 @@ const params = paramsFromUrl(defaultParams);
 activateControls(params.graphType as GraphType);
 Object.keys(params).forEach(key => {
   if (key in controls) {
-    controls[key as keyof typeof controls].set(params[key as keyof typeof params]);
+    const index: keyof typeof params = key;
+    const paramValue: any = params[index];
+    controls[key as keyof typeof controls].set(paramValue);
   }
 });
 

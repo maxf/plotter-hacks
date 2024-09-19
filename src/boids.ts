@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { Control, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 type Params = {
   width: number,
@@ -314,14 +314,14 @@ const render = (params?: any) => {
 
 
 const controls = {
-  margin: new Control('margin', 'Margin', 'number', defaultParams['margin'], render, { min: 0, max: 500}),
-  seed: new Control('seed', 'RNG seed', 'number', defaultParams['seed'], render, { min: 0, max: 500}),
-  cohesionForce: new Control('cohesionForce', 'Cohesion', 'number', defaultParams['cohesionForce'], render, { min: 0, max: 1, step: 0.01}),
-  cohesionDistance: new Control('cohesionDistance', 'Cohesion distance', 'number', defaultParams['cohesionDistance'], render, { min: 10, max: 300 }),
-  iterations: new Control('iterations', 'Iterations', 'number', defaultParams['iterations'], render, { min: 1, max: 100}),
-  startIteration: new Control('startIteration', 'Start iteration', 'number', defaultParams['startIteration'], render, { min: 1, max: 1000}),
-  speedLimit: new Control('speedLimit', 'Max speed', 'number', defaultParams['speedLimit'], render, { min: 0 , max: 30, step: 0.01}),
-  nboids: new Control('nboids', 'Boids', 'number', defaultParams['nboids'], render, { min: 1, max: 100 })
+  margin: new NumberControl({name: 'margin', label: 'Margin', value: defaultParams['margin'], renderFn: render, min: 0, max: 500}),
+  seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], renderFn: render, min: 0, max: 500}),
+  cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
+  cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], renderFn: render, min: 10, max: 300 }),
+  iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 100}),
+  startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], renderFn: render, min: 1, max: 1000}),
+  speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
+  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 })
 };
 
 
