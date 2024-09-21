@@ -742,7 +742,7 @@
       this.#widgetEl.onchange = (event) => {
         this.#value = parseFloat(event.target.value);
         this.#valueEl.innerText = this.#value.toString();
-        $("canvas").innerHTML = params2.renderFn();
+        params2.renderFn();
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -772,6 +772,29 @@
     }
     hide() {
       this.#wrapperEl.style.display = "none";
+    }
+  };
+  var SvgSaveControl = class {
+    constructor(params2) {
+      const html = `<button id="${params2.name}">Save Svg</button><br/>`;
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html);
+      }
+      $(params2.name).onclick = () => {
+        const svgEl = $(params2.canvasId);
+        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var svgData = svgEl.outerHTML;
+        var preface = '<?xml version="1.0" standalone="no"?>';
+        var svgBlob = new Blob([preface, svgData], { type: "image/svg+xml;charset=utf-8" });
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = params2.saveFilename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      };
     }
   };
   var paramsFromUrl = (defaults) => {
@@ -827,6 +850,24 @@
   var ACCELERATIONX = 4;
   var ACCELERATIONY = 5;
   var Boids = class {
+    rng;
+    width;
+    height;
+    speedLimit;
+    speedLimitRoot;
+    accelerationLimit;
+    accelerationLimitRoot;
+    separationDistance;
+    alignmentDistance;
+    alignmentForce;
+    cohesionDistance;
+    cohesionForce;
+    separationForce;
+    attractors;
+    iterations;
+    startIteration;
+    nboids;
+    boids;
     constructor(opts) {
       opts = opts || {};
       this.rng = (0, import_seedrandom.default)(opts.seed.toString()) || Math.random;
@@ -1020,13 +1061,21 @@
     iterations: new NumberControl({ name: "iterations", label: "Iterations", value: defaultParams["iterations"], renderFn: render, min: 1, max: 100 }),
     startIteration: new NumberControl({ name: "startIteration", label: "Start iteration", value: defaultParams["startIteration"], renderFn: render, min: 1, max: 1e3 }),
     speedLimit: new NumberControl({ name: "speedLimit", label: "Max speed", value: defaultParams["speedLimit"], renderFn: render, min: 0, max: 20, step: 0.1 }),
-    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 })
+    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 }),
+    svgSave: new SvgSaveControl({
+      name: "svgSave",
+      canvasId: "svg-canvas",
+      saveFilename: "boids.svg"
+    })
   };
   var params = paramsFromUrl(defaultParams);
-  Object.keys(params).forEach((key) => {
-    if (key in controls) {
-      controls[key].set(params[key]);
-    }
-  });
+  controls.margin.set(params.margin);
+  controls.seed.set(params.seed);
+  controls.cohesionForce.set(params.cohesionForce);
+  controls.cohesionDistance.set(params.cohesionDistance);
+  controls.iterations.set(params.iterations);
+  controls.startIteration.set(params.startIteration);
+  controls.speedLimit.set(params.speedLimit);
+  controls.nboids.set(params.nboids);
   $("canvas").innerHTML = render(params);
 })();

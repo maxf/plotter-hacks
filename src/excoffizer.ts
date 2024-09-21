@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, ImageUploadControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
 
 class Color {
   #r: number;
@@ -279,7 +279,7 @@ class Excoffizer {
 
 type Params = {
   inputImageUrl: string,
-  inputCanvas: HTMLCanvasElement | undefined,
+  inputCanvas?: HTMLCanvasElement,
   theta: number,
   width: number,
   height: number,
@@ -297,7 +297,6 @@ type Params = {
 
 const defaultParams: Params = {
   inputImageUrl: 'portrait.jpg',
-  inputCanvas: undefined,
   theta: 2,
   width: 800,
   height: 800,
@@ -316,18 +315,18 @@ const defaultParams: Params = {
 
 const paramsFromWidgets = () => {
   const params: Params = {...defaultParams};
-  if (controls.inputImage) {
-    params.inputImageUrl = (controls.inputImage as ImageUploadControl).imageUrl() as string;
-    params.inputCanvas = (controls.inputImage as ImageUploadControl).canvasEl();
+  if (controlInputImage) {
+    params.inputImageUrl = (controlInputImage as ImageUploadControl).imageUrl() as string;
+    params.inputCanvas = (controlInputImage as ImageUploadControl).canvasEl();
   }
-  params.theta = controls.theta.val() as number;
-  params.waviness = controls.waviness.val() as number;
-  params.lineHeight = controls.lineHeight.val() as number;
-  params.density = controls.density.val() as number;
-  params.thickness = controls.thickness.val() as number;
-  params.sx = controls.sx.val() as number;
-  params.sy = controls.sy.val() as number;
-  params.blur = controls.blur.val() as number;
+  params.theta = controlTheta.val() as number;
+  params.waviness = controlWaviness.val() as number;
+  params.lineHeight = controlLineHeight.val() as number;
+  params.density = controlDensity.val() as number;
+  params.thickness = controlThickness.val() as number;
+  params.sx = controlSx.val() as number;
+  params.sy = controlSy.val() as number;
+  params.blur = controlBlur.val() as number;
   return params;
 };
 
@@ -338,112 +337,124 @@ const render = (params?: any) => {
   }
   params.width ||= 800;
   params.height ||= 800;
-  const excoffizator = new Excoffizer(params);
-  delete params.inputImage;
-  updateUrl(params);
-  $('canvas').innerHTML = excoffizator.excoffize();
-}
 
-
-const controls = {
-  inputImage: new ImageUploadControl({
-    name: 'inputImage',
-    label: 'Image',
-    value: defaultParams['inputImageUrl'],
-    renderFn: render
-  }),
-  theta: new NumberControl({
-    name: 'theta',
-    label: 'Angle',
-    value: defaultParams['theta'],
-    renderFn: render,
-    min: 0,
-    max: 6.28,
-    step: 0.01
-  }),
-  waviness: new NumberControl({
-    name: 'waviness',
-    label: 'Waviness',
-    value: defaultParams['waviness'],
-    renderFn: render,
-    min: 0,
-    max: 10,
-    step: 0.1
-  }),
-  lineHeight: new NumberControl({
-    name: 'lineHeight',
-    label: 'Line height',
-    value: defaultParams['lineHeight'],
-    renderFn: render,
-    min: 5,
-    max: 15,
-    step: 0.1
-  }),
-  density: new NumberControl({
-    name: 'density',
-    label: 'Density',
-    value: defaultParams['density'],
-    renderFn: render,
-    min: 1,
-    max: 10,
-    step: 0.1
-  }),
-  thickness: new NumberControl({
-    name: 'thickness',
-    label: 'Thickness',
-    value: defaultParams['thickness'],
-    renderFn: render,
-    min: 1,
-    max: 20,
-    step: 0.1
-  }),
-  sx: new NumberControl({
-    name: 'sx',
-    label: 'Stretch X',
-    value: defaultParams['sx'],
-    renderFn: render,
-    min: 0,
-    max: 2,
-    step: 0.01
-  }),
-  sy: new NumberControl({
-    name: 'sy',
-    label: 'Stretch Y',
-    value: defaultParams['sy'],
-    renderFn: render,
-    min: 0,
-    max: 2,
-    step: 0.01
-  }),
-  blur: new NumberControl({
-    name: 'blur',
-    label: 'Blur',
-    value: defaultParams['blur'],
-    renderFn: render,
-    min: 1,
-    max: 10
-  })
-};
-
-
-// =========== First render =============
-
-// Fetch plot parameters from the query string
-const params = paramsFromUrl(defaultParams);
-
-controls.theta.set(params.theta);
-controls.waviness.set(params.waviness);
-controls.lineHeight.set(params.lineHeight);
-controls.density.set(params.density);
-controls.thickness.set(params.thickness);
-controls.sx.set(params.sx);
-controls.sy.set(params.sy);
-controls.blur.set(params.blur);
-controls.inputImage.set(params.inputImageUrl, () => {
-  // we can only render once the image is loaded
-  params.inputCanvas = controls.inputImage.canvasEl();
   const excoffizator = new Excoffizer(params);
   delete params.inputCanvas; // don't put the whole image in the URL
   updateUrl(params);
   $('canvas').innerHTML = excoffizator.excoffize();
+};
+
+
+const controlTheta = new NumberControl({
+  name: 'theta',
+  label: 'Angle',
+  value: defaultParams['theta'],
+  renderFn: render,
+  min: 0,
+  max: 6.28,
+  step: 0.01
+});
+
+const controlWaviness = new NumberControl({
+  name: 'waviness',
+  label: 'Waviness',
+  value: defaultParams['waviness'],
+  renderFn: render,
+  min: 0,
+  max: 10,
+  step: 0.1
+});
+
+const controlLineHeight = new NumberControl({
+  name: 'lineHeight',
+  label: 'Line height',
+  value: defaultParams['lineHeight'],
+  renderFn: render,
+  min: 5,
+  max: 15,
+  step: 0.1
+});
+
+const controlDensity = new NumberControl({
+  name: 'density',
+  label: 'Density',
+  value: defaultParams['density'],
+  renderFn: render,
+  min: 1,
+  max: 10,
+  step: 0.1
+});
+
+const controlThickness = new NumberControl({
+  label: 'Thickness',
+  value: defaultParams['thickness'],
+  renderFn: render,
+  min: 1,
+  max: 20,
+  step: 0.1
+});
+
+const controlSx = new NumberControl({
+  name: 'sx',
+  label: 'Stretch X',
+  value: defaultParams['sx'],
+  renderFn: render,
+  min: 0,
+  max: 2,
+  step: 0.01
+});
+
+const controlSy = new NumberControl({
+  name: 'sy',
+  label: 'Stretch Y',
+  value: defaultParams['sy'],
+  renderFn: render,
+  min: 0,
+  max: 2,
+  step: 0.01
+});
+
+const controlBlur = new NumberControl({
+  name: 'blur',
+  label: 'Blur',
+  value: defaultParams['blur'],
+  renderFn: render,
+  min: 1,
+  max: 10
+});
+
+new SvgSaveControl({
+  name: 'svgSave',
+  canvasId: 'svg-canvas',
+  saveFilename: 'excoffizer.svg'
+});
+
+const controlInputImage = new ImageUploadControl({
+  name: 'inputImage',
+  label: 'Image',
+  value: defaultParams['inputImageUrl'],
+  firstCallback: (instance: ImageUploadControl) => {
+    const params = paramsFromUrl(defaultParams);
+    controlTheta.set(params.theta);
+    controlWaviness.set(params.waviness);
+    controlLineHeight.set(params.lineHeight);
+    controlDensity.set(params.density);
+    controlThickness.set(params.thickness);
+    controlSx.set(params.sx);
+    controlSy.set(params.sy);
+    controlBlur.set(params.blur);
+    params.inputCanvas = instance.canvasEl();
+    const excoffizator = new Excoffizer(params);
+    $('canvas').innerHTML = excoffizator.excoffize();
+    delete params.inputCanvas; // don't put the whole image in the URL
+    updateUrl(params);
+  },
+  callback: (instance: ImageUploadControl) => {
+    const params = paramsFromWidgets();
+    params.inputCanvas = instance.canvasEl();
+    const excoffizator = new Excoffizer(params);
+    $('canvas').innerHTML = excoffizator.excoffize();
+    delete params.inputCanvas; // don't put the whole image in the URL
+    updateUrl(params);
+  }
 });

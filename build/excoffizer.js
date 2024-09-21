@@ -7,16 +7,16 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params2) {
-      this.#value = params2.value;
-      this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
-      this.#widgetEl = $(params2.name);
-      this.#valueEl = $(`${params2.name}-value`);
-      this.#wrapperEl = $(`${params2.name}-control`);
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
+      this.#widgetEl = $(params.name);
+      this.#valueEl = $(`${params.name}-value`);
+      this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
         this.#value = parseFloat(event.target.value);
         this.#valueEl.innerText = this.#value.toString();
-        params2.renderFn();
+        params.renderFn();
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -48,89 +48,94 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var SvgSaveControl = class {
+    constructor(params) {
+      const html = `<button id="${params.name}">Save Svg</button><br/>`;
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html);
+      }
+      $(params.name).onclick = () => {
+        const svgEl = $(params.canvasId);
+        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var svgData = svgEl.outerHTML;
+        var preface = '<?xml version="1.0" standalone="no"?>';
+        var svgBlob = new Blob([preface, svgData], { type: "image/svg+xml;charset=utf-8" });
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = params.saveFilename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      };
+    }
+  };
   var ImageUploadControl = class {
     #wrapperEl;
     #uploadEl;
     #canvasEl;
     #imageUrl;
-    #canvas;
-    constructor(params2) {
-      this.#createHtmlControl(params2.name, params2.label);
-      this.#wrapperEl = $(`${params2.name}-control`);
-      this.#uploadEl = $(`${params2.name}-upload`);
-      this.#canvasEl = $(`${params2.name}-canvas`);
-      this.#imageUrl = params2.value;
-      const ctx = this.#canvasEl.getContext("2d", { willReadFrequently: true });
-      const img = new Image();
-      img.src = params2.value;
-      img.onload = () => {
-        this.#canvasEl.width = img.width / 5;
-        this.#canvasEl.height = img.height / 5;
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-          this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
-        }
-      };
-      this.#uploadEl.onchange = (event) => {
-        const reader = new FileReader();
-        reader.onload = (event2) => {
-          const img2 = new Image();
-          img2.onload = () => {
-            this.#canvasEl.width = img2.width;
-            this.#canvasEl.height = img2.height;
-            if (ctx) {
-              ctx.drawImage(img2, 0, 0);
-              this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
-              params2.renderFn();
-            }
-          };
-          if (event2.target) {
-            img2.src = event2.target.result;
-            this.#imageUrl = event2.target.result;
-          }
-        };
-        if (event.target) {
-          const target = event.target;
-          if (target && target.files) {
-            reader.readAsDataURL(target.files[0]);
-          }
+    constructor(params) {
+      this.#imageUrl = params.value;
+      this.#createHtmlControl(params.name, params.label);
+      this.#wrapperEl = document.getElementById(`${params.name}-control`);
+      this.#uploadEl = document.getElementById(`${params.name}-upload`);
+      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.loadImage(this.#imageUrl, () => {
+        params.firstCallback(this);
+      });
+      this.#uploadEl.onchange = () => {
+        const file = this.#uploadEl.files[0];
+        if (file) {
+          this.loadImage(file, () => params.callback(this));
         }
       };
     }
     #createHtmlControl(name, label) {
       const html = [];
       html.push(`<span class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*;capture=camera">`);
-      html.push(`<canvas id="${name}-canvas" width=100 height=100/>`);
+      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
+      html.push(`<canvas id="${name}-canvas"></canvas>`);
       html.push(`</span><br/>`);
-      const anchorElement = $("controls");
+      const anchorElement = document.getElementById("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
       }
     }
-    set(url, cb) {
-      this.#imageUrl = url;
+    loadImage(source, callback) {
       const ctx = this.#canvasEl.getContext("2d", { willReadFrequently: true });
       const img = new Image();
-      img.src = url;
       img.onload = () => {
-        this.#canvasEl.width = img.width / 5;
-        this.#canvasEl.height = img.height / 5;
+        const desiredWidth = 200;
+        const aspectRatio = img.width / img.height;
+        const desiredHeight = desiredWidth / aspectRatio;
+        this.#canvasEl.width = desiredWidth;
+        this.#canvasEl.height = desiredHeight;
         if (ctx) {
-          ctx.drawImage(img, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-          this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
+          ctx.drawImage(img, 0, 0, desiredWidth, desiredHeight);
         }
-        cb();
+        if (callback) {
+          callback();
+        }
       };
+      if (typeof source === "string") {
+        img.src = source;
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && event.target.result) {
+            img.src = event.target.result;
+          }
+        };
+        reader.readAsDataURL(source);
+      }
     }
     imageUrl() {
       return this.#imageUrl;
     }
     canvasEl() {
       return this.#canvasEl;
-    }
-    canvas() {
-      return this.#canvas;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -140,9 +145,9 @@
     }
   };
   var paramsFromUrl = (defaults) => {
-    const params2 = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
     const result = defaults;
-    for (const [key, value] of params2) {
+    for (const [key, value] of params) {
       const num = Number(value);
       if (!isNaN(num)) {
         result[key] = num;
@@ -156,11 +161,11 @@
     }
     return result;
   };
-  var updateUrl = (params2) => {
+  var updateUrl = (params) => {
     const url = new URL(window.location.toString());
     url.search = "";
-    Object.keys(params2).forEach((key) => {
-      url.searchParams.set(key, params2[key]);
+    Object.keys(params).forEach((key) => {
+      url.searchParams.set(key, params[key]);
     });
     history.pushState(null, "", url);
   };
@@ -188,6 +193,11 @@
     }
   };
   var Pixmap = class {
+    canvas;
+    width;
+    height;
+    context;
+    _pixels;
     constructor(canvas) {
       this.canvas = canvas;
       this.width = this.canvas.width;
@@ -233,15 +243,15 @@
     #wiggleAmplitude;
     #blur;
     #outputWidth;
-    constructor(params2) {
-      this.#params = params2;
+    constructor(params) {
+      this.#params = params;
       this.#params.tx = 1;
       this.#params.ty = 1;
-      this.#inputPixmap = new Pixmap(params2.inputCanvas);
+      this.#inputPixmap = new Pixmap(params.inputCanvas);
       this.#wiggleFrequency = this.#params.waviness / 100;
       this.#wiggleAmplitude = this.#wiggleFrequency === 0 ? 0 : 0.5 / this.#wiggleFrequency;
-      this.#blur = params2.blur;
-      this.#outputWidth = params2.width;
+      this.#blur = params.blur;
+      this.#outputWidth = params.width;
     }
     excoffize() {
       return this.#excoffize();
@@ -390,7 +400,6 @@
   };
   var defaultParams = {
     inputImageUrl: "portrait.jpg",
-    inputCanvas: void 0,
     theta: 2,
     width: 800,
     height: 800,
@@ -406,125 +415,134 @@
     blur: 1
   };
   var paramsFromWidgets = () => {
-    const params2 = { ...defaultParams };
-    if (controls.inputImage) {
-      params2.inputImageUrl = controls.inputImage.imageUrl();
-      params2.inputCanvas = controls.inputImage.canvasEl();
+    const params = { ...defaultParams };
+    if (controlInputImage) {
+      params.inputImageUrl = controlInputImage.imageUrl();
+      params.inputCanvas = controlInputImage.canvasEl();
     }
-    params2.theta = controls.theta.val();
-    params2.waviness = controls.waviness.val();
-    params2.lineHeight = controls.lineHeight.val();
-    params2.density = controls.density.val();
-    params2.thickness = controls.thickness.val();
-    params2.sx = controls.sx.val();
-    params2.sy = controls.sy.val();
-    params2.blur = controls.blur.val();
-    return params2;
+    params.theta = controlTheta.val();
+    params.waviness = controlWaviness.val();
+    params.lineHeight = controlLineHeight.val();
+    params.density = controlDensity.val();
+    params.thickness = controlThickness.val();
+    params.sx = controlSx.val();
+    params.sy = controlSy.val();
+    params.blur = controlBlur.val();
+    return params;
   };
-  var render = (params2) => {
-    if (!params2) {
-      params2 = paramsFromWidgets();
+  var render = (params) => {
+    if (!params) {
+      params = paramsFromWidgets();
     }
-    params2.width ||= 800;
-    params2.height ||= 800;
-    const excoffizator = new Excoffizer(params2);
-    delete params2.inputImage;
-    updateUrl(params2);
-    $("canvas").innerHTML = excoffizator.excoffize();
-  };
-  var controls = {
-    inputImage: new ImageUploadControl({
-      name: "inputImage",
-      label: "Image",
-      value: defaultParams["inputImageUrl"],
-      renderFn: render
-    }),
-    theta: new NumberControl({
-      name: "theta",
-      label: "Angle",
-      value: defaultParams["theta"],
-      renderFn: render,
-      min: 0,
-      max: 6.28,
-      step: 0.01
-    }),
-    waviness: new NumberControl({
-      name: "waviness",
-      label: "Waviness",
-      value: defaultParams["waviness"],
-      renderFn: render,
-      min: 0,
-      max: 10,
-      step: 0.1
-    }),
-    lineHeight: new NumberControl({
-      name: "lineHeight",
-      label: "Line height",
-      value: defaultParams["lineHeight"],
-      renderFn: render,
-      min: 5,
-      max: 15,
-      step: 0.1
-    }),
-    density: new NumberControl({
-      name: "density",
-      label: "Density",
-      value: defaultParams["density"],
-      renderFn: render,
-      min: 1,
-      max: 10,
-      step: 0.1
-    }),
-    thickness: new NumberControl({
-      name: "thickness",
-      label: "Thickness",
-      value: defaultParams["thickness"],
-      renderFn: render,
-      min: 1,
-      max: 20,
-      step: 0.1
-    }),
-    sx: new NumberControl({
-      name: "sx",
-      label: "Stretch X",
-      value: defaultParams["sx"],
-      renderFn: render,
-      min: 0,
-      max: 2,
-      step: 0.01
-    }),
-    sy: new NumberControl({
-      name: "sy",
-      label: "Stretch Y",
-      value: defaultParams["sy"],
-      renderFn: render,
-      min: 0,
-      max: 2,
-      step: 0.01
-    }),
-    blur: new NumberControl({
-      name: "blur",
-      label: "Blur",
-      value: defaultParams["blur"],
-      renderFn: render,
-      min: 1,
-      max: 10
-    })
-  };
-  var params = paramsFromUrl(defaultParams);
-  controls.theta.set(params.theta);
-  controls.waviness.set(params.waviness);
-  controls.lineHeight.set(params.lineHeight);
-  controls.density.set(params.density);
-  controls.thickness.set(params.thickness);
-  controls.sx.set(params.sx);
-  controls.sy.set(params.sy);
-  controls.blur.set(params.blur);
-  controls.inputImage.set(params.inputImageUrl, () => {
-    params.inputCanvas = controls.inputImage.canvasEl();
+    params.width ||= 800;
+    params.height ||= 800;
     const excoffizator = new Excoffizer(params);
     delete params.inputCanvas;
     updateUrl(params);
     $("canvas").innerHTML = excoffizator.excoffize();
+  };
+  var controlTheta = new NumberControl({
+    name: "theta",
+    label: "Angle",
+    value: defaultParams["theta"],
+    renderFn: render,
+    min: 0,
+    max: 6.28,
+    step: 0.01
+  });
+  var controlWaviness = new NumberControl({
+    name: "waviness",
+    label: "Waviness",
+    value: defaultParams["waviness"],
+    renderFn: render,
+    min: 0,
+    max: 10,
+    step: 0.1
+  });
+  var controlLineHeight = new NumberControl({
+    name: "lineHeight",
+    label: "Line height",
+    value: defaultParams["lineHeight"],
+    renderFn: render,
+    min: 5,
+    max: 15,
+    step: 0.1
+  });
+  var controlDensity = new NumberControl({
+    name: "density",
+    label: "Density",
+    value: defaultParams["density"],
+    renderFn: render,
+    min: 1,
+    max: 10,
+    step: 0.1
+  });
+  var controlThickness = new NumberControl({
+    label: "Thickness",
+    value: defaultParams["thickness"],
+    renderFn: render,
+    min: 1,
+    max: 20,
+    step: 0.1
+  });
+  var controlSx = new NumberControl({
+    name: "sx",
+    label: "Stretch X",
+    value: defaultParams["sx"],
+    renderFn: render,
+    min: 0,
+    max: 2,
+    step: 0.01
+  });
+  var controlSy = new NumberControl({
+    name: "sy",
+    label: "Stretch Y",
+    value: defaultParams["sy"],
+    renderFn: render,
+    min: 0,
+    max: 2,
+    step: 0.01
+  });
+  var controlBlur = new NumberControl({
+    name: "blur",
+    label: "Blur",
+    value: defaultParams["blur"],
+    renderFn: render,
+    min: 1,
+    max: 10
+  });
+  new SvgSaveControl({
+    name: "svgSave",
+    canvasId: "svg-canvas",
+    saveFilename: "excoffizer.svg"
+  });
+  var controlInputImage = new ImageUploadControl({
+    name: "inputImage",
+    label: "Image",
+    value: defaultParams["inputImageUrl"],
+    firstCallback: (instance) => {
+      const params = paramsFromUrl(defaultParams);
+      controlTheta.set(params.theta);
+      controlWaviness.set(params.waviness);
+      controlLineHeight.set(params.lineHeight);
+      controlDensity.set(params.density);
+      controlThickness.set(params.thickness);
+      controlSx.set(params.sx);
+      controlSy.set(params.sy);
+      controlBlur.set(params.blur);
+      params.inputCanvas = instance.canvasEl();
+      const excoffizator = new Excoffizer(params);
+      $("canvas").innerHTML = excoffizator.excoffize();
+      delete params.inputCanvas;
+      updateUrl(params);
+    },
+    callback: (instance) => {
+      const params = paramsFromWidgets();
+      params.inputCanvas = instance.canvasEl();
+      const excoffizator = new Excoffizer(params);
+      $("canvas").innerHTML = excoffizator.excoffize();
+      delete params.inputCanvas;
+      updateUrl(params);
+    }
   });
 })();

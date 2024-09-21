@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 type Params = {
   width: number,
@@ -321,7 +321,12 @@ const controls = {
   iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 100}),
   startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], renderFn: render, min: 1, max: 1000}),
   speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
-  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 })
+  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
+  svgSave: new SvgSaveControl({
+    name: 'svgSave',
+    canvasId: 'svg-canvas',
+    saveFilename: 'boids.svg'
+  })
 };
 
 
@@ -332,11 +337,13 @@ const controls = {
 // Fetch plot parameters from the query string
 const params = paramsFromUrl(defaultParams);
 
-// populate the form controls from controls.params
-Object.keys(params).forEach(key => {
-  if (key in controls) {
-    controls[key as keyof typeof controls].set(params[key as keyof typeof params]);
-  }
-});
+controls.margin.set(params.margin);
+controls.seed.set(params.seed);
+controls.cohesionForce.set(params.cohesionForce);
+controls.cohesionDistance.set(params.cohesionDistance);
+controls.iterations.set(params.iterations);
+controls.startIteration.set(params.startIteration);
+controls.speedLimit.set(params.speedLimit);
+controls.nboids.set(params.nboids);
 
 $('canvas').innerHTML = render(params);

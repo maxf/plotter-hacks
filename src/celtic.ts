@@ -15,7 +15,7 @@
 
 import Delaunator from 'delaunator';
 import seedrandom from 'seedrandom';
-import { SelectControl, NumberControl, CheckboxControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { SelectControl, NumberControl, CheckboxControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -800,15 +800,20 @@ const controls: any = {
     renderFn: render,
     min: 1,
     max: 20
+  }),
+  svgSave: new SvgSaveControl({
+    name: 'svgSave',
+    canvasId: 'svg-canvas',
+    saveFilename: 'celtic.svg'
   })
 };
 
 type ControlKeys = keyof typeof controls;
 
 const paramsPerType: Record<GraphType, ControlKeys[]>  = {
-  Random: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes'],
-  Grid: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation'],
-  Polar: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation']
+  Random: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes', 'svgSave'],
+  Grid: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation', 'svgSave'],
+  Polar: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation', 'svgSave']
 };
 
 const activateControls = (graphType: GraphType) => {

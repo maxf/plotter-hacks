@@ -180,56 +180,62 @@ class CheckboxControl {
   }
 }
 
+class SvgSaveControl {
+  #name: string;
+
+  constructor(params: any) {
+    this.#name = params.name;
+    const html = `<button id="${params.name}">Save Svg</button><br/>`;
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html);
+    }
+    $(params.name).onclick = () => {
+      const svgEl = $(params.canvasId);
+      svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      var svgData = svgEl.outerHTML;
+      var preface = '<?xml version="1.0" standalone="no"?>';
+      var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+      var svgUrl = URL.createObjectURL(svgBlob);
+      var downloadLink = document.createElement("a");
+      downloadLink.href = svgUrl;
+      downloadLink.download = params.saveFilename;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  }
+  show() {
+    $(this.#name).style.display = 'inline';
+  }
+
+  hide() {
+    $(this.#name).style.display = 'none';
+  }
+}
 
 class ImageUploadControl {
   #wrapperEl: HTMLDivElement;
   #uploadEl: HTMLInputElement;
   #canvasEl: HTMLCanvasElement;
   #imageUrl: string;
-  #canvas: any;
 
   constructor(params: any) {
-    this.#createHtmlControl(params.name, params.label);
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
-    this.#uploadEl = $(`${params.name}-upload`) as HTMLInputElement;
-    this.#canvasEl = $(`${params.name}-canvas`) as HTMLCanvasElement;
     this.#imageUrl = params.value;
+    this.#createHtmlControl(params.name, params.label);
 
-    const ctx = this.#canvasEl.getContext('2d', { willReadFrequently: true });
-    const img: HTMLImageElement = new Image();
-    img.src = params.value;
-    img.onload = () => {
-      this.#canvasEl.width = img.width/5;
-      this.#canvasEl.height = img.height/5;
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-        this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
-      }
-    }
+    this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
+    this.#uploadEl = document.getElementById(`${params.name}-upload`) as HTMLInputElement;
+    this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
 
-    this.#uploadEl.onchange = event => {
-      const reader = new FileReader();
-      reader.onload = event => {
-        const img: HTMLImageElement = new Image();
-        img.onload = () => {
-          this.#canvasEl.width = img.width;
-          this.#canvasEl.height = img.height;
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
-            params.renderFn();
-          }
-        }
-        if (event.target) {
-          img.src = event.target.result as string;
-          this.#imageUrl = event.target.result as string;
-        }
-      }
-      if (event.target) {
-        const target = event.target as HTMLInputElement;
-        if (target && target.files) {
-          reader.readAsDataURL(target.files[0]);
-        }
+    this.loadImage(this.#imageUrl, () => {
+      params.firstCallback(this);
+    });
+
+    this.#uploadEl.onchange = () => {
+      const file: File = (this.#uploadEl.files as FileList)[0];
+      if (file) {
+        this.loadImage(file, () => params.callback(this));
       }
     };
   }
@@ -237,29 +243,42 @@ class ImageUploadControl {
   #createHtmlControl(name: string, label: string) {
     const html = [];
     html.push(`<span class="control" id="${name}-control">`);
-    html.push(`${label} <input type="file" id="${name}-upload" accept="image/*;capture=camera">`);
-    html.push(`<canvas id="${name}-canvas" width=100 height=100/>`);
+    html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
+    html.push(`<canvas id="${name}-canvas"></canvas>`);
     html.push(`</span><br/>`);
-    // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = document.getElementById('controls');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
   }
 
-  set(url: string, cb: any) {
-    this.#imageUrl = url;
+  loadImage(source: File | string, callback?: () => void) {
     const ctx = this.#canvasEl.getContext('2d', { willReadFrequently: true });
-    const img: HTMLImageElement = new Image();
-    img.src = url;
+    const img = new Image();
     img.onload = () => {
-      this.#canvasEl.width = img.width/5;
-      this.#canvasEl.height = img.height/5;
+      const desiredWidth = 200;
+      const aspectRatio = img.width / img.height;
+      const desiredHeight = desiredWidth / aspectRatio;
+      this.#canvasEl.width = desiredWidth;
+      this.#canvasEl.height = desiredHeight;
       if (ctx) {
-        ctx.drawImage(img, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-        this.#canvas = ctx.getImageData(0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        ctx.drawImage(img, 0, 0, desiredWidth, desiredHeight);
       }
-      cb();
+      if (callback) {
+        callback();
+      }
+    };
+
+    if (typeof source === 'string') {
+      img.src = source;
+    } else {
+      const reader = new FileReader();
+      reader.onload = event => {
+        if (event.target && event.target.result) {
+          img.src = event.target.result as string;
+        }
+      };
+      reader.readAsDataURL(source);
     }
   }
 
@@ -271,11 +290,6 @@ class ImageUploadControl {
     return this.#canvasEl;
   }
 
-  canvas(): any {
-    return this.#canvas;
-  }
-
-
   show() {
     this.#wrapperEl.style.display = 'block';
   }
@@ -284,6 +298,7 @@ class ImageUploadControl {
     this.#wrapperEl.style.display = 'none';
   }
 }
+
 
 //=====================================================
 
@@ -314,21 +329,4 @@ const updateUrl = (params: any) => {
   history.pushState(null, '', url);
 };
 
-const saveSvg = function() {
-  const svgEl = $('svg-canvas');
-  svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  var svgData = svgEl.outerHTML;
-  var preface = '<?xml version="1.0" standalone="no"?>';
-  var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
-  var svgUrl = URL.createObjectURL(svgBlob);
-  var downloadLink = document.createElement("a");
-  downloadLink.href = svgUrl;
-  downloadLink.download = 'celtic.svg';
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-//export { Control, paramsFromUrl, saveSvg, updateUrl, $ };
-
-export { NumberControl, SelectControl, CheckboxControl, ImageUploadControl, paramsFromUrl, saveSvg, updateUrl, $ };
+export { NumberControl, SelectControl, CheckboxControl, ImageUploadControl, paramsFromUrl, SvgSaveControl, updateUrl, $ };
