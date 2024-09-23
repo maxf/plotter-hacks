@@ -775,12 +775,21 @@
     }
   };
   var SvgSaveControl = class {
-    constructor(params2) {
-      const html = `<button id="${params2.name}">Save Svg</button><br/>`;
+    #wrapperEl;
+    #createHtmlControl(name, label) {
+      const html = `
+      <span class="control" id="${name}-control">
+        <button id="${name}">${label}</button><br/>
+      </span>
+    `;
       const anchorElement = $("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
+    }
+    constructor(params2) {
+      this.#createHtmlControl(params2.name, params2.label);
+      this.#wrapperEl = $(`${params2.name}-control`);
       $(params2.name).onclick = () => {
         const svgEl = $(params2.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -795,6 +804,12 @@
         downloadLink.click();
         document.body.removeChild(downloadLink);
       };
+    }
+    show() {
+      this.#wrapperEl.style.display = "inline";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
     }
   };
   var paramsFromUrl = (defaults) => {
@@ -1051,7 +1066,7 @@
     params2.width ||= 800;
     params2.height ||= 800;
     updateUrl(params2);
-    return renderBoids(params2);
+    $("canvas").innerHTML = renderBoids(params2);
   };
   var controls = {
     margin: new NumberControl({ name: "margin", label: "Margin", value: defaultParams["margin"], renderFn: render, min: 0, max: 500 }),
@@ -1065,6 +1080,7 @@
     svgSave: new SvgSaveControl({
       name: "svgSave",
       canvasId: "svg-canvas",
+      label: "Save SVG",
       saveFilename: "boids.svg"
     })
   };
@@ -1077,5 +1093,5 @@
   controls.startIteration.set(params.startIteration);
   controls.speedLimit.set(params.speedLimit);
   controls.nboids.set(params.nboids);
-  $("canvas").innerHTML = render(params);
+  $("canvas").innerHTML = renderBoids(params);
 })();

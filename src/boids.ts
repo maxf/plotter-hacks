@@ -231,7 +231,7 @@ function hypot(a: number, b: number): number {
   return hi + 3 * lo / 32 + Math.max(0, 2 * lo - hi) / 8 + Math.max(0, 4 * lo - hi) / 16
 }
 
-const renderBoids = (params: Params) => {
+const renderBoids = (params: Params): string => {
   const b = new Boids(params);
   const boids = b.boids;
 
@@ -309,7 +309,7 @@ const render = (params?: any) => {
 
   updateUrl(params);
 
-  return renderBoids(params);
+  $('canvas').innerHTML = renderBoids(params);
 }
 
 
@@ -325,6 +325,7 @@ const controls = {
   svgSave: new SvgSaveControl({
     name: 'svgSave',
     canvasId: 'svg-canvas',
+    label: 'Save SVG',
     saveFilename: 'boids.svg'
   })
 };
@@ -346,4 +347,5 @@ controls.startIteration.set(params.startIteration);
 controls.speedLimit.set(params.speedLimit);
 controls.nboids.set(params.nboids);
 
-$('canvas').innerHTML = render(params);
+
+$('canvas').innerHTML = renderBoids(params);

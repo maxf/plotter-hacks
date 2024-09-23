@@ -681,7 +681,7 @@ const renderCeltic = (params: Params): string => {
   `;
 };
 
-const paramsFromWidgets = () => {
+const paramsFromWidgets = (controls: any) => {
   const params: Params = {...defaultParams};
   params.graphType = controls.graphType.val() as GraphType;
   params.margin = controls.margin.val() as number;
@@ -701,7 +701,7 @@ const paramsFromWidgets = () => {
 
 const render = (params?: any) => {
   if (!params) {
-    params = paramsFromWidgets();
+    params = paramsFromWidgets(controls);
   }
 
   params.width ||= 800;
@@ -709,106 +709,129 @@ const render = (params?: any) => {
 
   updateUrl(params);
 
-  return renderCeltic(params);
+  const graphType = $('graphType') as HTMLInputElement;
+  activateControls(graphType.value as GraphType);
+
+  $('canvas').innerHTML = renderCeltic(params);
 };
 
 
-const controls: any = {
-  graphType: new SelectControl({
-    name:'graphType',
-    label:'',
-    value: defaultParams['graphType'],
-    renderFn: render,
-    choices: ['Polar', 'Grid', 'Random']
-  }),
-  margin: new NumberControl({
-    name: 'margin',
-    label: 'Margin',
-    value: defaultParams['margin'],
-    renderFn: render,
-    min: 0,
-    max: 500
-  }),
-  shape1: new NumberControl({
-    name: 'shape1',
-    label: 'Shape1',
-    value: defaultParams['shape1'],
-    renderFn: render,
-    min: -2,
-    max: 2,
-    step: 0.01
-  }),
-  shape2: new NumberControl({
-    name: 'shape2',
-    label: 'Shape2',
-    value: defaultParams['shape2'],
-    renderFn: render,
-    min: -2,
-    max: 2,
-    step: 0.01
-  }),
-  perturbation: new NumberControl({
-    name: 'perturbation',
-    label: 'Perturbation',
-    value: defaultParams['perturbation'],
-    renderFn: render,
-    min: 0,
-    max: 300
-  }),
-  showGraph: new CheckboxControl({
-    name: 'showGraph',
-    label: 'Graph',
-    value: defaultParams['showGraph'],
-    renderFn: render
-  }),
-  seed: new NumberControl({
-    name: 'seed',
-    label: 'seed',
-    value: defaultParams['seed'],
-    renderFn: render,
-    min: 0,
-    max: 500
-  }),
-  nbNodes: new NumberControl({
-    name: 'nbNodes',
-    label: 'Nodes',
-    value: defaultParams['nbNodes'],
-    renderFn: render,
-    min: 3,
-    max: 40
-  }),
-  cells: new NumberControl({
-    name: 'cells',
-    label: 'Cells',
-    value: defaultParams['cells'],
-    renderFn: render,
-    min: 2,
-    max: 100
-  }),
-  nbOrbits: new NumberControl({
-    name: 'nbOrbits',
-    label: 'Orbits',
-    value: defaultParams['nbOrbits'],
-    renderFn: render,
-    min: 1,
-    max: 20
-  }),
-  nbNodesPerOrbit: new NumberControl({
-    name: 'nbNodesPerOrbit',
-    label: 'Nodes per orbit',
-    value: defaultParams['nbNodesPerOrbit'],
-    renderFn: render,
-    min: 1,
-    max: 20
-  }),
-  svgSave: new SvgSaveControl({
-    name: 'svgSave',
-    canvasId: 'svg-canvas',
-    saveFilename: 'celtic.svg'
-  })
-};
+
+
+
+const controls: any = {};
+
+controls.margin = new NumberControl({
+  name: 'margin',
+  label: 'Margin',
+  value: defaultParams['margin'],
+  renderFn: render,
+  min: 0,
+  max: 500
+});
+
+controls.shape1 = new NumberControl({
+  name: 'shape1',
+  label: 'Shape1',
+  value: defaultParams['shape1'],
+  renderFn: render,
+  min: -2,
+  max: 2,
+  step: 0.01
+});
+
+controls.shape2 = new NumberControl({
+  name: 'shape2',
+  label: 'Shape2',
+  value: defaultParams['shape2'],
+  renderFn: render,
+  min: -2,
+  max: 2,
+  step: 0.01
+});
+
+controls.perturbation = new NumberControl({
+  name: 'perturbation',
+  label: 'Perturbation',
+  value: defaultParams['perturbation'],
+  renderFn: render,
+  min: 0,
+  max: 300
+});
+
+controls.showGraph = new CheckboxControl({
+  name: 'showGraph',
+  label: 'Graph',
+  value: defaultParams['showGraph'],
+  renderFn: render
+});
+
+controls.seed = new NumberControl({
+  name: 'seed',
+  label: 'seed',
+  value: defaultParams['seed'],
+  renderFn: render,
+  min: 0,
+  max: 500
+});
+
+controls.nbNodes = new NumberControl({
+  name: 'nbNodes',
+  label: 'Nodes',
+  value: defaultParams['nbNodes'],
+  renderFn: render,
+  min: 3,
+  max: 40
+});
+
+controls.cells = new NumberControl({
+  name: 'cells',
+  label: 'Cells',
+  value: defaultParams['cells'],
+  renderFn: render,
+  min: 2,
+  max: 100
+});
+
+controls.nbOrbits = new NumberControl({
+  name: 'nbOrbits',
+  label: 'Orbits',
+  value: defaultParams['nbOrbits'],
+  renderFn: render,
+  min: 1,
+  max: 20
+});
+
+controls.nbNodesPerOrbit = new NumberControl({
+  name: 'nbNodesPerOrbit',
+  label: 'Nodes per orbit',
+  value: defaultParams['nbNodesPerOrbit'],
+  renderFn: render,
+  min: 1,
+  max: 20
+});
+
+controls.svgSave = new SvgSaveControl({
+  name: 'svgSave',
+  canvasId: 'svg-canvas',
+  label: "Save SVG",
+  saveFilename: 'celtic.svg'
+});
+
+controls.graphType = new SelectControl({
+  name:'graphType',
+  label:'',
+  value: defaultParams['graphType'],
+  choices: ['Polar', 'Grid', 'Random'],
+  renderFn: function()  {
+    document.querySelectorAll('.control').forEach((c: any) => c.hide());
+    paramsPerType[(this.val() as GraphType)].forEach(name => controls[name].show());
+    render();
+  }
+});
 
 type ControlKeys = keyof typeof controls;
+
 
 const paramsPerType: Record<GraphType, ControlKeys[]>  = {
   Random: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes', 'svgSave'],
@@ -820,14 +843,6 @@ const activateControls = (graphType: GraphType) => {
   Object.values(controls).forEach((c: any) => c.hide());
   paramsPerType[graphType].forEach(name => controls[name].show());
 };
-
-// We need an extra event listener on plottype to hide and show the controls
-// that depend on the plot type
-$('graphType').addEventListener('change', () => {
-  const graphType = $('graphType') as HTMLInputElement;
-  activateControls(graphType.value as GraphType);
-  render();
-});
 
 
 // =========== First render =============
@@ -845,4 +860,4 @@ Object.keys(params).forEach(key => {
   }
 });
 
-$('canvas').innerHTML = render(params);
+$('canvas').innerHTML = renderCeltic(params);

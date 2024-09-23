@@ -426,6 +426,7 @@ const controlBlur = new NumberControl({
 new SvgSaveControl({
   name: 'svgSave',
   canvasId: 'svg-canvas',
+  label: 'Save SVG',
   saveFilename: 'excoffizer.svg'
 });
 

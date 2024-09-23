@@ -49,12 +49,21 @@
     }
   };
   var SvgSaveControl = class {
-    constructor(params) {
-      const html = `<button id="${params.name}">Save Svg</button><br/>`;
+    #wrapperEl;
+    #createHtmlControl(name, label) {
+      const html = `
+      <span class="control" id="${name}-control">
+        <button id="${name}">${label}</button><br/>
+      </span>
+    `;
       const anchorElement = $("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
+    }
+    constructor(params) {
+      this.#createHtmlControl(params.name, params.label);
+      this.#wrapperEl = $(`${params.name}-control`);
       $(params.name).onclick = () => {
         const svgEl = $(params.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -69,6 +78,12 @@
         downloadLink.click();
         document.body.removeChild(downloadLink);
       };
+    }
+    show() {
+      this.#wrapperEl.style.display = "inline";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
     }
   };
   var ImageUploadControl = class {
@@ -514,6 +529,7 @@
   new SvgSaveControl({
     name: "svgSave",
     canvasId: "svg-canvas",
+    label: "Save SVG",
     saveFilename: "excoffizer.svg"
   });
   var controlInputImage = new ImageUploadControl({

@@ -172,7 +172,7 @@ class CheckboxControl {
   }
 
   show() {
-    this.#wrapperEl.style.display = 'block';
+    this.#wrapperEl.style.display = 'inline';
   }
 
   hide() {
@@ -181,15 +181,27 @@ class CheckboxControl {
 }
 
 class SvgSaveControl {
-  #name: string;
+  #wrapperEl: HTMLSpanElement;
 
-  constructor(params: any) {
-    this.#name = params.name;
-    const html = `<button id="${params.name}">Save Svg</button><br/>`;
+  #createHtmlControl(name: string, label: string) {
+    const html = `
+      <span class="control" id="${name}-control">
+        <button id="${name}">${label}</button><br/>
+      </span>
+    `;
     const anchorElement = $('controls');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html);
     }
+  }
+
+  constructor(params: any) {
+    // params:
+    //   name, canvasId, label, saveFilename
+
+    this.#createHtmlControl(params.name, params.label);
+    this.#wrapperEl = $(`${params.name}-control`) as HTMLSpanElement;
+
     $(params.name).onclick = () => {
       const svgEl = $(params.canvasId);
       svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -206,11 +218,11 @@ class SvgSaveControl {
     }
   }
   show() {
-    $(this.#name).style.display = 'inline';
+    this.#wrapperEl.style.display = 'inline';
   }
 
   hide() {
-    $(this.#name).style.display = 'none';
+    this.#wrapperEl.style.display = 'none';
   }
 }
 
