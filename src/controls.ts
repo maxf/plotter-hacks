@@ -88,7 +88,7 @@ class SelectControl {
 
     this.#widgetEl.onchange = event => {
       this.#value = (event.target as HTMLInputElement).value;
-      params.renderFn();
+      params.renderFn.call(this);
     };
   }
 

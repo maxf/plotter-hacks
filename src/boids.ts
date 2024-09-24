@@ -19,7 +19,7 @@ type Params = {
   alignmentForce: number,
   accelerationLimit: number,
   cohesionDistance: number,
-  attractors: number[][]
+  attractors: number[][] // [xPosition, yPosition, radius, force]
 };
 
 const defaultParams: Params = {
@@ -78,17 +78,17 @@ class Boids {
     this.rng = seedrandom(opts.seed.toString()) || Math.random;
     this.width = opts.width;
     this.height = opts.height;  
-    this.speedLimitRoot = opts.speedLimit || 0
-    this.accelerationLimitRoot = opts.accelerationLimit || 1
-    this.speedLimit = Math.pow(this.speedLimitRoot, 2)
-    this.accelerationLimit = Math.pow(this.accelerationLimitRoot, 2)
-    this.separationDistance = Math.pow(opts.separationDistance || 60, 2)
-    this.alignmentDistance = Math.pow(opts.alignmentDistance || 180, 2)
-    this.cohesionDistance = Math.pow(opts.cohesionDistance || 180, 2)
-    this.separationForce = opts.separationForce || 0.15
-    this.cohesionForce = opts.cohesionForce || 0.5
-    this.alignmentForce = opts.alignmentForce || 0.25
-    this.attractors = opts.attractors || []
+    this.speedLimitRoot = opts.speedLimit || 0;
+    this.accelerationLimitRoot = opts.accelerationLimit || 1;
+    this.speedLimit = Math.pow(this.speedLimitRoot, 2);
+    this.accelerationLimit = Math.pow(this.accelerationLimitRoot, 2);
+    this.separationDistance = Math.pow(opts.separationDistance || 60, 2);
+    this.alignmentDistance = Math.pow(opts.alignmentDistance || 180, 2);
+    this.cohesionDistance = Math.pow(opts.cohesionDistance || 180, 2);
+    this.separationForce = opts.separationForce || 0.15;
+    this.cohesionForce = opts.cohesionForce || 0.5;
+    this.alignmentForce = opts.alignmentForce || 0.25;
+    this.attractors = opts.attractors || [[600, 100, 3000, 3]];
     this.iterations = opts.iterations || 100;
     this.startIteration = opts.startIteration || 0;
     this.nboids = opts.nboids || 10;
@@ -148,8 +148,10 @@ class Boids {
         spareY = currPos[1] - attractor[1]
         distSquared = spareX*spareX + spareY*spareY
 
+        console.log(distSquared, attractor[2])
         if (distSquared < attractor[2]*attractor[2]) {
           length = hypot(spareX, spareY)
+          console.log((attractor[3] * spareX / length), (attractor[3] * spareY / length))
           boids[current][SPEEDX] -= (attractor[3] * spareX / length) || 0
           boids[current][SPEEDY] -= (attractor[3] * spareY / length) || 0
         }

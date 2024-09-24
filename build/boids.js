@@ -898,7 +898,7 @@
       this.separationForce = opts.separationForce || 0.15;
       this.cohesionForce = opts.cohesionForce || 0.5;
       this.alignmentForce = opts.alignmentForce || 0.25;
-      this.attractors = opts.attractors || [];
+      this.attractors = opts.attractors || [[600, 100, 3e3, 3]];
       this.iterations = opts.iterations || 100;
       this.startIteration = opts.startIteration || 0;
       this.nboids = opts.nboids || 10;
@@ -933,8 +933,10 @@
           spareX = currPos[0] - attractor[0];
           spareY = currPos[1] - attractor[1];
           distSquared = spareX * spareX + spareY * spareY;
+          console.log(distSquared, attractor[2]);
           if (distSquared < attractor[2] * attractor[2]) {
             length = hypot(spareX, spareY);
+            console.log(attractor[3] * spareX / length, attractor[3] * spareY / length);
             boids[current][SPEEDX] -= attractor[3] * spareX / length || 0;
             boids[current][SPEEDY] -= attractor[3] * spareY / length || 0;
           }

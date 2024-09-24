@@ -721,6 +721,18 @@ const render = (params?: any) => {
 
 const controls: any = {};
 
+controls.graphType = new SelectControl({
+  name:'graphType',
+  label:'',
+  value: defaultParams['graphType'],
+  choices: ['Polar', 'Grid', 'Random'],
+  renderFn: function() {
+    Object.values(controls).forEach((c: any) => c.hide());
+    paramsPerType[(this.val() as GraphType)].forEach(name => controls[name].show());
+    render();
+  }
+});
+
 controls.margin = new NumberControl({
   name: 'margin',
   label: 'Margin',
@@ -818,17 +830,6 @@ controls.svgSave = new SvgSaveControl({
   saveFilename: 'celtic.svg'
 });
 
-controls.graphType = new SelectControl({
-  name:'graphType',
-  label:'',
-  value: defaultParams['graphType'],
-  choices: ['Polar', 'Grid', 'Random'],
-  renderFn: function()  {
-    document.querySelectorAll('.control').forEach((c: any) => c.hide());
-    paramsPerType[(this.val() as GraphType)].forEach(name => controls[name].show());
-    render();
-  }
-});
 
 type ControlKeys = keyof typeof controls;
 
