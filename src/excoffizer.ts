@@ -320,6 +320,7 @@ const paramsFromWidgets = () => {
     params.inputCanvas = (controlInputImage as ImageUploadControl).canvasEl();
   }
   params.theta = controlTheta.val() as number;
+  params.margin = controlMargin.val() as number;
   params.waviness = controlWaviness.val() as number;
   params.lineHeight = controlLineHeight.val() as number;
   params.density = controlDensity.val() as number;
@@ -344,6 +345,15 @@ const render = (params?: any) => {
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
+
+const controlMargin = new NumberControl({
+  name: 'margin',
+  label: 'Margin',
+  value: defaultParams['margin'],
+  renderFn: render,
+  min: 0,
+  max: 500
+});
 
 const controlTheta = new NumberControl({
   name: 'theta',
@@ -437,6 +447,7 @@ const controlInputImage = new ImageUploadControl({
   firstCallback: (instance: ImageUploadControl) => {
     const params = paramsFromUrl(defaultParams);
     controlTheta.set(params.theta);
+    controlMargin.set(params.margin);
     controlWaviness.set(params.waviness);
     controlLineHeight.set(params.lineHeight);
     controlDensity.set(params.density);

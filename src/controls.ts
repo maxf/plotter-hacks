@@ -1,5 +1,6 @@
 const $ = (id: string) => document.getElementById(id)!;
 
+
 class NumberControl {
   #value: number;
   #wrapperEl: HTMLDivElement;
@@ -31,14 +32,14 @@ class NumberControl {
 
   #createHtmlControl(name: string, label: string, value: number, min: number, max: number, step?: number) {
     const html = [];
-    html.push(`<span class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${name}-control">`);
     const stepAttr = step ? `step="${step}"` : '';
     html.push(`
       <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
       ${label}
       <span id="${name}-value">${value}</span>
     `);
-    html.push('<br/></span>');
+    html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
     const anchorElement = $('controls');
     if (anchorElement) {
@@ -93,13 +94,13 @@ class SelectControl {
 
   #createHtmlControl(name: string, label: string, value: string, choices: string[]) {
     const html = [];
-    html.push(`<span class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${name}-control">`);
     html.push(label);
     html.push(`<select id="${this.#name}">`);
     choices.forEach((choice: string) =>
       html.push(`<option ${choice===value ? 'selected' : ''}>${choice}</option>`));
     html.push('</select>');
-    html.push('<br/></span>');
+    html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
     const anchorElement = $('controls');
     if (anchorElement) {
@@ -109,7 +110,7 @@ class SelectControl {
 
   set(newValue: string) {
     this.#value = newValue;
-    // TODO: move the 'selected' attiribute
+    this.#widgetEl.value = newValue;
   }
 
   val(): string {
@@ -151,9 +152,9 @@ class CheckboxControl {
 
   #createHtmlControl(name: string, label: string, value: boolean) {
     const html = [];
-    html.push(`<span class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${name}-control">`);
     html.push(`<input type="checkbox" id="${name}" ${value?'selected':''}> ${label}`);
-    html.push(`<br/></span>`);
+    html.push(`</div>`);
 
     // Find the anchor element and insert the constructed HTML as the last child
     const anchorElement = $('controls');
@@ -164,7 +165,7 @@ class CheckboxControl {
 
   set(newValue: boolean) {
     this.#value = newValue;
-    // TODO: change the select state (in case the change is not user-initiated)
+    this.#widgetEl.checked = newValue;
   }
 
   val(): boolean {
@@ -172,7 +173,7 @@ class CheckboxControl {
   }
 
   show() {
-    this.#wrapperEl.style.display = 'inline';
+    this.#wrapperEl.style.display = 'block';
   }
 
   hide() {
@@ -180,14 +181,15 @@ class CheckboxControl {
   }
 }
 
+
 class SvgSaveControl {
   #wrapperEl: HTMLSpanElement;
 
   #createHtmlControl(name: string, label: string) {
     const html = `
-      <span class="control" id="${name}-control">
-        <button id="${name}">${label}</button><br/>
-      </span>
+      <div class="control" id="${name}-control">
+        <button id="${name}">${label}</button>
+      </div>
     `;
     const anchorElement = $('controls');
     if (anchorElement) {
@@ -218,13 +220,14 @@ class SvgSaveControl {
     }
   }
   show() {
-    this.#wrapperEl.style.display = 'inline';
+    this.#wrapperEl.style.display = 'block';
   }
 
   hide() {
     this.#wrapperEl.style.display = 'none';
   }
 }
+
 
 class ImageUploadControl {
   #wrapperEl: HTMLDivElement;
@@ -254,10 +257,10 @@ class ImageUploadControl {
 
   #createHtmlControl(name: string, label: string) {
     const html = [];
-    html.push(`<span class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${name}-control">`);
     html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
     html.push(`<canvas id="${name}-canvas"></canvas>`);
-    html.push(`</span><br/>`);
+    html.push(`</div>`);
     const anchorElement = document.getElementById('controls');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
@@ -312,8 +315,6 @@ class ImageUploadControl {
 }
 
 
-//=====================================================
-
 const paramsFromUrl = (defaults: any) => {
   const params = new URLSearchParams(window.location.search);
   const result = defaults;
@@ -332,6 +333,7 @@ const paramsFromUrl = (defaults: any) => {
   return result;
 };
 
+
 const updateUrl = (params: any) => {
   const url = new URL(window.location.toString());
   url.search = '';
@@ -340,5 +342,6 @@ const updateUrl = (params: any) => {
   });
   history.pushState(null, '', url);
 };
+
 
 export { NumberControl, SelectControl, CheckboxControl, ImageUploadControl, paramsFromUrl, SvgSaveControl, updateUrl, $ };

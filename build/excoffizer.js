@@ -21,14 +21,14 @@
     }
     #createHtmlControl(name, label, value, min, max, step) {
       const html = [];
-      html.push(`<span class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${name}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
       <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
       ${label}
       <span id="${name}-value">${value}</span>
     `);
-      html.push("<br/></span>");
+      html.push("</div>");
       const anchorElement = $("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
@@ -52,9 +52,9 @@
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
-      <span class="control" id="${name}-control">
-        <button id="${name}">${label}</button><br/>
-      </span>
+      <div class="control" id="${name}-control">
+        <button id="${name}">${label}</button>
+      </div>
     `;
       const anchorElement = $("controls");
       if (anchorElement) {
@@ -80,7 +80,7 @@
       };
     }
     show() {
-      this.#wrapperEl.style.display = "inline";
+      this.#wrapperEl.style.display = "block";
     }
     hide() {
       this.#wrapperEl.style.display = "none";
@@ -109,10 +109,10 @@
     }
     #createHtmlControl(name, label) {
       const html = [];
-      html.push(`<span class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${name}-control">`);
       html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
       html.push(`<canvas id="${name}-canvas"></canvas>`);
-      html.push(`</span><br/>`);
+      html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
@@ -436,6 +436,7 @@
       params.inputCanvas = controlInputImage.canvasEl();
     }
     params.theta = controlTheta.val();
+    params.margin = controlMargin.val();
     params.waviness = controlWaviness.val();
     params.lineHeight = controlLineHeight.val();
     params.density = controlDensity.val();
@@ -456,6 +457,14 @@
     updateUrl(params);
     $("canvas").innerHTML = excoffizator.excoffize();
   };
+  var controlMargin = new NumberControl({
+    name: "margin",
+    label: "Margin",
+    value: defaultParams["margin"],
+    renderFn: render,
+    min: 0,
+    max: 500
+  });
   var controlTheta = new NumberControl({
     name: "theta",
     label: "Angle",
@@ -539,6 +548,7 @@
     firstCallback: (instance) => {
       const params = paramsFromUrl(defaultParams);
       controlTheta.set(params.theta);
+      controlMargin.set(params.margin);
       controlWaviness.set(params.waviness);
       controlLineHeight.set(params.lineHeight);
       controlDensity.set(params.density);

@@ -747,14 +747,14 @@
     }
     #createHtmlControl(name, label, value, min, max, step) {
       const html = [];
-      html.push(`<span class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${name}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
       <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
       ${label}
       <span id="${name}-value">${value}</span>
     `);
-      html.push("<br/></span>");
+      html.push("</div>");
       const anchorElement = $("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
@@ -778,9 +778,9 @@
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
-      <span class="control" id="${name}-control">
-        <button id="${name}">${label}</button><br/>
-      </span>
+      <div class="control" id="${name}-control">
+        <button id="${name}">${label}</button>
+      </div>
     `;
       const anchorElement = $("controls");
       if (anchorElement) {
@@ -806,7 +806,7 @@
       };
     }
     show() {
-      this.#wrapperEl.style.display = "inline";
+      this.#wrapperEl.style.display = "block";
     }
     hide() {
       this.#wrapperEl.style.display = "none";
