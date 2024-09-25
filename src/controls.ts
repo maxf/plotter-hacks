@@ -1,3 +1,5 @@
+import { objectToQueryString, queryStringToObject } from './url-query-string';
+
 const $ = (id: string) => document.getElementById(id)!;
 
 
@@ -316,30 +318,12 @@ class ImageUploadControl {
 
 
 const paramsFromUrl = (defaults: any) => {
-  const params = new URLSearchParams(window.location.search);
-  const result = defaults;
-  for (const [key, value] of params) {
-    const num = Number(value);
-    if (!isNaN(num)) {
-      result[key] = num;
-    } else if (value === 'true') {
-      result[key] = true;
-    } else if (value === 'false') {
-      result[key] = false;
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
+  const params = queryStringToObject(window.location.search);
+  return { ...defaults,  ...params };
 };
 
-
 const updateUrl = (params: any) => {
-  const url = new URL(window.location.toString());
-  url.search = '';
-  Object.keys(params).forEach(key => {
-    url.searchParams.set(key, params[key]);
-  });
+  const url: string = objectToQueryString(params);
   history.pushState(null, '', url);
 };
 

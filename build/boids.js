@@ -726,6 +726,55 @@
   // src/boids.ts
   var import_seedrandom = __toESM(require_seedrandom2());
 
+  // src/url-query-string.ts
+  function objectToQueryString(obj) {
+    const params2 = new URLSearchParams();
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = obj[key];
+        let paramValue;
+        if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+          paramValue = String(value);
+        } else if (typeof value === "object") {
+          paramValue = JSON.stringify(value);
+        } else {
+          continue;
+        }
+        params2.append(key, paramValue);
+      }
+    }
+    const queryString = params2.toString();
+    return queryString ? `?${queryString}` : "";
+  }
+  function queryStringToObject(queryString) {
+    const obj = {};
+    const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
+    const params2 = new URLSearchParams(query);
+    params2.forEach((value, key) => {
+      let parsedValue;
+      try {
+        parsedValue = JSON.parse(value);
+        obj[key] = parsedValue;
+        return;
+      } catch {
+      }
+      if (!isNaN(Number(value))) {
+        obj[key] = Number(value);
+        return;
+      }
+      if (value.toLowerCase() === "true") {
+        obj[key] = true;
+        return;
+      }
+      if (value.toLowerCase() === "false") {
+        obj[key] = false;
+        return;
+      }
+      obj[key] = value;
+    });
+    return obj;
+  }
+
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var NumberControl = class {
@@ -763,6 +812,44 @@
     set(newValue) {
       this.#value = newValue;
       this.#valueEl.innerText = newValue.toString();
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
+  var CheckboxControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params2) {
+      this.#value = params2.value;
+      this.#createHtmlControl(params2.name, params2.label, params2.value);
+      this.#widgetEl = $(params2.name);
+      this.#wrapperEl = $(`${params2.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.checked;
+        params2.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
+      html.push(`</div>`);
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.checked = newValue;
     }
     val() {
       return this.#value;
@@ -813,28 +900,11 @@
     }
   };
   var paramsFromUrl = (defaults) => {
-    const params2 = new URLSearchParams(window.location.search);
-    const result = defaults;
-    for (const [key, value] of params2) {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        result[key] = num;
-      } else if (value === "true") {
-        result[key] = true;
-      } else if (value === "false") {
-        result[key] = false;
-      } else {
-        result[key] = value;
-      }
-    }
-    return result;
+    const params2 = queryStringToObject(window.location.search);
+    return { ...defaults, ...params2 };
   };
   var updateUrl = (params2) => {
-    const url = new URL(window.location.toString());
-    url.search = "";
-    Object.keys(params2).forEach((key) => {
-      url.searchParams.set(key, params2[key]);
-    });
+    const url = objectToQueryString(params2);
     history.pushState(null, "", url);
   };
 
@@ -856,7 +926,7 @@
     alignmentForce: 0.25,
     alignmentDistance: 180,
     accelerationLimit: 1,
-    attractors: []
+    showAttractors: false
   };
   var POSITIONX = 0;
   var POSITIONY = 1;
@@ -898,7 +968,7 @@
       this.separationForce = opts.separationForce || 0.15;
       this.cohesionForce = opts.cohesionForce || 0.5;
       this.alignmentForce = opts.alignmentForce || 0.25;
-      this.attractors = opts.attractors || [[600, 100, 3e3, 3]];
+      this.attractors = [[300, 600, 100, 2], [700, 500, 100, 3]];
       this.iterations = opts.iterations || 100;
       this.startIteration = opts.startIteration || 0;
       this.nboids = opts.nboids || 10;
@@ -933,10 +1003,8 @@
           spareX = currPos[0] - attractor[0];
           spareY = currPos[1] - attractor[1];
           distSquared = spareX * spareX + spareY * spareY;
-          console.log(distSquared, attractor[2]);
           if (distSquared < attractor[2] * attractor[2]) {
             length = hypot(spareX, spareY);
-            console.log(attractor[3] * spareX / length, attractor[3] * spareY / length);
             boids[current][SPEEDX] -= attractor[3] * spareX / length || 0;
             boids[current][SPEEDY] -= attractor[3] * spareY / length || 0;
           }
@@ -1003,6 +1071,13 @@
     const hi = Math.max(a, b);
     return hi + 3 * lo / 32 + Math.max(0, 2 * lo - hi) / 8 + Math.max(0, 4 * lo - hi) / 16;
   }
+  var renderAttractors = function(attractors) {
+    const attractorMarkup = attractors.map((attractor) => {
+      const color = attractor[3] < 0 ? "#fdd" : "#dfd";
+      return `<circle cx="${attractor[0]}" cy="${attractor[1]}" r="${attractor[2]}" fill="${color}"/>`;
+    });
+    return `<g id="attractors">${attractorMarkup}</g>`;
+  };
   var renderBoids = (params2) => {
     const b = new Boids(params2);
     const boids = b.boids;
@@ -1043,6 +1118,7 @@
         width="${params2.width - 2 * params2.margin}"
         height="${params2.width - 2 * params2.margin}"
         style="fill:none; stroke: black"/>
+      ${params2.showAttractors ? renderAttractors(b.attractors) : ""}
       <g id="pattern" style="fill:none; stroke: red">
         ${svgPaths.join("")}
       </g>
@@ -1059,26 +1135,28 @@
     params2.cohesionDistance = controls.cohesionDistance.val();
     params2.iterations = controls.iterations.val();
     params2.startIteration = controls.startIteration.val();
+    params2.showAttractors = controls.showAttractors.val();
     return params2;
   };
   var render = (params2) => {
     if (!params2) {
       params2 = paramsFromWidgets();
     }
-    params2.width ||= 800;
-    params2.height ||= 800;
+    params2.width ||= defaultParams.width;
+    params2.height ||= defaultParams.height;
     updateUrl(params2);
     $("canvas").innerHTML = renderBoids(params2);
   };
   var controls = {
     margin: new NumberControl({ name: "margin", label: "Margin", value: defaultParams["margin"], renderFn: render, min: 0, max: 500 }),
     seed: new NumberControl({ name: "seed", label: "RNG seed", value: defaultParams["seed"], renderFn: render, min: 0, max: 500 }),
-    cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], renderFn: render, min: 0, max: 1, step: 0.01 }),
-    cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], renderFn: render, min: 10, max: 300 }),
+    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 }),
     iterations: new NumberControl({ name: "iterations", label: "Iterations", value: defaultParams["iterations"], renderFn: render, min: 1, max: 100 }),
     startIteration: new NumberControl({ name: "startIteration", label: "Start iteration", value: defaultParams["startIteration"], renderFn: render, min: 1, max: 1e3 }),
     speedLimit: new NumberControl({ name: "speedLimit", label: "Max speed", value: defaultParams["speedLimit"], renderFn: render, min: 0, max: 20, step: 0.1 }),
-    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 }),
+    cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], renderFn: render, min: 0, max: 1, step: 0.01 }),
+    cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], renderFn: render, min: 10, max: 300 }),
+    showAttractors: new CheckboxControl({ name: "showAttractors", label: "Attractors", value: defaultParams["showAttractors"], renderFn: render }),
     svgSave: new SvgSaveControl({
       name: "svgSave",
       canvasId: "svg-canvas",
@@ -1095,5 +1173,6 @@
   controls.startIteration.set(params.startIteration);
   controls.speedLimit.set(params.speedLimit);
   controls.nboids.set(params.nboids);
+  updateUrl(params);
   $("canvas").innerHTML = renderBoids(params);
 })();

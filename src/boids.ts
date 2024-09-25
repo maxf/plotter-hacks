@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, SvgSaveControl, paramsFromUrl, CheckboxControl, updateUrl, $ } from './controls';
 
 type Params = {
   width: number,
@@ -19,7 +19,7 @@ type Params = {
   alignmentForce: number,
   accelerationLimit: number,
   cohesionDistance: number,
-  attractors: number[][] // [xPosition, yPosition, radius, force]
+  showAttractors: boolean
 };
 
 const defaultParams: Params = {
@@ -39,7 +39,7 @@ const defaultParams: Params = {
   alignmentForce: 0.25,
   alignmentDistance: 180,
   accelerationLimit: 1,
-  attractors: []
+  showAttractors: false
 };
 
 
@@ -88,7 +88,7 @@ class Boids {
     this.separationForce = opts.separationForce || 0.15;
     this.cohesionForce = opts.cohesionForce || 0.5;
     this.alignmentForce = opts.alignmentForce || 0.25;
-    this.attractors = opts.attractors || [[600, 100, 3000, 3]];
+    this.attractors = [[300, 600, 100, 2], [700, 500, 100, 3]];
     this.iterations = opts.iterations || 100;
     this.startIteration = opts.startIteration || 0;
     this.nboids = opts.nboids || 10;
@@ -148,10 +148,8 @@ class Boids {
         spareY = currPos[1] - attractor[1]
         distSquared = spareX*spareX + spareY*spareY
 
-        console.log(distSquared, attractor[2])
         if (distSquared < attractor[2]*attractor[2]) {
           length = hypot(spareX, spareY)
-          console.log((attractor[3] * spareX / length), (attractor[3] * spareY / length))
           boids[current][SPEEDX] -= (attractor[3] * spareX / length) || 0
           boids[current][SPEEDY] -= (attractor[3] * spareY / length) || 0
         }
@@ -223,6 +221,7 @@ class Boids {
   }
 }
 
+
 // double-dog-leg hypothenuse approximation
 // http://forums.parallax.com/discussion/147522/dog-leg-hypotenuse-approximation
 function hypot(a: number, b: number): number {
@@ -231,6 +230,17 @@ function hypot(a: number, b: number): number {
   const lo: number = Math.min(a, b);
   const hi: number = Math.max(a, b)
   return hi + 3 * lo / 32 + Math.max(0, 2 * lo - hi) / 8 + Math.max(0, 4 * lo - hi) / 16
+}
+
+
+const renderAttractors = function(attractors: number[][]): string {
+
+  // [xPosition, yPosition, radius, force]
+  const attractorMarkup = attractors.map(attractor => {
+    const color = attractor[3] < 0 ? "#fdd" : "#dfd";
+    return `<circle cx="${attractor[0]}" cy="${attractor[1]}" r="${attractor[2]}" fill="${color}"/>`
+  });
+  return `<g id="attractors">${attractorMarkup}</g>`;
 }
 
 const renderBoids = (params: Params): string => {
@@ -280,6 +290,7 @@ const renderBoids = (params: Params): string => {
         width="${params.width-2*params.margin}"
         height="${params.width-2*params.margin}"
         style="fill:none; stroke: black"/>
+      ${params.showAttractors ? renderAttractors(b.attractors) : ''}
       <g id="pattern" style="fill:none; stroke: red">
         ${svgPaths.join('')}
       </g>
@@ -297,18 +308,17 @@ const paramsFromWidgets = () => {
   params.cohesionDistance = controls.cohesionDistance.val() as number;
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
+  params.showAttractors = controls.showAttractors.val() as boolean;
   return params;
 };
-
 
 const render = (params?: any) => {
   if (!params) {
     params = paramsFromWidgets();
   }
 
-  params.width ||= 800;
-  params.height ||= 800;
-
+  params.width ||= defaultParams.width;
+  params.height ||= defaultParams.height;
   updateUrl(params);
 
   $('canvas').innerHTML = renderBoids(params);
@@ -318,12 +328,13 @@ const render = (params?: any) => {
 const controls = {
   margin: new NumberControl({name: 'margin', label: 'Margin', value: defaultParams['margin'], renderFn: render, min: 0, max: 500}),
   seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], renderFn: render, min: 0, max: 500}),
-  cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
-  cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], renderFn: render, min: 10, max: 300 }),
+  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
   iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 100}),
   startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], renderFn: render, min: 1, max: 1000}),
   speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
-  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
+  cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
+  cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], renderFn: render, min: 10, max: 300 }),
+  showAttractors: new CheckboxControl({name: 'showAttractors', label: 'Attractors', value: defaultParams['showAttractors'], renderFn: render}),
   svgSave: new SvgSaveControl({
     name: 'svgSave',
     canvasId: 'svg-canvas',
@@ -349,5 +360,5 @@ controls.startIteration.set(params.startIteration);
 controls.speedLimit.set(params.speedLimit);
 controls.nboids.set(params.nboids);
 
-
+updateUrl(params);
 $('canvas').innerHTML = renderBoids(params);
