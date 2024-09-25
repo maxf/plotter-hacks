@@ -108,7 +108,7 @@ class Boids {
   #makeAttractors() {
     const attractors: number[][] = [];
     for (let i=0; i<10; i++) {
-      attractors.push([this.rng()*this.width, this.rng()*this.height, 100, 1]);
+      attractors.push([this.rng()*this.width, this.rng()*this.height, 100, 2]);
     }
     return attractors;
   }
