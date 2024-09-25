@@ -88,7 +88,7 @@ class Boids {
     this.separationForce = opts.separationForce || 0.15;
     this.cohesionForce = opts.cohesionForce || 0.5;
     this.alignmentForce = opts.alignmentForce || 0.25;
-    this.attractors = [[300, 600, 100, 2], [700, 500, 100, 3]];
+    this.attractors = this.#makeAttractors(); // [[300, 600, 100, 2], [700, 500, 100, 3]];
     this.iterations = opts.iterations || 100;
     this.startIteration = opts.startIteration || 0;
     this.nboids = opts.nboids || 10;
@@ -105,7 +105,14 @@ class Boids {
     }
   }
 
-  
+  #makeAttractors() {
+    const attractors: number[][] = [];
+    for (let i=0; i<10; i++) {
+      attractors.push([this.rng()*this.width, this.rng()*this.height, 100, 1]);
+    }
+    return attractors;
+  }
+
   tick() {
     let boids: [number, number, number, number, number, number][] = this.boids
       , sepDist = this.separationDistance
@@ -329,7 +336,7 @@ const controls = {
   margin: new NumberControl({name: 'margin', label: 'Margin', value: defaultParams['margin'], renderFn: render, min: 0, max: 500}),
   seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], renderFn: render, min: 0, max: 500}),
   nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
-  iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 100}),
+  iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 1000}),
   startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], renderFn: render, min: 1, max: 1000}),
   speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
   cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
