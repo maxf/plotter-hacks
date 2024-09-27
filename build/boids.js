@@ -1193,6 +1193,7 @@
   controls.startIteration.set(params.startIteration);
   controls.speedLimit.set(params.speedLimit);
   controls.nboids.set(params.nboids);
+  controls.showAttractors.set(params.showAttractors);
   updateUrl(params);
   $("canvas").innerHTML = renderBoids(params);
 })();
