@@ -5,7 +5,7 @@ import { NumberControl, SvgSaveControl, paramsFromUrl, CheckboxControl, updateUr
 type Params = {
   width: number,
   height: number,
-  margin: number,
+  zoom: number,
   iterations: number,
   startIteration: number,
   nboids: number,
@@ -23,11 +23,11 @@ type Params = {
 };
 
 const defaultParams: Params = {
-  width: 800,
-  height: 800,
-  margin: 100,
+  width: 500,
+  height: 500,
+  zoom: 0,
   seed: 128,
-  iterations: 10,
+  iterations: 400,
   startIteration: 0,
   nboids: 10,
   speedLimit: 30,
@@ -97,8 +97,8 @@ class Boids {
 
     for (let i = 0, l = opts.nboids; i < l; i += 1) {
       this.boids[i] = [
-        (this.rng()-0.5)*this.width/10 + this.width/2,
-        (this.rng()-0.5)*this.height/10 + this.height/2, // position
+        (this.rng()-0.5)*this.width/10,
+        (this.rng()-0.5)*this.height/10, // position
         0, 0,                               // speed
         0, 0                               // acceleration
       ]
@@ -108,7 +108,9 @@ class Boids {
   #makeAttractors() {
     const attractors: number[][] = [];
     for (let i=0; i<10; i++) {
-      attractors.push([this.rng()*this.width, this.rng()*this.height, 100, 2]);
+      const x = (this.rng()-0.5)*this.width;
+      const y = (this.rng()-0.5)*this.height;
+      attractors.push([x, y, 100, 2]);
     }
     return attractors;
   }
@@ -289,16 +291,21 @@ const renderBoids = (params: Params): string => {
     return `<path d="${d}"/>\n`;
   });
 
+  const zoomFactor = Math.exp(-params.zoom/10);
+  const vboxX = -params.width/2*zoomFactor;
+  const vboxY = -params.height/2*zoomFactor;
+  const vboxW = params.width*zoomFactor;
+  const vboxH = params.height*zoomFactor;
+
   return `
-    <svg id="svg-canvas" height="${params.height}" width="${params.width}" xmlns="http://www.w3.org/2000/svg">
-      <rect
-        x="${params.margin}"
-        y="${params.margin}"
-        width="${params.width-2*params.margin}"
-        height="${params.width-2*params.margin}"
-        style="fill:none; stroke: black"/>
+    <svg id="svg-canvas"
+        xmlns="http://www.w3.org/2000/svg"
+        height="${params.height}"
+        width="${params.width}"
+        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
+        style="border: 1px solid black">
       ${params.showAttractors ? renderAttractors(b.attractors) : ''}
-      <g id="pattern" style="fill:none; stroke: red">
+      <g id="pattern" style="fill:none; stroke: #d22; stroke-width: ${zoomFactor}">
         ${svgPaths.join('')}
       </g>
     </svg>
@@ -307,7 +314,7 @@ const renderBoids = (params: Params): string => {
 
 const paramsFromWidgets = () => {
   const params: Params = {...defaultParams};
-  params.margin = controls.margin.val() as number;
+  params.zoom = controls.zoom.val() as number;
   params.seed = controls.seed.val() as number;
   params.nboids = controls.nboids.val() as number;
   params.speedLimit = controls.speedLimit.val() as number;
@@ -326,6 +333,7 @@ const render = (params?: any) => {
 
   params.width ||= defaultParams.width;
   params.height ||= defaultParams.height;
+
   updateUrl(params);
 
   $('canvas').innerHTML = renderBoids(params);
@@ -333,7 +341,14 @@ const render = (params?: any) => {
 
 
 const controls = {
-  margin: new NumberControl({name: 'margin', label: 'Margin', value: defaultParams['margin'], renderFn: render, min: 0, max: 500}),
+  zoom: new NumberControl({
+    name: 'zoom',
+    label: 'Zoom',
+    value: defaultParams['zoom'],
+    renderFn: render,
+    min: -20,
+    max: 20
+  }),
   seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], renderFn: render, min: 0, max: 500}),
   nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
   iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 1000}),
@@ -358,7 +373,7 @@ const controls = {
 // Fetch plot parameters from the query string
 const params = paramsFromUrl(defaultParams);
 
-controls.margin.set(params.margin);
+controls.zoom.set(params.zoom);
 controls.seed.set(params.seed);
 controls.cohesionForce.set(params.cohesionForce);
 controls.cohesionDistance.set(params.cohesionDistance);

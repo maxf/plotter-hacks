@@ -910,11 +910,11 @@
 
   // src/boids.ts
   var defaultParams = {
-    width: 800,
-    height: 800,
-    margin: 100,
+    width: 500,
+    height: 500,
+    zoom: 0,
     seed: 128,
-    iterations: 10,
+    iterations: 400,
     startIteration: 0,
     nboids: 10,
     speedLimit: 30,
@@ -975,8 +975,8 @@
       this.boids = [];
       for (let i = 0, l = opts.nboids; i < l; i += 1) {
         this.boids[i] = [
-          (this.rng() - 0.5) * this.width / 10 + this.width / 2,
-          (this.rng() - 0.5) * this.height / 10 + this.height / 2,
+          (this.rng() - 0.5) * this.width / 10,
+          (this.rng() - 0.5) * this.height / 10,
           // position
           0,
           0,
@@ -990,7 +990,9 @@
     #makeAttractors() {
       const attractors = [];
       for (let i = 0; i < 10; i++) {
-        attractors.push([this.rng() * this.width, this.rng() * this.height, 100, 2]);
+        const x = (this.rng() - 0.5) * this.width;
+        const y = (this.rng() - 0.5) * this.height;
+        attractors.push([x, y, 100, 2]);
       }
       return attractors;
     }
@@ -1117,16 +1119,20 @@
       return `<path d="${d}"/>
 `;
     });
+    const zoomFactor = Math.exp(-params2.zoom / 10);
+    const vboxX = -params2.width / 2 * zoomFactor;
+    const vboxY = -params2.height / 2 * zoomFactor;
+    const vboxW = params2.width * zoomFactor;
+    const vboxH = params2.height * zoomFactor;
     return `
-    <svg id="svg-canvas" height="${params2.height}" width="${params2.width}" xmlns="http://www.w3.org/2000/svg">
-      <rect
-        x="${params2.margin}"
-        y="${params2.margin}"
-        width="${params2.width - 2 * params2.margin}"
-        height="${params2.width - 2 * params2.margin}"
-        style="fill:none; stroke: black"/>
+    <svg id="svg-canvas"
+        xmlns="http://www.w3.org/2000/svg"
+        height="${params2.height}"
+        width="${params2.width}"
+        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
+        style="border: 1px solid black">
       ${params2.showAttractors ? renderAttractors(b.attractors) : ""}
-      <g id="pattern" style="fill:none; stroke: red">
+      <g id="pattern" style="fill:none; stroke: #d22; stroke-width: ${zoomFactor}">
         ${svgPaths.join("")}
       </g>
     </svg>
@@ -1134,7 +1140,7 @@
   };
   var paramsFromWidgets = () => {
     const params2 = { ...defaultParams };
-    params2.margin = controls.margin.val();
+    params2.zoom = controls.zoom.val();
     params2.seed = controls.seed.val();
     params2.nboids = controls.nboids.val();
     params2.speedLimit = controls.speedLimit.val();
@@ -1155,7 +1161,14 @@
     $("canvas").innerHTML = renderBoids(params2);
   };
   var controls = {
-    margin: new NumberControl({ name: "margin", label: "Margin", value: defaultParams["margin"], renderFn: render, min: 0, max: 500 }),
+    zoom: new NumberControl({
+      name: "zoom",
+      label: "Zoom",
+      value: defaultParams["zoom"],
+      renderFn: render,
+      min: -20,
+      max: 20
+    }),
     seed: new NumberControl({ name: "seed", label: "RNG seed", value: defaultParams["seed"], renderFn: render, min: 0, max: 500 }),
     nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], renderFn: render, min: 1, max: 100 }),
     iterations: new NumberControl({ name: "iterations", label: "Iterations", value: defaultParams["iterations"], renderFn: render, min: 1, max: 1e3 }),
@@ -1172,7 +1185,7 @@
     })
   };
   var params = paramsFromUrl(defaultParams);
-  controls.margin.set(params.margin);
+  controls.zoom.set(params.zoom);
   controls.seed.set(params.seed);
   controls.cohesionForce.set(params.cohesionForce);
   controls.cohesionDistance.set(params.cohesionDistance);
