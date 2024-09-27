@@ -288,7 +288,7 @@ const renderBoids = (params: Params): string => {
     for (let i=2; i < ps.length - 1; i+= 2) {
       d = d + `C ${ps[i].x} ${ps[i].y}, ${ps[i].x} ${ps[i].y}, ${ps[i+1].x} ${ps[i+1].y} `
     }
-    return `<path d="${d}"/>\n`;
+    return `<path d="${d}" vector-effect="non-scaling-stroke"/>\n`;
   });
 
   const zoomFactor = Math.exp(-params.zoom/10);
@@ -305,7 +305,7 @@ const renderBoids = (params: Params): string => {
         viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
         style="border: 1px solid black">
       ${params.showAttractors ? renderAttractors(b.attractors) : ''}
-      <g id="pattern" style="fill:none; stroke: #d22; stroke-width: ${zoomFactor}">
+      <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
         ${svgPaths.join('')}
       </g>
     </svg>

@@ -1116,7 +1116,7 @@
       for (let i = 2; i < ps.length - 1; i += 2) {
         d = d + `C ${ps[i].x} ${ps[i].y}, ${ps[i].x} ${ps[i].y}, ${ps[i + 1].x} ${ps[i + 1].y} `;
       }
-      return `<path d="${d}"/>
+      return `<path d="${d}" vector-effect="non-scaling-stroke"/>
 `;
     });
     const zoomFactor = Math.exp(-params2.zoom / 10);
@@ -1132,7 +1132,7 @@
         viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
         style="border: 1px solid black">
       ${params2.showAttractors ? renderAttractors(b.attractors) : ""}
-      <g id="pattern" style="fill:none; stroke: #d22; stroke-width: ${zoomFactor}">
+      <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
         ${svgPaths.join("")}
       </g>
     </svg>
