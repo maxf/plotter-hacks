@@ -1,5 +1,54 @@
 "use strict";
 (() => {
+  // src/url-query-string.ts
+  function objectToQueryString(obj) {
+    const params = new URLSearchParams();
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = obj[key];
+        let paramValue;
+        if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+          paramValue = String(value);
+        } else if (typeof value === "object") {
+          paramValue = JSON.stringify(value);
+        } else {
+          continue;
+        }
+        params.append(key, paramValue);
+      }
+    }
+    const queryString = params.toString();
+    return queryString ? `?${queryString}` : "";
+  }
+  function queryStringToObject(queryString) {
+    const obj = {};
+    const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
+    const params = new URLSearchParams(query);
+    params.forEach((value, key) => {
+      let parsedValue;
+      try {
+        parsedValue = JSON.parse(value);
+        obj[key] = parsedValue;
+        return;
+      } catch {
+      }
+      if (!isNaN(Number(value))) {
+        obj[key] = Number(value);
+        return;
+      }
+      if (value.toLowerCase() === "true") {
+        obj[key] = true;
+        return;
+      }
+      if (value.toLowerCase() === "false") {
+        obj[key] = false;
+        return;
+      }
+      obj[key] = value;
+    });
+    return obj;
+  }
+
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var NumberControl = class {
@@ -160,32 +209,15 @@
     }
   };
   var paramsFromUrl = (defaults) => {
-    const params = new URLSearchParams(window.location.search);
-    const result = defaults;
-    for (const [key, value] of params) {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        result[key] = num;
-      } else if (value === "true") {
-        result[key] = true;
-      } else if (value === "false") {
-        result[key] = false;
-      } else {
-        result[key] = value;
-      }
-    }
-    return result;
+    const params = queryStringToObject(window.location.search);
+    return { ...defaults, ...params };
   };
   var updateUrl = (params) => {
-    const url = new URL(window.location.toString());
-    url.search = "";
-    Object.keys(params).forEach((key) => {
-      url.searchParams.set(key, params[key]);
-    });
+    const url = objectToQueryString(params);
     history.pushState(null, "", url);
   };
 
-  // src/excoffizer.ts
+  // src/pixmap.ts
   var Color = class {
     #r;
     #g;
@@ -251,6 +283,8 @@
       return this.colorAverageAt(x, y, radius).brightness();
     }
   };
+
+  // src/excoffizer.ts
   var Excoffizer = class {
     #params;
     #inputPixmap;
