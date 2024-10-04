@@ -164,8 +164,8 @@ class Excoffizer {
 
           const imageLevel = this.#inputPixmap.brightnessAverageAt(Math.floor(p.x), Math.floor(p.y), this.#blur)
 
-          // const radius = lineHeight * ( 1 - imageLevel / 255) / 2 - 0.05;
-          const radius = thickness * ( 1 - imageLevel / 255) / 2 - 0.05;
+          //const radius = lineHeight * ( 1 - imageLevel / 255) / 2 - 0.05;
+          const radius = thickness * ( 1 - imageLevel / 300) / 2 - 0.05;
 
           const zoom=outputWidth/inputWidth;
 
@@ -189,7 +189,8 @@ class Excoffizer {
             }
 
             // how far away should the next point be?
-            stepx = Math.max(0.5, density - radius);
+            //stepx = Math.max(0.5, density - radius);
+            stepx = Math.max(0.2, density - radius);
           }
 
         }
@@ -224,14 +225,14 @@ type Params = {
 
 const defaultParams: Params = {
   inputImageUrl: 'portrait.jpg',
-  theta: 2,
+  theta: 3.58,
   width: 800,
   height: 800,
   margin: 10,
-  waviness: 1,
+  waviness: 3.1,
   lineHeight: 3.4,
   thickness: 3.1,
-  density: 1.5,
+  density: 1.6,
   sx: 1,
   sy: 1,
   tx: 1,
@@ -319,8 +320,8 @@ const controlDensity = new NumberControl({
   label: 'Density',
   value: defaultParams['density'],
   renderFn: render,
-  min: 1.5,
-  max: 10,
+  min: 1,
+  max: 4,
   step: 0.1
 });
 

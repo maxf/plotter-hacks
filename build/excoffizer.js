@@ -421,7 +421,7 @@
           const p2 = this.#S2P({ x: x + stepx, y: y + this.#wiggle(x + stepx) });
           if (p.x >= 0 && p.x < inputWidth && p.y >= 0 && p.y < inputHeight || p2.x >= 0 && p2.x < inputWidth && p2.y >= 0 && p2.y < inputHeight) {
             const imageLevel = this.#inputPixmap.brightnessAverageAt(Math.floor(p.x), Math.floor(p.y), this.#blur);
-            const radius = thickness * (1 - imageLevel / 255) / 2 - 0.05;
+            const radius = thickness * (1 - imageLevel / 300) / 2 - 0.05;
             const zoom = outputWidth / inputWidth;
             if (radius < this.#cutoff) {
               p.x *= zoom;
@@ -439,7 +439,7 @@
               } else {
                 hatchPoints2.push(sidePoint1);
               }
-              stepx = Math.max(0.5, density - radius);
+              stepx = Math.max(0.2, density - radius);
             }
           }
         }
@@ -451,14 +451,14 @@
   };
   var defaultParams = {
     inputImageUrl: "portrait.jpg",
-    theta: 2,
+    theta: 3.58,
     width: 800,
     height: 800,
     margin: 10,
-    waviness: 1,
+    waviness: 3.1,
     lineHeight: 3.4,
     thickness: 3.1,
-    density: 1.5,
+    density: 1.6,
     sx: 1,
     sy: 1,
     tx: 1,
@@ -535,8 +535,8 @@
     label: "Density",
     value: defaultParams["density"],
     renderFn: render,
-    min: 1.5,
-    max: 10,
+    min: 1,
+    max: 4,
     step: 0.1
   });
   var controlThickness = new NumberControl({
