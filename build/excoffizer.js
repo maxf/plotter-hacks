@@ -398,7 +398,6 @@
         - tx: ${this.#params.tx}
         - ty: ${this.#params.ty}
       </desc>
-      <rect x="0" y="0" width="${outputWidth}" height="${outputHeight}" fill="#eee"/>
       <g stroke="black" stroke-width="1" fill="none">
     `;
       const corner1 = this.#P2S({ x: 0, y: 0 });
@@ -437,7 +436,7 @@
               } else {
                 hatchPoints2.push(sidePoint1);
               }
-              stepx = Math.max(1.5, density - radius);
+              stepx = Math.max(0.5, density - radius);
             }
           }
         }
@@ -454,10 +453,10 @@
     height: 800,
     margin: 10,
     waviness: 1,
-    lineHeight: 10,
-    thickness: 10,
-    density: 5,
-    sx: 0.8,
+    lineHeight: 3.4,
+    thickness: 3.1,
+    density: 1.5,
+    sx: 1,
     sy: 1,
     tx: 1,
     ty: 1,
@@ -522,7 +521,7 @@
     label: "Line height",
     value: defaultParams["lineHeight"],
     renderFn: render,
-    min: 5,
+    min: 1,
     max: 15,
     step: 0.1
   });
@@ -531,7 +530,7 @@
     label: "Density",
     value: defaultParams["density"],
     renderFn: render,
-    min: 1,
+    min: 1.5,
     max: 10,
     step: 0.1
   });
@@ -540,7 +539,7 @@
     value: defaultParams["thickness"],
     renderFn: render,
     min: 1,
-    max: 20,
+    max: 10,
     step: 0.1
   });
   var controlSx = new NumberControl({
