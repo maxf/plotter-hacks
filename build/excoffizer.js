@@ -292,6 +292,7 @@
     #wiggleAmplitude;
     #blur;
     #outputWidth;
+    #cutoff;
     constructor(params) {
       this.#params = params;
       this.#params.tx = 1;
@@ -301,6 +302,7 @@
       this.#wiggleAmplitude = this.#wiggleFrequency === 0 ? 0 : 0.5 / this.#wiggleFrequency;
       this.#blur = params.blur;
       this.#outputWidth = params.width;
+      this.#cutoff = params.cutoff;
     }
     excoffize() {
       return this.#excoffize();
@@ -389,6 +391,7 @@
         - waviness: ${this.#params.waviness}
         - theta: ${this.#params.theta}
         - blur: ${this.#blur}
+        - cutoff: ${this.#cutoff}
         - line height: ${this.#params.lineHeight}
         - thickness: ${this.#params.thickness}
         - density: ${this.#params.density}
@@ -420,7 +423,7 @@
             const imageLevel = this.#inputPixmap.brightnessAverageAt(Math.floor(p.x), Math.floor(p.y), this.#blur);
             const radius = thickness * (1 - imageLevel / 255) / 2 - 0.05;
             const zoom = outputWidth / inputWidth;
-            if (radius < 0.5) {
+            if (radius < this.#cutoff) {
               p.x *= zoom;
               p.y *= zoom;
               hatchPoints2.push(p);
@@ -460,7 +463,8 @@
     sy: 1,
     tx: 1,
     ty: 1,
-    blur: 1
+    blur: 1,
+    cutoff: 0.5
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
@@ -477,6 +481,7 @@
     params.sx = controlSx.val();
     params.sy = controlSy.val();
     params.blur = controlBlur.val();
+    params.cutoff = controlCutoff.val();
     return params;
   };
   var render = (params) => {
@@ -568,6 +573,15 @@
     min: 1,
     max: 10
   });
+  var controlCutoff = new NumberControl({
+    name: "cutoff",
+    label: "White cutoff",
+    value: defaultParams["cutoff"],
+    renderFn: render,
+    min: 0.1,
+    max: 1,
+    step: 0.01
+  });
   new SvgSaveControl({
     name: "svgSave",
     canvasId: "svg-canvas",
@@ -586,6 +600,7 @@
       controlLineHeight.set(params.lineHeight);
       controlDensity.set(params.density);
       controlThickness.set(params.thickness);
+      controlCutoff.set(params.cutoff);
       controlSx.set(params.sx);
       controlSy.set(params.sy);
       controlBlur.set(params.blur);

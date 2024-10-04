@@ -11,6 +11,7 @@ class Excoffizer {
   #wiggleAmplitude;
   #blur;
   #outputWidth: number;
+  #cutoff: number;
 
   constructor(params: any) {
     this.#params = params;
@@ -21,6 +22,7 @@ class Excoffizer {
     this.#wiggleAmplitude = this.#wiggleFrequency===0 ? 0 : 0.5/this.#wiggleFrequency;
     this.#blur = params.blur;
     this.#outputWidth = params.width;
+    this.#cutoff = params.cutoff;
   }
 
   excoffize() {
@@ -118,6 +120,7 @@ class Excoffizer {
         - waviness: ${this.#params.waviness}
         - theta: ${this.#params.theta}
         - blur: ${this.#blur}
+        - cutoff: ${this.#cutoff}
         - line height: ${this.#params.lineHeight}
         - thickness: ${this.#params.thickness}
         - density: ${this.#params.density}
@@ -166,7 +169,7 @@ class Excoffizer {
 
           const zoom=outputWidth/inputWidth;
 
-          if (radius < 0.5) {
+          if (radius < this.#cutoff) {
             p.x *= zoom;
             p.y *= zoom;
             hatchPoints2.push(p);
@@ -215,7 +218,8 @@ type Params = {
   sy: number,
   tx: number,
   ty: number,
-  blur: number
+  blur: number,
+  cutoff: number
 };
 
 const defaultParams: Params = {
@@ -232,7 +236,8 @@ const defaultParams: Params = {
   sy: 1,
   tx: 1,
   ty: 1,
-  blur: 1
+  blur: 1,
+  cutoff: 0.5
 };
 
 
@@ -251,6 +256,7 @@ const paramsFromWidgets = () => {
   params.sx = controlSx.val() as number;
   params.sy = controlSy.val() as number;
   params.blur = controlBlur.val() as number;
+  params.cutoff = controlCutoff.val() as number;
   return params;
 };
 
@@ -356,6 +362,16 @@ const controlBlur = new NumberControl({
   max: 10
 });
 
+const controlCutoff = new NumberControl({
+  name: 'cutoff',
+  label: 'White cutoff',
+  value: defaultParams['cutoff'],
+  renderFn: render,
+  min: 0.1,
+  max: 1,
+  step: 0.01
+});
+
 new SvgSaveControl({
   name: 'svgSave',
   canvasId: 'svg-canvas',
@@ -375,6 +391,7 @@ const controlInputImage = new ImageUploadControl({
     controlLineHeight.set(params.lineHeight);
     controlDensity.set(params.density);
     controlThickness.set(params.thickness);
+    controlCutoff.set(params.cutoff);
     controlSx.set(params.sx);
     controlSy.set(params.sy);
     controlBlur.set(params.blur);
