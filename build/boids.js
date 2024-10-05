@@ -910,8 +910,8 @@
 
   // src/boids.ts
   var defaultParams = {
-    width: 500,
-    height: 500,
+    width: 800,
+    height: 800,
     zoom: 0,
     seed: 128,
     iterations: 400,
@@ -968,7 +968,7 @@
       this.separationForce = opts.separationForce || 0.15;
       this.cohesionForce = opts.cohesionForce || 0.5;
       this.alignmentForce = opts.alignmentForce || 0.25;
-      this.attractors = this.#makeAttractors();
+      this.attractors = opts.showAttractors ? this.#makeAttractors() : [];
       this.iterations = opts.iterations || 100;
       this.startIteration = opts.startIteration || 0;
       this.nboids = opts.nboids || 10;
