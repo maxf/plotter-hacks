@@ -41,7 +41,7 @@ class Pixmap {
     this._pixels = this.context.getImageData(0,0,this.canvas.width,this.canvas.height).data;
   }
 
-  colorAverageAt(x: number, y: number, radius: number) {
+  colorAverageAt(x: number, y: number, radius: number): Color {
     let index;
     let resultR=0.0, resultG=0.0, resultB=0.0;
     let count=0;
@@ -70,9 +70,37 @@ class Pixmap {
     }
   }
 
-  brightnessAverageAt(x: number, y: number, radius: number) {
+  brightnessAverageAt(x: number, y: number, radius: number): number {
     return this.colorAverageAt(x,y,radius).brightness();
   }
+
+  colorAt(x: number, y: number): Color {
+    let index;
+    let resultR=0.0, resultG=0.0, resultB=0.0;
+
+    if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+      index = 4*((x)+this.width*(y));
+      if (this._pixels[index+3] === 0) {
+        // If the pixel is transparent, color is white
+        resultR = 255;
+        resultG = 255;
+        resultB = 255;
+      } else {
+        resultR = this._pixels[index];
+        resultG = this._pixels[index+1];
+        resultB = this._pixels[index+2];
+      }
+      return new Color(resultR, resultG, resultB, 1);
+    } else {
+      // if the coordinates requested are outside of the picture, return white
+      return new Color(255, 255, 255, 1);
+    }
+  }
+
+  brightnessAt(x: number, y: number): number {
+    return this.colorAt(x, y).brightness();
+  }
+
 }
 
 export { Pixmap };
