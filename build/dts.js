@@ -1,5 +1,119 @@
 "use strict";
 (() => {
+  var __create = Object.create;
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __commonJS = (cb, mod) => function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
+
+  // node_modules/@wemap/salesman.js/salesman.js
+  var require_salesman = __commonJS({
+    "node_modules/@wemap/salesman.js/salesman.js"(exports, module) {
+      function Path(points, distanceFunc) {
+        this.points = points;
+        this.distanceFunc = distanceFunc;
+        this.initializeOrder();
+        this.initializeDistances();
+      }
+      Path.prototype.initializeOrder = function() {
+        this.order = new Array(this.points.length);
+        for (var i = 0; i < this.order.length; i++) this.order[i] = i;
+      };
+      Path.prototype.initializeDistances = function() {
+        this.distances = new Array(this.points.length * this.points.length);
+        for (var i = 0; i < this.points.length; i++) {
+          for (var j = i + 1; j < this.points.length; j++) {
+            this.distances[j + i * this.points.length] = this.distanceFunc(this.points[i], this.points[j]);
+          }
+        }
+      };
+      Path.prototype.change = function(temp) {
+        var i = this.randomPos(), j = this.randomPos();
+        var delta = this.delta_distance(i, j);
+        if (delta < 0 || Math.random() < Math.exp(-delta / temp)) {
+          this.swap(i, j);
+        }
+      };
+      Path.prototype.swap = function(i, j) {
+        var tmp = this.order[i];
+        this.order[i] = this.order[j];
+        this.order[j] = tmp;
+      };
+      Path.prototype.delta_distance = function(i, j) {
+        var jm1 = this.index(j - 1), jp1 = this.index(j + 1), im1 = this.index(i - 1), ip1 = this.index(i + 1);
+        var s = this.distance(jm1, i) + this.distance(i, jp1) + this.distance(im1, j) + this.distance(j, ip1) - this.distance(im1, i) - this.distance(i, ip1) - this.distance(jm1, j) - this.distance(j, jp1);
+        if (jm1 === i || jp1 === i)
+          s += 2 * this.distance(i, j);
+        return s;
+      };
+      Path.prototype.index = function(i) {
+        return (i + this.points.length) % this.points.length;
+      };
+      Path.prototype.access = function(i) {
+        return this.points[this.order[this.index(i)]];
+      };
+      Path.prototype.distance = function(i, j) {
+        if (i === j) return 0;
+        var low = this.order[i], high = this.order[j];
+        if (low > high) {
+          low = this.order[j];
+          high = this.order[i];
+        }
+        return this.distances[low * this.points.length + high] || 0;
+      };
+      Path.prototype.randomPos = function() {
+        return 1 + Math.floor(Math.random() * (this.points.length - 1));
+      };
+      function Point2(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+      function solve2(points, temp_coeff = 0.999, callback, distance = euclidean) {
+        var path = new Path(points, distance);
+        if (points.length < 2) return path.order;
+        if (temp_coeff >= 1 || temp_coeff <= 0) return path.order;
+        if (!temp_coeff)
+          temp_coeff = 1 - Math.exp(-10 - Math.min(points.length, 1e6) / 1e5);
+        var hasCallback = typeof callback === "function";
+        for (var temperature = 100 * distance(path.access(0), path.access(1)); temperature > 1e-6; temperature *= temp_coeff) {
+          path.change(temperature);
+          if (hasCallback) callback(path.order);
+        }
+        return path.order;
+      }
+      function euclidean(p, q) {
+        var dx = p.x - q.x, dy = p.y - q.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+      if (typeof module === "object") {
+        module.exports = {
+          "solve": solve2,
+          "Point": Point2
+        };
+      }
+    }
+  });
+
   // src/url-query-string.ts
   function objectToQueryString(obj) {
     const params = new URLSearchParams();
@@ -261,6 +375,7 @@
   };
 
   // src/dts.ts
+  var import_salesman = __toESM(require_salesman());
   var DrunkTravellingSalesman = class {
     #params;
     #inputPixmap;
@@ -277,27 +392,31 @@
       const inputHeight = this.#inputPixmap.height;
       const outputWidth = this.#outputWidth;
       const outputHeight = this.#outputWidth * inputHeight / inputWidth;
-      for (let i = 0; i < 1e4; ++i) {
+      for (let i = 0; i < 5e3; ++i) {
         for (let j = 0; j < 30; ++j) {
           const x = Math.floor(Math.random() * inputWidth);
           const y = Math.floor(Math.random() * inputHeight);
           const imageLevel = this.#inputPixmap.brightnessAt(Math.floor(x), Math.floor(y));
           if (200 * Math.random() > imageLevel) {
             const inputOutputScale = outputWidth / inputWidth;
-            points.push(x * inputOutputScale);
-            points.push(y * inputOutputScale);
+            points.push(new import_salesman.Point(x * inputOutputScale, y * inputOutputScale));
             break;
           }
         }
       }
       const svgPoints = [];
-      for (let i = 0; i < points.length / 3; i++) {
-        svgPoints.push(`<circle cx="${points[i * 2]}" cy="${points[i * 2 + 1]}" r="0.5"/>`);
+      for (let i = 0; i < points.length; i++) {
+        svgPoints.push(`<circle cx="${points[i].x}" cy="${points[i].y}" r="0.5"/>`);
       }
+      const solution = (0, import_salesman.solve)(points, 0.9999);
+      const svgPathD = solution.map((i) => `${points[i].x} ${points[i].y} L`);
       return `
       <svg id="svg-canvas" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
         <g style="stroke: black; fill: black;">
           ${svgPoints.join("")}
+        </g>
+        <g style="stroke: black; fill: none;">
+          <path d="M ${svgPathD.join("")}"/>
         </g>
       </svg>
     `;

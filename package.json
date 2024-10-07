@@ -18,6 +18,7 @@
     "@types/d3-delaunay": "^6.0.4",
     "@types/delaunator": "^5.0.3",
     "@types/seedrandom": "^3.0.8",
+    "@wemap/salesman.js": "^2.1.0",
     "d3-delaunay": "^6.0.4",
     "delaunator": "^5.0.1",
     "seedrandom": "^3.0.5"

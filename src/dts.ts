@@ -2,6 +2,7 @@
 import { ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
 import { Pixmap } from './pixmap';
 //import { Delaunay } from 'd3-delaunay';
+import { Point, solve } from '@wemap/salesman.js';
 
 
 class DrunkTravellingSalesman {
@@ -18,7 +19,7 @@ class DrunkTravellingSalesman {
   // TODO: make async
   toSvg(): string {
 
-    const points = [];
+    const points: Point[] = [];
     const inputWidth = this.#inputPixmap.width;
     const inputHeight = this.#inputPixmap.height;
     const outputWidth  = this.#outputWidth;
@@ -27,7 +28,7 @@ class DrunkTravellingSalesman {
     // See: https://observablehq.com/@mbostock/voronoi-stippling
 
     // Initialize the points using rejection sampling.
-    for (let i = 0; i < 10_000; ++i) { // Do the following 10k times:
+    for (let i = 0; i < 5_000; ++i) { // Do the following 10k times:
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
         const x = Math.floor(Math.random() * inputWidth);
@@ -39,9 +40,9 @@ class DrunkTravellingSalesman {
         if (200 * Math.random() > imageLevel) {
 
           const inputOutputScale=outputWidth/inputWidth;
-
-          points.push(x*inputOutputScale);
-          points.push(y*inputOutputScale);
+          points.push(new Point(x*inputOutputScale, y*inputOutputScale));
+          //points.push(x*inputOutputScale);
+          //points.push(y*inputOutputScale);
           break;
         }
       }
@@ -53,15 +54,23 @@ class DrunkTravellingSalesman {
     //    console.log(voronoi);
 
     const svgPoints = [];
-    for (let i=0; i<points.length/3; i++) {
-      svgPoints.push(`<circle cx="${points[i*2]}" cy="${points[i*2+1]}" r="0.5"/>`);
+    for (let i=0; i<points.length; i++) {
+      svgPoints.push(`<circle cx="${points[i].x}" cy="${points[i].y}" r="0.5"/>`);
     }
+
+    const solution = solve(points, 0.9999);
+    //const ordered_points = solution.map(i => points[i]);
+
+    const svgPathD = solution.map(i => `${points[i].x} ${points[i].y} L`);
 
 
     return `
       <svg id="svg-canvas" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
         <g style="stroke: black; fill: black;">
           ${svgPoints.join('')}
+        </g>
+        <g style="stroke: black; fill: none;">
+          <path d="M ${svgPathD.join('')}"/>
         </g>
       </svg>
     `;
