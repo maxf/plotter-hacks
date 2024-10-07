@@ -7,10 +7,12 @@ import { Pixmap } from './pixmap';
 class DrunkTravellingSalesman {
   #params: Params;
   #inputPixmap: Pixmap;
+  #outputWidth: number;
 
   constructor(params: Params) {
     this.#params = params;
     this.#inputPixmap = new Pixmap(this.#params.inputCanvas as HTMLCanvasElement);
+    this.#outputWidth = params.width;
   }
 
   // TODO: make async
@@ -19,19 +21,29 @@ class DrunkTravellingSalesman {
     const points = [];
     const inputWidth = this.#inputPixmap.width;
     const inputHeight = this.#inputPixmap.height;
+    const outputWidth  = this.#outputWidth;
+    const outputHeight = this.#outputWidth * inputHeight / inputWidth;
+
     // See: https://observablehq.com/@mbostock/voronoi-stippling
 
     // Initialize the points using rejection sampling.
-    for (let i = 0; i < 10000; ++i) { // Do the following 10k times:
+    for (let i = 0; i < 10_000; ++i) { // Do the following 10k times:
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
-        const x = points[i * 2] = Math.floor(Math.random() * inputWidth);
-        const y = points[i * 2 + 1] = Math.floor(Math.random() * inputHeight);
+        const x = Math.floor(Math.random() * inputWidth);
+        const y = Math.floor(Math.random() * inputHeight);
 
+        
         const imageLevel = this.#inputPixmap.brightnessAt(Math.floor(x), Math.floor(y));
-
         // the darker the image at this point, the more likely we're going to keep the point.
-        if (255 * Math.random() > imageLevel) break;
+        if (200 * Math.random() > imageLevel) {
+
+          const inputOutputScale=outputWidth/inputWidth;
+
+          points.push(x*inputOutputScale);
+          points.push(y*inputOutputScale);
+          break;
+        }
       }
     }
 
@@ -41,13 +53,13 @@ class DrunkTravellingSalesman {
     //    console.log(voronoi);
 
     const svgPoints = [];
-    for (let i=0; i<10_000; i++) {
-      svgPoints.push(`<circle cx="${points[i*2]}" cy="${points[i*2+1]}" r="0.1"/>`);
+    for (let i=0; i<points.length/3; i++) {
+      svgPoints.push(`<circle cx="${points[i*2]}" cy="${points[i*2+1]}" r="0.5"/>`);
     }
 
 
     return `
-      <svg>
+      <svg id="svg-canvas" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
         <g style="stroke: black; fill: black;">
           ${svgPoints.join('')}
         </g>
@@ -60,11 +72,15 @@ class DrunkTravellingSalesman {
 type Params = {
   inputImageUrl: string,
   inputCanvas: HTMLCanvasElement,
+  width: number,
+  height: number
 };
 
 
 const defaultParams = {
   inputImageUrl: 'portrait.jpg',
+  width: 800,
+  height: 800
 };
 
 

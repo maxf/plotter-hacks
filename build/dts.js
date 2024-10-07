@@ -264,29 +264,38 @@
   var DrunkTravellingSalesman = class {
     #params;
     #inputPixmap;
+    #outputWidth;
     constructor(params) {
       this.#params = params;
       this.#inputPixmap = new Pixmap(this.#params.inputCanvas);
+      this.#outputWidth = params.width;
     }
     // TODO: make async
     toSvg() {
       const points = [];
       const inputWidth = this.#inputPixmap.width;
       const inputHeight = this.#inputPixmap.height;
+      const outputWidth = this.#outputWidth;
+      const outputHeight = this.#outputWidth * inputHeight / inputWidth;
       for (let i = 0; i < 1e4; ++i) {
         for (let j = 0; j < 30; ++j) {
-          const x = points[i * 2] = Math.floor(Math.random() * inputWidth);
-          const y = points[i * 2 + 1] = Math.floor(Math.random() * inputHeight);
+          const x = Math.floor(Math.random() * inputWidth);
+          const y = Math.floor(Math.random() * inputHeight);
           const imageLevel = this.#inputPixmap.brightnessAt(Math.floor(x), Math.floor(y));
-          if (255 * Math.random() > imageLevel) break;
+          if (200 * Math.random() > imageLevel) {
+            const inputOutputScale = outputWidth / inputWidth;
+            points.push(x * inputOutputScale);
+            points.push(y * inputOutputScale);
+            break;
+          }
         }
       }
       const svgPoints = [];
-      for (let i = 0; i < 1e4; i++) {
-        svgPoints.push(`<circle cx="${points[i * 2]}" cy="${points[i * 2 + 1]}" r="0.1"/>`);
+      for (let i = 0; i < points.length / 3; i++) {
+        svgPoints.push(`<circle cx="${points[i * 2]}" cy="${points[i * 2 + 1]}" r="0.5"/>`);
       }
       return `
-      <svg>
+      <svg id="svg-canvas" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
         <g style="stroke: black; fill: black;">
           ${svgPoints.join("")}
         </g>
@@ -295,7 +304,9 @@
     }
   };
   var defaultParams = {
-    inputImageUrl: "portrait.jpg"
+    inputImageUrl: "portrait.jpg",
+    width: 800,
+    height: 800
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
