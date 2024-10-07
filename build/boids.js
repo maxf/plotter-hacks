@@ -823,44 +823,6 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var CheckboxControl = class {
-    #value;
-    #wrapperEl;
-    #widgetEl;
-    constructor(params2) {
-      this.#value = params2.value;
-      this.#createHtmlControl(params2.name, params2.label, params2.value);
-      this.#widgetEl = $(params2.name);
-      this.#wrapperEl = $(`${params2.name}-control`);
-      this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.checked;
-        params2.renderFn();
-      };
-    }
-    #createHtmlControl(name, label, value) {
-      const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
-      html.push(`</div>`);
-      const anchorElement = $("controls");
-      if (anchorElement) {
-        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
-      }
-    }
-    set(newValue) {
-      this.#value = newValue;
-      this.#widgetEl.checked = newValue;
-    }
-    val() {
-      return this.#value;
-    }
-    show() {
-      this.#wrapperEl.style.display = "block";
-    }
-    hide() {
-      this.#wrapperEl.style.display = "none";
-    }
-  };
   var SvgSaveControl = class {
     #wrapperEl;
     #createHtmlControl(name, label) {
@@ -926,7 +888,7 @@
     alignmentForce: 0.25,
     alignmentDistance: 180,
     accelerationLimit: 1,
-    showAttractors: false
+    nbAttractors: 0
   };
   var POSITIONX = 0;
   var POSITIONY = 1;
@@ -968,7 +930,7 @@
       this.separationForce = opts.separationForce || 0.15;
       this.cohesionForce = opts.cohesionForce || 0.5;
       this.alignmentForce = opts.alignmentForce || 0.25;
-      this.attractors = opts.showAttractors ? this.#makeAttractors() : [];
+      this.attractors = this.#makeAttractors(opts.nbAttractors);
       this.iterations = opts.iterations || 100;
       this.startIteration = opts.startIteration || 0;
       this.nboids = opts.nboids || 10;
@@ -987,9 +949,9 @@
         ];
       }
     }
-    #makeAttractors() {
+    #makeAttractors(n) {
       const attractors = [];
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < n; i++) {
         const x = (this.rng() - 0.5) * this.width;
         const y = (this.rng() - 0.5) * this.height;
         attractors.push([x, y, 100, 2]);
@@ -1131,7 +1093,7 @@
         width="${params2.width}"
         viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
         style="border: 1px solid black">
-      ${params2.showAttractors ? renderAttractors(b.attractors) : ""}
+      ${renderAttractors(b.attractors)}
       <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
         ${svgPaths.join("")}
       </g>
@@ -1148,7 +1110,7 @@
     params2.cohesionDistance = controls.cohesionDistance.val();
     params2.iterations = controls.iterations.val();
     params2.startIteration = controls.startIteration.val();
-    params2.showAttractors = controls.showAttractors.val();
+    params2.nbAttractors = controls.nbAttractors.val();
     return params2;
   };
   var render = (params2) => {
@@ -1176,7 +1138,7 @@
     speedLimit: new NumberControl({ name: "speedLimit", label: "Max speed", value: defaultParams["speedLimit"], renderFn: render, min: 0, max: 20, step: 0.1 }),
     cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], renderFn: render, min: 0, max: 1, step: 0.01 }),
     cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], renderFn: render, min: 10, max: 300 }),
-    showAttractors: new CheckboxControl({ name: "showAttractors", label: "Attractors", value: defaultParams["showAttractors"], renderFn: render }),
+    nbAttractors: new NumberControl({ name: "nbAttractors", label: "Attractors", value: defaultParams["nbAttractors"], renderFn: render, min: 0, max: 10 }),
     svgSave: new SvgSaveControl({
       name: "svgSave",
       canvasId: "svg-canvas",
@@ -1193,7 +1155,7 @@
   controls.startIteration.set(params.startIteration);
   controls.speedLimit.set(params.speedLimit);
   controls.nboids.set(params.nboids);
-  controls.showAttractors.set(params.showAttractors);
+  controls.nbAttractors.set(params.nbAttractors);
   updateUrl(params);
   $("canvas").innerHTML = renderBoids(params);
 })();

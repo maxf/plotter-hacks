@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, paramsFromUrl, CheckboxControl, updateUrl, $ } from './controls';
+import { NumberControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 type Params = {
   width: number,
@@ -19,7 +19,7 @@ type Params = {
   alignmentForce: number,
   accelerationLimit: number,
   cohesionDistance: number,
-  showAttractors: boolean
+  nbAttractors: number
 };
 
 const defaultParams: Params = {
@@ -39,7 +39,7 @@ const defaultParams: Params = {
   alignmentForce: 0.25,
   alignmentDistance: 180,
   accelerationLimit: 1,
-  showAttractors: false
+  nbAttractors: 0
 };
 
 
@@ -88,7 +88,7 @@ class Boids {
     this.separationForce = opts.separationForce || 0.15;
     this.cohesionForce = opts.cohesionForce || 0.5;
     this.alignmentForce = opts.alignmentForce || 0.25;
-    this.attractors = opts.showAttractors ? this.#makeAttractors() : [];
+    this.attractors = this.#makeAttractors(opts.nbAttractors);
     this.iterations = opts.iterations || 100;
     this.startIteration = opts.startIteration || 0;
     this.nboids = opts.nboids || 10;
@@ -105,9 +105,9 @@ class Boids {
     }
   }
 
-  #makeAttractors() {
+  #makeAttractors(n: number) {
     const attractors: number[][] = [];
-    for (let i=0; i<10; i++) {
+    for (let i=0; i<n; i++) {
       const x = (this.rng()-0.5)*this.width;
       const y = (this.rng()-0.5)*this.height;
       attractors.push([x, y, 100, 2]);
@@ -304,7 +304,7 @@ const renderBoids = (params: Params): string => {
         width="${params.width}"
         viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
         style="border: 1px solid black">
-      ${params.showAttractors ? renderAttractors(b.attractors) : ''}
+      ${renderAttractors(b.attractors)}
       <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
         ${svgPaths.join('')}
       </g>
@@ -322,7 +322,7 @@ const paramsFromWidgets = () => {
   params.cohesionDistance = controls.cohesionDistance.val() as number;
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
-  params.showAttractors = controls.showAttractors.val() as boolean;
+  params.nbAttractors = controls.nbAttractors.val() as number;
   return params;
 };
 
@@ -356,7 +356,7 @@ const controls = {
   speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
   cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
   cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], renderFn: render, min: 10, max: 300 }),
-  showAttractors: new CheckboxControl({name: 'showAttractors', label: 'Attractors', value: defaultParams['showAttractors'], renderFn: render}),
+  nbAttractors: new NumberControl({name: 'nbAttractors', label: 'Attractors', value: defaultParams['nbAttractors'], renderFn: render, min: 0, max: 10 }),
   svgSave: new SvgSaveControl({
     name: 'svgSave',
     canvasId: 'svg-canvas',
@@ -381,7 +381,7 @@ controls.iterations.set(params.iterations);
 controls.startIteration.set(params.startIteration);
 controls.speedLimit.set(params.speedLimit);
 controls.nboids.set(params.nboids);
-controls.showAttractors.set(params.showAttractors);
+controls.nbAttractors.set(params.nbAttractors);
 
 
 updateUrl(params);
