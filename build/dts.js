@@ -1591,68 +1591,93 @@
   var DrunkTravellingSalesman = class {
     #params;
     #inputPixmap;
-    #outputWidth;
     constructor(params) {
       this.#params = params;
       this.#inputPixmap = new Pixmap(this.#params.inputCanvas);
-      this.#outputWidth = params.width;
     }
     // TODO: make async
     toSvg() {
       const n = 1e4;
       const points = new Float64Array(n * 2);
-      const inputWidth = this.#inputPixmap.width;
-      const inputHeight = this.#inputPixmap.height;
-      const outputWidth = this.#outputWidth;
-      const outputHeight = this.#outputWidth * inputHeight / inputWidth;
+      const width = this.#inputPixmap.width;
+      const height = this.#inputPixmap.height;
       for (let i = 0; i < n; ++i) {
         for (let j = 0; j < 30; ++j) {
-          const x = Math.random() * outputWidth;
-          const y = Math.random() * outputHeight;
-          const imageX = Math.floor(x * inputWidth / outputWidth);
-          const imageY = Math.floor(y * inputWidth / outputWidth);
-          const imageLevel = this.#inputPixmap.brightnessAt(imageX, imageY);
+          const x = Math.floor(width * Math.random());
+          const y = Math.floor(height * Math.random());
+          const imageLevel = this.#inputPixmap.brightnessAt(x, y);
           if (200 * Math.random() > imageLevel) {
-            points[2 * i] = x;
-            points[2 * i + 1] = y;
+            points[2 * i] = x + 0.5;
+            points[2 * i + 1] = y + 0.5;
             break;
           }
         }
       }
       const delaunay = new Delaunay(points);
-      const voronoi = delaunay.voronoi([0, 0, outputWidth, outputHeight]);
+      const voronoi = delaunay.voronoi([0, 0, width, height]);
       const centroids = new Float64Array(n * 2);
       const weights = new Float64Array(n);
-      for (let k = 0; k < 80; ++k) {
+      for (let k = 0; k < 10; ++k) {
         centroids.fill(0);
         weights.fill(0);
         let delaunayIndex = 0;
-        for (let inputY = 0; inputY < inputHeight; ++inputY) {
-          for (let inputX = 0; inputX < inputWidth; ++inputX) {
-            const weight = 255 - this.#inputPixmap.brightnessAt(inputX, inputY);
-            const outputX = inputX * outputWidth / inputWidth;
-            const outputY = inputY * outputWidth / inputWidth;
-            delaunayIndex = delaunay.find(outputX, outputY, delaunayIndex);
+        for (let y = 0; y < height; ++y) {
+          for (let x = 0; x < width; ++x) {
+            const weight = 255 - this.#inputPixmap.brightnessAt(x, y);
+            delaunayIndex = delaunay.find(x, y, delaunayIndex);
             weights[delaunayIndex] += weight;
-            centroids[delaunayIndex * 2] += weight * outputX;
-            centroids[delaunayIndex * 2 + 1] += weight * outputY;
+            centroids[delaunayIndex * 2] += weight * x;
+            centroids[delaunayIndex * 2 + 1] += weight * y;
           }
         }
-        const w = Math.pow(k + 1, -0.8) * 10;
         for (let i = 0; i < n; ++i) {
-          const x0 = points[i * 2], y0 = points[i * 2 + 1];
-          const x1 = weights[i] ? centroids[i * 2] / weights[i] : x0, y1 = weights[i] ? centroids[i * 2 + 1] / weights[i] : y0;
-          points[i * 2] = x0 + (x1 - x0) * 1.8 + (Math.random() - 0.5) * w;
-          points[i * 2 + 1] = y0 + (y1 - y0) * 1.8 + (Math.random() - 0.5) * w;
+          const x0 = points[i * 2];
+          const y0 = points[i * 2 + 1];
+          const x1 = weights[i] ? centroids[i * 2] / weights[i] : x0;
+          const y1 = weights[i] ? centroids[i * 2 + 1] / weights[i] : y0;
+          points[i * 2] = x0 + (x1 - x0) * 1.8;
+          points[i * 2 + 1] = y0 + (y1 - y0) * 1.8;
         }
         voronoi.update();
       }
+      const path = [];
+      const dist2 = (p1, p2) => (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
+      const dist2i = (i1, i2) => dist2([points[2 * i1], points[2 * i1 + 1]], [points[2 * i2], points[2 * i2 + 1]]);
+      const visited = new Float64Array(n);
+      visited.fill(0);
+      let current = 0;
+      while (true) {
+        let nearest;
+        let dist3 = Infinity;
+        for (let next = current + 1; next < n; next++) {
+          if (visited[next] === 0) {
+            const d = dist2i(current, next);
+            if (d < dist3) {
+              nearest = next;
+              dist3 = d;
+            }
+          }
+        }
+        if (nearest) {
+          path.push(nearest);
+          visited[nearest] = 1;
+          current = nearest;
+        } else {
+          break;
+        }
+      }
       const svgPoints = [];
       for (let i = 0; i < n; i++) {
-        svgPoints.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.5"/>`);
+        svgPoints.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.5" vector-effect="non-scaling-stroke"/>`);
       }
+      const polys = Array.from(voronoi.cellPolygons());
+      const polySvg = [];
+      polys.forEach((poly) => {
+        const polyPoints = poly.map((pp) => `${pp[0]},${pp[1]} `);
+        polySvg.push(`<polygon points="${polyPoints.join("")}" stroke="black" fill="none" stroke-width="0.1"/>`);
+      });
       return `
-      <svg id="svg-canvas" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
+      <svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">
         <g style="stroke: black; fill: black;">
           ${svgPoints.join("")}
         </g>
@@ -1661,7 +1686,7 @@
     }
   };
   var defaultParams = {
-    inputImageUrl: "portrait.jpg",
+    inputImageUrl: "tbl.png",
     width: 800,
     height: 800
   };
