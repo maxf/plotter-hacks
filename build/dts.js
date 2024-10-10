@@ -51,6 +51,52 @@
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
+  var NumberControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    #valueEl;
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
+      this.#widgetEl = $(params.name);
+      this.#valueEl = $(`${params.name}-value`);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = parseFloat(event.target.value);
+        this.#valueEl.innerText = this.#value.toString();
+        params.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value, min, max, step) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      const stepAttr = step ? `step="${step}"` : "";
+      html.push(`
+      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${label}
+      <span id="${name}-value">${value}</span>
+    `);
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#valueEl.innerText = newValue.toString();
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
   var SvgSaveControl = class {
     #wrapperEl;
     #createHtmlControl(name, label) {
@@ -199,8 +245,8 @@
     height;
     context;
     _pixels;
-    constructor(canvas) {
-      this.canvas = canvas;
+    constructor(canvas2) {
+      this.canvas = canvas2;
       this.width = this.canvas.width;
       this.height = this.canvas.height;
       this.context = this.canvas.getContext("2d");
@@ -1591,27 +1637,36 @@
   var DrunkTravellingSalesman = class {
     #params;
     #inputPixmap;
+    #cutoff;
     constructor(params) {
       this.#params = params;
       this.#inputPixmap = new Pixmap(this.#params.inputCanvas);
+      this.#cutoff = params.cutoff;
     }
-    // TODO: make async
     toSvg() {
-      const n = 1e4;
-      const points = new Float64Array(n * 2);
+      let n = 1e4;
+      let points = new Float64Array(n * 2);
       const width = this.#inputPixmap.width;
       const height = this.#inputPixmap.height;
+      let sampledPoints = 0;
       for (let i = 0; i < n; ++i) {
         for (let j = 0; j < 30; ++j) {
           const x = Math.floor(width * Math.random());
           const y = Math.floor(height * Math.random());
           const imageLevel = this.#inputPixmap.brightnessAt(x, y);
           if (200 * Math.random() > imageLevel) {
-            points[2 * i] = x + 0.5;
-            points[2 * i + 1] = y + 0.5;
+            points[2 * sampledPoints] = x + 0.5;
+            points[2 * sampledPoints + 1] = y + 0.5;
+            sampledPoints++;
             break;
           }
         }
+      }
+      n = sampledPoints;
+      if (sampledPoints < 2) {
+        return "Less than 2 sampled points!";
+      } else {
+        console.log(`Initial sampling: ${sampledPoints} points`);
       }
       const delaunay = new Delaunay(points);
       const voronoi = delaunay.voronoi([0, 0, width, height]);
@@ -1640,6 +1695,21 @@
         }
         voronoi.update();
       }
+      const points2 = new Float64Array(n * 2);
+      let p = 0;
+      for (let i = 0; i < n; i++) {
+        const brightness = this.#inputPixmap.brightnessAt(
+          Math.floor(points[2 * i]),
+          Math.floor(points[2 * i + 1])
+        );
+        if (brightness < this.#cutoff) {
+          points2[2 * p] = points[2 * i];
+          points2[2 * p + 1] = points[2 * i + 1];
+          p++;
+        }
+      }
+      points = points2;
+      n = p;
       const path = [];
       const dist2 = (p1, p2) => (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
       const dist2i = (i1, i2) => dist2([points[2 * i1], points[2 * i1 + 1]], [points[2 * i2], points[2 * i2 + 1]]);
@@ -1649,7 +1719,7 @@
       while (true) {
         let nearest;
         let dist3 = Infinity;
-        for (let next = current + 1; next < n; next++) {
+        for (let next = 1; next < n; next++) {
           if (visited[next] === 0) {
             const d = dist2i(current, next);
             if (d < dist3) {
@@ -1666,59 +1736,75 @@
           break;
         }
       }
-      const svgPoints = [];
+      const svg = [];
+      svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
+      const svgTspPath = path.map((i) => `${points[2 * i]},${points[2 * i + 1]}`);
+      svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="1"/>`);
       for (let i = 0; i < n; i++) {
-        svgPoints.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.5" vector-effect="non-scaling-stroke"/>`);
+        svg.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.5" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
       }
-      const polys = Array.from(voronoi.cellPolygons());
-      const polySvg = [];
-      polys.forEach((poly) => {
-        const polyPoints = poly.map((pp) => `${pp[0]},${pp[1]} `);
-        polySvg.push(`<polygon points="${polyPoints.join("")}" stroke="black" fill="none" stroke-width="0.1"/>`);
-      });
-      return `
-      <svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">
-        <g style="stroke: black; fill: black;">
-          ${svgPoints.join("")}
-        </g>
-      </svg>
-    `;
+      svg.push(`</svg>`);
+      return svg.join("");
     }
   };
   var defaultParams = {
     inputImageUrl: "tbl.png",
     width: 800,
-    height: 800
+    height: 800,
+    cutoff: 210
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
+    params.cutoff = controlCutoff.val();
     return params;
   };
+  var canvas;
+  var renderFromQsp = function() {
+    const params = paramsFromUrl(defaultParams);
+    params.inputCanvas = canvas;
+    const dts = new DrunkTravellingSalesman(params);
+    $("canvas").innerHTML = dts.toSvg();
+    delete params.inputCanvas;
+    updateUrl(params);
+  };
+  var renderFromWidgets = function() {
+    const params = paramsFromWidgets();
+    params.inputCanvas = canvas;
+    const dts = new DrunkTravellingSalesman(params);
+    $("canvas").innerHTML = dts.toSvg();
+    delete params.inputCanvas;
+    updateUrl(params);
+  };
+  var render = (params) => {
+    if (!params) {
+      params = paramsFromWidgets();
+    }
+    params.inputCanvas = canvas;
+    const dts = new DrunkTravellingSalesman(params);
+    $("canvas").innerHTML = dts.toSvg();
+    delete params.inputCanvas;
+    updateUrl(params);
+  };
+  var imageUpload = new ImageUploadControl({
+    name: "inputImage",
+    label: "Image",
+    value: defaultParams["inputImageUrl"],
+    firstCallback: renderFromQsp,
+    callback: renderFromWidgets
+  });
+  canvas = imageUpload.canvasEl();
+  var controlCutoff = new NumberControl({
+    name: "cutoff",
+    label: "White cutoff",
+    value: defaultParams["cutoff"],
+    renderFn: render,
+    min: 0,
+    max: 255
+  });
   new SvgSaveControl({
     name: "svgSave",
     canvasId: "svg-canvas",
     label: "Save SVG",
     saveFilename: "dts.svg"
-  });
-  new ImageUploadControl({
-    name: "inputImage",
-    label: "Image",
-    value: defaultParams["inputImageUrl"],
-    firstCallback: (instance) => {
-      const params = paramsFromUrl(defaultParams);
-      params.inputCanvas = instance.canvasEl();
-      const dts = new DrunkTravellingSalesman(params);
-      $("canvas").innerHTML = dts.toSvg();
-      delete params.inputCanvas;
-      updateUrl(params);
-    },
-    callback: (instance) => {
-      const params = paramsFromWidgets();
-      params.inputCanvas = instance.canvasEl();
-      const dts = new DrunkTravellingSalesman(params);
-      $("canvas").innerHTML = dts.toSvg();
-      delete params.inputCanvas;
-      updateUrl(params);
-    }
   });
 })();

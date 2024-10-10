@@ -1,5 +1,5 @@
 //import seedrandom from 'seedrandom';
-import { ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
+import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
 import { Pixmap } from './pixmap';
 import { Delaunay } from 'd3-delaunay';
 
@@ -7,23 +7,25 @@ import { Delaunay } from 'd3-delaunay';
 class DrunkTravellingSalesman {
   #params: Params;
   #inputPixmap: Pixmap;
+  #cutoff: number;
 
   constructor(params: Params) {
     this.#params = params;
     this.#inputPixmap = new Pixmap(this.#params.inputCanvas as HTMLCanvasElement);
+    this.#cutoff = params.cutoff;
   }
 
-  // TODO: make async
-  toSvg(): string {
 
-    const n = 10_000;
-    const points = new Float64Array(n*2);
+  toSvg(): string {
+    let n = 10_000;
+    let points = new Float64Array(n*2);
     const width = this.#inputPixmap.width;
     const height = this.#inputPixmap.height;
 
     // See: https://observablehq.com/@mbostock/voronoi-stippling
 
     // Initialize the points using rejection sampling.
+    let sampledPoints = 0;
     for (let i = 0; i < n; ++i) { // Do the following 10k times:
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
@@ -32,12 +34,26 @@ class DrunkTravellingSalesman {
         const imageLevel = this.#inputPixmap.brightnessAt(x, y);
         // the darker the image at this point, the more likely we're going to keep the point.
         if (200 * Math.random() > imageLevel) {
-          points[2*i] = x+.5;
-          points[2*i+1] = y+.5;
+          points[2*sampledPoints] = x+.5;
+          points[2*sampledPoints+1] = y+.5;
+          sampledPoints++;
           break;
         }
       }
     }
+    n = sampledPoints;
+
+    if (sampledPoints < 2) {
+      return 'Less than 2 sampled points!';
+    } else {
+      console.log(`Initial sampling: ${sampledPoints} points`);
+    }
+
+    // for (let d=0; d<points.length/2; d++) {
+    //   console.log(d, points[2*d], points[2*d+1])
+    // }
+
+
 
     // run voronoi and adjust points iteratively
 
@@ -49,7 +65,6 @@ class DrunkTravellingSalesman {
 
     // over a few iterations...
     for (let k = 0; k < 10; ++k) {
-
       // Compute the weighted centroid for each Voronoi cell.
       centroids.fill(0);
       weights.fill(0);
@@ -70,6 +85,7 @@ class DrunkTravellingSalesman {
       // (some centroids can be 0 though, if no pixel fell on the cell)
       // and 'weigths' are the weights of each cell
 
+
       // Relax the diagram by moving points to the weighted centroid.
       // Wiggle the points a little bit so they don’t get stuck.
       // const w = Math.pow(k + 1, -0.8) * 10;
@@ -86,10 +102,28 @@ class DrunkTravellingSalesman {
     }
 
     // at this point we have stipple in the 'points' array
-    // so we can move on to the travelling salesman problem.
 
+
+    // Filter the array to apply the white cutoff
+
+    const points2 = new Float64Array(n*2);
+    let p = 0;
+    for (let i=0; i<n; i++) {
+      const brightness = this.#inputPixmap.brightnessAt(
+        Math.floor(points[2*i]),
+        Math.floor(points[2*i+1])
+      );
+      if (brightness < this.#cutoff) {
+        points2[2*p] = points[2*i];
+        points2[2*p+1] = points[2*i+1];
+        p++;
+      }
+    }
+    points = points2;
+    n = p;
+
+    // now we can move on to the travelling salesman problem.
     // ========== TSP ==========
-
 
     // First calculate a nearest-neighbour path
     const path: number[] = []; // indices
@@ -102,7 +136,7 @@ class DrunkTravellingSalesman {
     while(true) {
       let nearest;
       let dist = Infinity;
-      for (let next=current+1; next<n; next++) {
+      for (let next=1; next<n; next++) {
         if (visited[next] === 0) {
           const d = dist2i(current, next);
           if (d<dist) {
@@ -121,29 +155,29 @@ class DrunkTravellingSalesman {
     }
 
     // =========== Rendering ===================
-    // Stipple points
-    const svgPoints = [];
+
+    const svg = [];
+
+    svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
+
+    // // voronoi polygons
+    // const polys = Array.from(voronoi.cellPolygons());
+    // polys.forEach(poly => {
+    //   const polyPoints = poly.map(pp => `${pp[0]},${pp[1]} `);
+    //   svg.push(`<polygon points="${polyPoints.join('')}" stroke="black" fill="none" stroke-width="0.1"/>`);
+    // });
+
+    // TSP path
+    const svgTspPath = path.map(i => `${points[2*i]},${points[2*i+1]}`);
+    svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="1"/>`);
+
+    // // Stipple points
     for (let i=0; i<n; i++) {
-      svgPoints.push(`<circle cx="${points[2*i]}" cy="${points[2*i+1]}" r="0.5" vector-effect="non-scaling-stroke"/>`);
+      svg.push(`<circle cx="${points[2*i]}" cy="${points[2*i+1]}" r="0.5" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
     }
 
-    // voronoi polygons
-    const polys = Array.from(voronoi.cellPolygons());
-    const polySvg = [];
-    polys.forEach(poly => {
-      const polyPoints = poly.map(pp => `${pp[0]},${pp[1]} `);
-      polySvg.push(`<polygon points="${polyPoints.join('')}" stroke="black" fill="none" stroke-width="0.1"/>`);
-    });
-
-    //        <path d="${polySvg.join('')}" stroke="red" fill="none/>
-    //              ${polySvg.join('')}
-    return `
-      <svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">
-        <g style="stroke: black; fill: black;">
-          ${svgPoints.join('')}
-        </g>
-      </svg>
-    `;
+    svg.push(`</svg>`);
+    return svg.join('');
   }
 }
 
@@ -152,24 +186,76 @@ type Params = {
   inputImageUrl: string,
   inputCanvas: HTMLCanvasElement,
   width: number,
-  height: number
+  height: number,
+  cutoff: number
 };
 
 
 const defaultParams = {
   inputImageUrl: 'tbl.png',
   width: 800,
-  height: 800
+  height: 800,
+  cutoff: 210
 };
 
 
 const paramsFromWidgets = (): any => {
   const params = {...defaultParams};
+  params.cutoff = controlCutoff.val() as number;
   return params;
+};
+
+let canvas: HTMLCanvasElement;
+
+const renderFromQsp = function() {
+  const params = paramsFromUrl(defaultParams);
+  params.inputCanvas = canvas;
+  const dts = new DrunkTravellingSalesman(params);
+  $('canvas').innerHTML = dts.toSvg();
+  delete params.inputCanvas; // don't put the whole image in the URL
+  updateUrl(params);
+};
+
+const renderFromWidgets = function() {
+  const params = paramsFromWidgets();
+  params.inputCanvas = canvas;
+  const dts = new DrunkTravellingSalesman(params);
+  $('canvas').innerHTML = dts.toSvg();
+  delete params.inputCanvas; // don't put the whole image in the URL
+  updateUrl(params);
+};
+
+const render = (params?: any) => {
+  if (!params) {
+    params = paramsFromWidgets();
+  }
+  params.inputCanvas = canvas;
+  const dts = new DrunkTravellingSalesman(params);
+  $('canvas').innerHTML = dts.toSvg();
+  delete params.inputCanvas; // don't put the whole image in the URL
+  updateUrl(params);
 };
 
 
 
+const imageUpload = new ImageUploadControl({
+  name: 'inputImage',
+  label: 'Image',
+  value: defaultParams['inputImageUrl'],
+  firstCallback: renderFromQsp,
+  callback: renderFromWidgets
+});
+
+canvas = imageUpload.canvasEl();
+
+const controlCutoff = new NumberControl({
+  name: 'cutoff',
+  label: 'White cutoff',
+  value: defaultParams['cutoff'],
+  renderFn: render,
+  min: 0,
+  max: 255
+});
 
 new SvgSaveControl({
   name: 'svgSave',
@@ -178,24 +264,5 @@ new SvgSaveControl({
   saveFilename: 'dts.svg'
 });
 
-new ImageUploadControl({
-  name: 'inputImage',
-  label: 'Image',
-  value: defaultParams['inputImageUrl'],
-  firstCallback: (instance: ImageUploadControl) => {
-    const params = paramsFromUrl(defaultParams);
-    params.inputCanvas = instance.canvasEl();
-    const dts = new DrunkTravellingSalesman(params);
-    $('canvas').innerHTML = dts.toSvg();
-    delete params.inputCanvas; // don't put the whole image in the URL
-    updateUrl(params);
-  },
-  callback: (instance: ImageUploadControl) => {
-    const params = paramsFromWidgets();
-    params.inputCanvas = instance.canvasEl();
-    const dts = new DrunkTravellingSalesman(params);
-    $('canvas').innerHTML = dts.toSvg();
-    delete params.inputCanvas; // don't put the whole image in the URL
-    updateUrl(params);
-  }
-});
+
+
