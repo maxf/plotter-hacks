@@ -1638,13 +1638,27 @@
     #params;
     #inputPixmap;
     #cutoff;
+    #nsamples;
+    #optIter;
     constructor(params) {
       this.#params = params;
       this.#inputPixmap = new Pixmap(this.#params.inputCanvas);
       this.#cutoff = params.cutoff;
+      this.#nsamples = params.nsamples;
+      this.#optIter = params.optIter;
+    }
+    #pathLength(path, points) {
+      let dist2 = 0;
+      for (let i = 0; i < path.length - 1; i++) {
+        const ip = path[i];
+        const p1 = [points[2 * ip], points[2 * ip + 1]];
+        const p2 = [points[2 * ip + 2], points[2 * ip + 3]];
+        dist2 += (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
+      }
+      return dist2;
     }
     toSvg() {
-      let n = 1e4;
+      let n = this.#nsamples;
       let points = new Float64Array(n * 2);
       const width = this.#inputPixmap.width;
       const height = this.#inputPixmap.height;
@@ -1736,13 +1750,52 @@
           break;
         }
       }
+      for (let i = 0; i < this.#optIter; ++i) {
+        let indexA = Math.floor(Math.random() * (n - 1));
+        let indexB = Math.floor(Math.random() * (n - 1));
+        console.log("indexed", indexA, indexB);
+        if (Math.abs(indexA - indexB) < 2) {
+          continue;
+        }
+        if (indexB < indexA) {
+          [indexA, indexB] = [indexB, indexA];
+        }
+        const ai = path[indexA];
+        const a0 = [points[2 * ai], points[2 * ai + 1]];
+        const ai2 = path[indexA + 1];
+        const a1 = [points[2 * ai2], points[2 * ai2 + 1]];
+        const bi = path[indexB];
+        const b0 = [points[2 * bi], points[2 * bi + 1]];
+        const bi2 = path[indexB + 1];
+        const b1 = [points[2 * bi2], points[2 * bi2 + 1]];
+        const dx1 = a0[0] - a1[0];
+        const dy1 = a0[1] - a1[1];
+        const dx2 = b0[0] - b1[0];
+        const dy2 = b0[1] - b1[1];
+        const distance = dx1 * dx1 + dy1 * dy1 + (dx2 * dx2 + dy2 * dy2);
+        const dx3 = a0[0] - b0[0];
+        const dy3 = a0[1] - b0[1];
+        const dx4 = a1[0] - b1[0];
+        const dy4 = a1[1] - b1[1];
+        const distance2 = dx3 * dx3 + dy3 * dy3 + (dx4 * dx4 + dy4 * dy4);
+        console.log("d", distance, "d2", distance2);
+        if (distance2 < distance) {
+          console.log("swap");
+          let indexhigh = indexB;
+          let indexlow = indexA + 1;
+          while (indexhigh > indexlow) {
+            const temp = path[indexlow];
+            path[indexlow] = path[indexhigh];
+            path[indexhigh] = temp;
+            indexhigh--;
+            indexlow++;
+          }
+        }
+      }
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
       const svgTspPath = path.map((i) => `${points[2 * i]},${points[2 * i + 1]}`);
-      svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="1"/>`);
-      for (let i = 0; i < n; i++) {
-        svg.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.5" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
-      }
+      svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="0.5"/>`);
       svg.push(`</svg>`);
       return svg.join("");
     }
@@ -1751,11 +1804,15 @@
     inputImageUrl: "tbl.png",
     width: 800,
     height: 800,
-    cutoff: 210
+    cutoff: 210,
+    nsamples: 1e4,
+    optIter: 1
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
     params.cutoff = controlCutoff.val();
+    params.nsamples = controlNSamples.val();
+    params.optIter = controlOptIter.val();
     return params;
   };
   var canvas;
@@ -1800,6 +1857,22 @@
     renderFn: render,
     min: 0,
     max: 255
+  });
+  var controlNSamples = new NumberControl({
+    name: "nsamples",
+    label: "Samples",
+    value: defaultParams["nsamples"],
+    renderFn: render,
+    min: 5e3,
+    max: 2e4
+  });
+  var controlOptIter = new NumberControl({
+    name: "optIter",
+    label: "Optimisation",
+    value: defaultParams["optIter"],
+    renderFn: render,
+    min: 0,
+    max: 1e5
   });
   new SvgSaveControl({
     name: "svgSave",
