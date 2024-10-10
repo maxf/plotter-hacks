@@ -51,6 +51,7 @@ class NumberControl {
 
   set(newValue: number) {
     this.#value = newValue;
+    this.#widgetEl.value = newValue; // TODO: clamp to min/max
     this.#valueEl.innerText = newValue.toString();
   }
 

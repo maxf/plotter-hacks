@@ -85,6 +85,7 @@
     }
     set(newValue) {
       this.#value = newValue;
+      this.#widgetEl.value = newValue;
       this.#valueEl.innerText = newValue.toString();
     }
     val() {
@@ -1650,9 +1651,10 @@
     #pathLength(path, points) {
       let dist2 = 0;
       for (let i = 0; i < path.length - 1; i++) {
-        const ip = path[i];
-        const p1 = [points[2 * ip], points[2 * ip + 1]];
-        const p2 = [points[2 * ip + 2], points[2 * ip + 3]];
+        const ip1 = path[i];
+        const ip2 = path[i + 1];
+        const p1 = [points[2 * ip1], points[2 * ip1 + 1]];
+        const p2 = [points[2 * ip2], points[2 * ip2 + 1]];
         dist2 += (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
       }
       return dist2;
@@ -1730,6 +1732,7 @@
       const visited = new Float64Array(n);
       visited.fill(0);
       let current = 0;
+      path.push(0);
       while (true) {
         let nearest;
         let dist3 = Infinity;
@@ -1753,7 +1756,6 @@
       for (let i = 0; i < this.#optIter; ++i) {
         let indexA = Math.floor(Math.random() * (n - 1));
         let indexB = Math.floor(Math.random() * (n - 1));
-        console.log("indexed", indexA, indexB);
         if (Math.abs(indexA - indexB) < 2) {
           continue;
         }
@@ -1778,9 +1780,7 @@
         const dx4 = a1[0] - b1[0];
         const dy4 = a1[1] - b1[1];
         const distance2 = dx3 * dx3 + dy3 * dy3 + (dx4 * dx4 + dy4 * dy4);
-        console.log("d", distance, "d2", distance2);
         if (distance2 < distance) {
-          console.log("swap");
           let indexhigh = indexB;
           let indexlow = indexA + 1;
           while (indexhigh > indexlow) {
@@ -1792,6 +1792,7 @@
           }
         }
       }
+      console.log("total distance:", this.#pathLength(path, points));
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
       const svgTspPath = path.map((i) => `${points[2 * i]},${points[2 * i + 1]}`);
@@ -1819,9 +1820,13 @@
   var renderFromQsp = function() {
     const params = paramsFromUrl(defaultParams);
     params.inputCanvas = canvas;
+    console.log(params);
     const dts = new DrunkTravellingSalesman(params);
     $("canvas").innerHTML = dts.toSvg();
     delete params.inputCanvas;
+    controlCutoff.set(params.cutoff);
+    controlOptIter.set(params.optIter);
+    controlNSamples.set(params.nsamples);
     updateUrl(params);
   };
   var renderFromWidgets = function() {

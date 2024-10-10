@@ -22,9 +22,10 @@ class DrunkTravellingSalesman {
   #pathLength(path: number[], points: Float64Array): number {
     let dist = 0;
     for (let i=0; i<path.length-1; i++) {
-      const ip = path[i];
-      const p1 = [ points[2*ip], points[2*ip+1] ];
-      const p2 = [ points[2*ip+2], points[2*ip+3] ];
+      const ip1 = path[i];
+      const ip2 = path[i+1];
+      const p1 = [ points[2*ip1], points[2*ip1+1] ];
+      const p2 = [ points[2*ip2], points[2*ip2+1] ];
       dist += (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
     }
     return dist;
@@ -147,6 +148,7 @@ class DrunkTravellingSalesman {
     visited.fill(0);
 
     let current = 0;
+    path.push(0);
     while(true) {
       let nearest;
       let dist = Infinity;
@@ -171,11 +173,8 @@ class DrunkTravellingSalesman {
     // Optimise the path
     // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
     for (let i = 0; i < this.#optIter; ++i) {
-      //console.log('dist', this.#pathLength(path, points));
       let indexA = Math.floor(Math.random()*(n - 1));
       let indexB = Math.floor(Math.random()*(n - 1));
-
-      console.log('indexed', indexA, indexB)
 
       if (Math.abs(indexA - indexB) < 2) {
         continue;
@@ -210,10 +209,7 @@ class DrunkTravellingSalesman {
 
       const distance2 = (dx3*dx3 + dy3*dy3) + (dx4*dx4 + dy4*dy4);
 
-      console.log('d', distance, 'd2', distance2);
-
       if (distance2 < distance) {
-        console.log('swap');
         // Reverse tour between a1 and b0.
 
         let indexhigh = indexB;
@@ -229,6 +225,8 @@ class DrunkTravellingSalesman {
         }
       }
     }
+
+    console.log('total distance:', this.#pathLength(path, points));
 
     // =========== Rendering ===================
 
@@ -292,9 +290,13 @@ let canvas: HTMLCanvasElement;
 const renderFromQsp = function() {
   const params = paramsFromUrl(defaultParams);
   params.inputCanvas = canvas;
+  console.log(params)
   const dts = new DrunkTravellingSalesman(params);
   $('canvas').innerHTML = dts.toSvg();
   delete params.inputCanvas; // don't put the whole image in the URL
+  controlCutoff.set(params.cutoff);
+  controlOptIter.set(params.optIter);
+  controlNSamples.set(params.nsamples);
   updateUrl(params);
 };
 
