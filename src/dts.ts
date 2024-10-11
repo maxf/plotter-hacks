@@ -170,7 +170,7 @@ class DrunkTravellingSalesman {
       }
     }
 
-    // Optimise the path
+    // Then optimise the path by swapping random edges if it reduces the path length
     // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
     for (let i = 0; i < this.#optIter; ++i) {
       let indexA = Math.floor(Math.random()*(n - 1));
@@ -228,6 +228,25 @@ class DrunkTravellingSalesman {
 
     console.log('total distance:', this.#pathLength(path, points));
 
+    // Then remove too long edges. We don't need a single path anyway and we don't want long lines
+    // in our final rendering
+    const minLength = 200;
+    const subPaths: number[][] = [];
+    let indexSub: number = 0;
+    subPaths[0] = [path[0]];
+    for (let i=0; i<path.length-1; i++) {
+      const ai = path[i];
+      const a0 = [ points[2*ai], points[2*ai+1] ];
+      const ai2 = path[i + 1];
+      const a1 = [ points[2*ai2], points[2*ai2+1] ];
+
+      if ((a0[0]-a1[0])*(a0[0]-a1[0]) + (a0[1]-a1[1])*(a0[1]-a1[1]) < minLength) {
+        subPaths[indexSub].push(ai2);
+      } else {
+        subPaths[++indexSub] = [ai2];
+      }
+    }
+
     // =========== Rendering ===================
 
     const svg = [];
@@ -241,9 +260,23 @@ class DrunkTravellingSalesman {
     //   svg.push(`<polygon points="${polyPoints.join('')}" stroke="black" fill="none" stroke-width="0.1"/>`);
     // });
 
-    // TSP path
-    const svgTspPath = path.map(i => `${points[2*i]},${points[2*i+1]}`);
-    svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="0.5"/>`);
+    // Main TSP path
+    // const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
+    // const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+    // const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
+    // svg.push(`<path d="${d0} ${d1}" stroke="red" fill="none" stroke-width="0.5"/>`);
+
+    // TSP sub paths
+    svg.push('<g style="fill: none; stroke: green">');
+    subPaths.forEach(path => {
+      const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
+      //      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+      //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
+      const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
+      svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+    });
+    svg.push('</g>');
 
     // // Stipple points
     // for (let i=0; i<n; i++) {
@@ -290,7 +323,6 @@ let canvas: HTMLCanvasElement;
 const renderFromQsp = function() {
   const params = paramsFromUrl(defaultParams);
   params.inputCanvas = canvas;
-  console.log(params)
   const dts = new DrunkTravellingSalesman(params);
   $('canvas').innerHTML = dts.toSvg();
   delete params.inputCanvas; // don't put the whole image in the URL
@@ -346,7 +378,7 @@ const controlNSamples = new NumberControl({
   label: 'Samples',
   value: defaultParams['nsamples'],
   renderFn: render,
-  min: 5_000,
+  min: 10,
   max: 20_000,
 });
 

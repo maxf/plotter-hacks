@@ -85,7 +85,7 @@
     }
     set(newValue) {
       this.#value = newValue;
-      this.#widgetEl.value = newValue;
+      this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
     }
     val() {
@@ -1793,10 +1793,31 @@
         }
       }
       console.log("total distance:", this.#pathLength(path, points));
+      const minLength = 200;
+      const subPaths = [];
+      let indexSub = 0;
+      subPaths[0] = [path[0]];
+      for (let i = 0; i < path.length - 1; i++) {
+        const ai = path[i];
+        const a0 = [points[2 * ai], points[2 * ai + 1]];
+        const ai2 = path[i + 1];
+        const a1 = [points[2 * ai2], points[2 * ai2 + 1]];
+        if ((a0[0] - a1[0]) * (a0[0] - a1[0]) + (a0[1] - a1[1]) * (a0[1] - a1[1]) < minLength) {
+          subPaths[indexSub].push(ai2);
+        } else {
+          subPaths[++indexSub] = [ai2];
+        }
+      }
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
-      const svgTspPath = path.map((i) => `${points[2 * i]},${points[2 * i + 1]}`);
-      svg.push(`<polygon points="${svgTspPath}" stroke="red" fill="none" stroke-width="0.5"/>`);
+      svg.push('<g style="fill: none; stroke: green">');
+      subPaths.forEach((path2) => {
+        const svgTspPath = path2.map((i) => [points[2 * i], points[2 * i + 1]]);
+        const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+        const d1 = svgTspPath.slice(1).map(([x, y]) => `L ${x} ${y}`).join("");
+        svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+      });
+      svg.push("</g>");
       svg.push(`</svg>`);
       return svg.join("");
     }
@@ -1820,7 +1841,6 @@
   var renderFromQsp = function() {
     const params = paramsFromUrl(defaultParams);
     params.inputCanvas = canvas;
-    console.log(params);
     const dts = new DrunkTravellingSalesman(params);
     $("canvas").innerHTML = dts.toSvg();
     delete params.inputCanvas;
@@ -1868,7 +1888,7 @@
     label: "Samples",
     value: defaultParams["nsamples"],
     renderFn: render,
-    min: 5e3,
+    min: 10,
     max: 2e4
   });
   var controlOptIter = new NumberControl({
