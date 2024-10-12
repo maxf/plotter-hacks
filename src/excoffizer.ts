@@ -165,7 +165,7 @@ class Excoffizer {
           const imageLevel = this.#inputPixmap.brightnessAverageAt(Math.floor(p.x), Math.floor(p.y), this.#blur)
 
           //const radius = lineHeight * ( 1 - imageLevel / 255) / 2 - 0.05;
-          const radius = thickness * ( 1 - imageLevel / 300) / 2 - 0.05;
+          const radius = thickness * ( 1 - imageLevel / 255) / 3 - 0.05;
 
           const zoom=outputWidth/inputWidth;
 
@@ -190,7 +190,7 @@ class Excoffizer {
 
             // how far away should the next point be?
             //stepx = Math.max(0.5, density - radius);
-            stepx = Math.max(0.2, density - radius);
+            stepx = Math.max(0.3, density - radius);
           }
 
         }
@@ -222,6 +222,7 @@ type Params = {
   blur: number,
   cutoff: number
 };
+
 
 const defaultParams: Params = {
   inputImageUrl: 'portrait.jpg',

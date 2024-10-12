@@ -85,6 +85,7 @@
     }
     set(newValue) {
       this.#value = newValue;
+      this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
     }
     val() {
@@ -282,6 +283,28 @@
     brightnessAverageAt(x, y, radius) {
       return this.colorAverageAt(x, y, radius).brightness();
     }
+    colorAt(x, y) {
+      let index;
+      let resultR = 0, resultG = 0, resultB = 0;
+      if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+        index = 4 * (x + this.width * y);
+        if (this._pixels[index + 3] === 0) {
+          resultR = 255;
+          resultG = 255;
+          resultB = 255;
+        } else {
+          resultR = this._pixels[index];
+          resultG = this._pixels[index + 1];
+          resultB = this._pixels[index + 2];
+        }
+        return new Color(resultR, resultG, resultB, 1);
+      } else {
+        return new Color(255, 255, 255, 1);
+      }
+    }
+    brightnessAt(x, y) {
+      return this.colorAt(x, y).brightness();
+    }
   };
 
   // src/excoffizer.ts
@@ -421,7 +444,7 @@
           const p2 = this.#S2P({ x: x + stepx, y: y + this.#wiggle(x + stepx) });
           if (p.x >= 0 && p.x < inputWidth && p.y >= 0 && p.y < inputHeight || p2.x >= 0 && p2.x < inputWidth && p2.y >= 0 && p2.y < inputHeight) {
             const imageLevel = this.#inputPixmap.brightnessAverageAt(Math.floor(p.x), Math.floor(p.y), this.#blur);
-            const radius = thickness * (1 - imageLevel / 300) / 2 - 0.05;
+            const radius = thickness * (1 - imageLevel / 255) / 3 - 0.05;
             const zoom = outputWidth / inputWidth;
             if (radius < this.#cutoff) {
               p.x *= zoom;
@@ -439,7 +462,7 @@
               } else {
                 hatchPoints2.push(sidePoint1);
               }
-              stepx = Math.max(0.2, density - radius);
+              stepx = Math.max(0.3, density - radius);
             }
           }
         }
