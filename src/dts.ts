@@ -31,6 +31,65 @@ class DrunkTravellingSalesman {
     return dist;
   }
 
+  #bezierSplineFromPath(points: Float64Array, path: number[]): string {
+
+    const n = path.length;
+    const pathParts: string[] = [];
+    if (n < 3) {
+      // not enough points
+      return '';
+    }
+    const getPoint = (i: number) => ({
+      x: points[2 * path[i]],
+      y: points[2 * path[i] + 1]
+    });
+
+
+    // Loop through points to compute bezier segments
+    // first segment
+
+    let prev = getPoint(0);
+    let curr = prev;
+    let next = getPoint(1);
+    let next2 = getPoint(2);
+    let curviness = Math.random()*20-10;
+
+    let c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
+    let n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+    pathParts.push(`M ${prev.x} ${prev.y} C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+
+    // other segments
+    for (let i = 1; i < n - 2; i++) {
+      prev = getPoint(i - 1);
+      curr = getPoint(i);
+      next = getPoint(i + 1);
+      next2 = getPoint(i + 2);
+      curviness = Math.random()*20-10;
+      c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
+      n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+
+      // Create cubic Bézier curve command for this segment
+      // assuming current bezier control point is at c,
+      pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+    }
+
+    // last segment
+    prev = getPoint(n-3);
+    curr = getPoint(n-2);
+    next = getPoint(n-1);
+    next2 = next;
+    curviness = Math.random()*20-10;
+    c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
+    n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+
+    // Create cubic Bézier curve command for this segment
+    // assuming current bezier control point is at c,
+    pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+
+    return pathParts.join(" ");
+  }
+
+
   toSvg(): string {
     let n = this.#nsamples;
     let points = new Float64Array(n*2);
@@ -247,6 +306,15 @@ class DrunkTravellingSalesman {
       }
     }
 
+    // then interpolate with a bezier spline
+
+    //  const points: PointArray = [10, 80, 40, 10, 70, 80, 100, 10];
+    //const path = [0, 1, 2, 3];  // Indices of the polygon points in the points array
+
+//
+
+
+
     // =========== Rendering ===================
 
     const svg = [];
@@ -267,6 +335,7 @@ class DrunkTravellingSalesman {
     // svg.push(`<path d="${d0} ${d1}" stroke="red" fill="none" stroke-width="0.5"/>`);
 
     // TSP sub paths
+    /*
     svg.push('<g style="fill: none; stroke: green">');
     subPaths.forEach(path => {
       const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
@@ -275,6 +344,15 @@ class DrunkTravellingSalesman {
       //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
       const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
       svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+    });
+    svg.push('</g>');
+     */
+
+    // Drunk TSP spline
+    svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
+    subPaths.forEach(path => {
+      const svgPathData = this.#bezierSplineFromPath(points, path);
+      svg.push(`<path d="${svgPathData}"/>`);
     });
     svg.push('</g>');
 

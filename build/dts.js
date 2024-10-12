@@ -1659,6 +1659,44 @@
       }
       return dist2;
     }
+    #bezierSplineFromPath(points, path) {
+      const n = path.length;
+      const pathParts = [];
+      if (n < 3) {
+        return "";
+      }
+      const getPoint = (i) => ({
+        x: points[2 * path[i]],
+        y: points[2 * path[i] + 1]
+      });
+      let prev = getPoint(0);
+      let curr = prev;
+      let next = getPoint(1);
+      let next2 = getPoint(2);
+      let curviness = Math.random() * 20 - 10;
+      let c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
+      let n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+      pathParts.push(`M ${prev.x} ${prev.y} C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+      for (let i = 1; i < n - 2; i++) {
+        prev = getPoint(i - 1);
+        curr = getPoint(i);
+        next = getPoint(i + 1);
+        next2 = getPoint(i + 2);
+        curviness = Math.random() * 20 - 10;
+        c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
+        n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+        pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+      }
+      prev = getPoint(n - 3);
+      curr = getPoint(n - 2);
+      next = getPoint(n - 1);
+      next2 = next;
+      curviness = Math.random() * 20 - 10;
+      c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
+      n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+      pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+      return pathParts.join(" ");
+    }
     toSvg() {
       let n = this.#nsamples;
       let points = new Float64Array(n * 2);
@@ -1810,12 +1848,10 @@
       }
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
-      svg.push('<g style="fill: none; stroke: green">');
+      svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
       subPaths.forEach((path2) => {
-        const svgTspPath = path2.map((i) => [points[2 * i], points[2 * i + 1]]);
-        const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
-        const d1 = svgTspPath.slice(1).map(([x, y]) => `L ${x} ${y}`).join("");
-        svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+        const svgPathData = this.#bezierSplineFromPath(points, path2);
+        svg.push(`<path d="${svgPathData}"/>`);
       });
       svg.push("</g>");
       svg.push(`</svg>`);
