@@ -1,5 +1,13 @@
 //import seedrandom from 'seedrandom';
-import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
+import {
+  NumberControl,
+  ImageUploadControl,
+  CheckboxControl,
+  SvgSaveControl,
+  paramsFromUrl,
+  updateUrl,
+  $
+} from './controls';
 import { Pixmap } from './pixmap';
 import { Delaunay } from 'd3-delaunay';
 
@@ -10,6 +18,9 @@ class DrunkTravellingSalesman {
   #cutoff: number;
   #nsamples: number;
   #optIter: number;
+  #showStipple: boolean;
+  #showPoly: boolean;
+  #showDts: boolean;
 
   constructor(params: Params) {
     this.#params = params;
@@ -17,6 +28,9 @@ class DrunkTravellingSalesman {
     this.#cutoff = params.cutoff;
     this.#nsamples = params.nsamples;
     this.#optIter = params.optIter;
+    this.#showStipple = params.showStipple;
+    this.#showPoly = params.showPoly;
+    this.#showDts = params.showDts;
   }
 
   #pathLength(path: number[], points: Float64Array): number {
@@ -96,9 +110,10 @@ class DrunkTravellingSalesman {
     const width = this.#inputPixmap.width;
     const height = this.#inputPixmap.height;
 
+    // Step 1 : Voronoi stippling
     // See: https://observablehq.com/@mbostock/voronoi-stippling
 
-    // Initialize the points using rejection sampling.
+    // 1.1 Initialize the points using rejection sampling.
     let sampledPoints = 0;
     for (let i = 0; i < n; ++i) { // Do the following 10k times:
       // for each sample, 30 times pick a random point
@@ -123,13 +138,8 @@ class DrunkTravellingSalesman {
       console.log(`Initial sampling: ${sampledPoints} points`);
     }
 
-    // for (let d=0; d<points.length/2; d++) {
-    //   console.log(d, points[2*d], points[2*d+1])
-    // }
 
-
-
-    // run voronoi and adjust points iteratively
+    // 1.2. Create voronoi diagram
 
     const delaunay = new Delaunay(points);
     const voronoi = delaunay.voronoi([0, 0, width, height]);
@@ -137,7 +147,8 @@ class DrunkTravellingSalesman {
     const weights = new Float64Array(n); // weights
 
 
-    // over a few iterations...
+    // 1.3 Lloyd relaxation of the centroids
+
     for (let k = 0; k < 10; ++k) {
       // Compute the weighted centroid for each Voronoi cell.
       centroids.fill(0);
@@ -156,7 +167,7 @@ class DrunkTravellingSalesman {
       }
 
       // now 'centroids' is an array of the centroid for each cell
-      // (some centroids can be 0 though, if no pixel fell on the cell)
+      // (some centroids can be empty though, if no pixel fell on the cell)
       // and 'weigths' are the weights of each cell
 
 
@@ -177,8 +188,7 @@ class DrunkTravellingSalesman {
 
     // at this point we have stipple in the 'points' array
 
-
-    // Filter the array to apply the white cutoff
+    // 3. Remove the points in the brightest areas (above the cutoff point)
 
     const points2 = new Float64Array(n*2);
     let p = 0;
@@ -196,10 +206,9 @@ class DrunkTravellingSalesman {
     points = points2;
     n = p;
 
-    // now we can move on to the travelling salesman problem.
-    // ========== TSP ==========
+    // 3. now we can move on to the travelling salesman problem.
 
-    // First calculate a nearest-neighbour path
+    // 3.1 First calculate a nearest-neighbour path passing through every point
     const path: number[] = []; // indices
     const dist2 = (p1: number[], p2: number[]) => (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
     const dist2i = (i1: number, i2: number) => dist2([points[2*i1], points[2*i1+1]], [points[2*i2], points[2*i2+1]]);
@@ -229,7 +238,7 @@ class DrunkTravellingSalesman {
       }
     }
 
-    // Then optimise the path by swapping random edges if it reduces the path length
+    // 3.2 Then optimise the path by swapping random edges if it reduces the path length
     // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
     for (let i = 0; i < this.#optIter; ++i) {
       let indexA = Math.floor(Math.random()*(n - 1));
@@ -287,7 +296,8 @@ class DrunkTravellingSalesman {
 
     console.log('total distance:', this.#pathLength(path, points));
 
-    // Then remove too long edges. We don't need a single path anyway and we don't want long lines
+    // 3.3 remove long edges, as they aren't aestethically pleasing.
+    // We don't need a single path anyway and we don't want long straight lines
     // in our final rendering
     const minLength = 200;
     const subPaths: number[][] = [];
@@ -306,13 +316,8 @@ class DrunkTravellingSalesman {
       }
     }
 
-    // then interpolate with a bezier spline
-
-    //  const points: PointArray = [10, 80, 40, 10, 70, 80, 100, 10];
-    //const path = [0, 1, 2, 3];  // Indices of the polygon points in the points array
-
-//
-
+    // later, we'll interpolate all the points in each polylines in subPaths, using
+    // quadratic bezier splines, to form the final rendering
 
 
     // =========== Rendering ===================
@@ -335,32 +340,36 @@ class DrunkTravellingSalesman {
     // svg.push(`<path d="${d0} ${d1}" stroke="red" fill="none" stroke-width="0.5"/>`);
 
     // TSP sub paths
-    /*
-    svg.push('<g style="fill: none; stroke: green">');
-    subPaths.forEach(path => {
-      const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
-      //      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
-      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
-      //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
-      const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
-      svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
-    });
-    svg.push('</g>');
-     */
-
+    if (this.#showPoly) {
+      svg.push('<g style="fill: none; stroke: green">');
+      subPaths.forEach(path => {
+        const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
+        //      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+        const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+        //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
+        const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
+        svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+      });
+      svg.push('</g>');
+    }
+    
     // Drunk TSP spline
-    svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
-    subPaths.forEach(path => {
-      const svgPathData = this.#bezierSplineFromPath(points, path);
-      svg.push(`<path d="${svgPathData}"/>`);
-    });
-    svg.push('</g>');
+    if (this.#showDts) {
+      svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
+      subPaths.forEach(path => {
+        const svgPathData = this.#bezierSplineFromPath(points, path);
+        svg.push(`<path d="${svgPathData}"/>`);
+      });
+      svg.push('</g>');
+    }
 
-    // // Stipple points
-    // for (let i=0; i<n; i++) {
-    //   svg.push(`<circle cx="${points[2*i]}" cy="${points[2*i+1]}" r="0.5" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
-    // }
-
+    if (this.#showStipple) {
+      // Stipple points
+      for (let i=0; i<n; i++) {
+        svg.push(`<circle cx="${points[2*i]}" cy="${points[2*i+1]}" r="0.6" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
+      }
+    }
+    
     svg.push(`</svg>`);
     return svg.join('');
   }
@@ -374,7 +383,10 @@ type Params = {
   height: number,
   cutoff: number,
   nsamples: number,
-  optIter: number
+  optIter: number,
+  showStipple: boolean,
+  showPoly: boolean,
+  showDts: boolean
 };
 
 
@@ -384,7 +396,10 @@ const defaultParams = {
   height: 800,
   cutoff: 210,
   nsamples: 10_000,
-  optIter: 1
+  optIter: 1,
+  showStipple: false,
+  showPoly: false,
+  showDts: true
 };
 
 
@@ -393,6 +408,9 @@ const paramsFromWidgets = (): any => {
   params.cutoff = controlCutoff.val() as number;
   params.nsamples = controlNSamples.val() as number;
   params.optIter = controlOptIter.val() as number;
+  params.showStipple = controlShowStipple.val() as boolean;
+  params.showPoly = controlShowPoly.val() as boolean;
+  params.showDts = controlShowDts.val() as boolean;
   return params;
 };
 
@@ -407,6 +425,9 @@ const renderFromQsp = function() {
   controlCutoff.set(params.cutoff);
   controlOptIter.set(params.optIter);
   controlNSamples.set(params.nsamples);
+  controlShowStipple.set(params.showStipple);
+  controlShowPoly.set(params.showPoly);
+  controlShowDts.set(params.showDts);
   updateUrl(params);
 };
 
@@ -467,6 +488,27 @@ const controlOptIter = new NumberControl({
   renderFn: render,
   min: 0,
   max: 100_000,
+});
+
+const controlShowStipple = new CheckboxControl({
+  name: 'showStipple',
+  label: 'Stipple points',
+  value: defaultParams['showStipple'],
+  renderFn: render
+});
+
+const controlShowPoly = new CheckboxControl({
+  name: 'showPoly',
+  label: 'Polygons',
+  value: defaultParams['showPoly'],
+  renderFn: render
+});
+
+const controlShowDts = new CheckboxControl({
+  name: 'Splines',
+  label: 'Dts points',
+  value: defaultParams['showDts'],
+  renderFn: render
 });
 
 new SvgSaveControl({

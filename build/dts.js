@@ -98,6 +98,44 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var CheckboxControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.checked;
+        params.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
+      html.push(`</div>`);
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.checked = newValue;
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
   var SvgSaveControl = class {
     #wrapperEl;
     #createHtmlControl(name, label) {
@@ -1641,12 +1679,18 @@
     #cutoff;
     #nsamples;
     #optIter;
+    #showStipple;
+    #showPoly;
+    #showDts;
     constructor(params) {
       this.#params = params;
       this.#inputPixmap = new Pixmap(this.#params.inputCanvas);
       this.#cutoff = params.cutoff;
       this.#nsamples = params.nsamples;
       this.#optIter = params.optIter;
+      this.#showStipple = params.showStipple;
+      this.#showPoly = params.showPoly;
+      this.#showDts = params.showDts;
     }
     #pathLength(path, points) {
       let dist2 = 0;
@@ -1848,12 +1892,29 @@
       }
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
-      svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
-      subPaths.forEach((path2) => {
-        const svgPathData = this.#bezierSplineFromPath(points, path2);
-        svg.push(`<path d="${svgPathData}"/>`);
-      });
-      svg.push("</g>");
+      if (this.#showPoly) {
+        svg.push('<g style="fill: none; stroke: green">');
+        subPaths.forEach((path2) => {
+          const svgTspPath = path2.map((i) => [points[2 * i], points[2 * i + 1]]);
+          const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+          const d1 = svgTspPath.slice(1).map(([x, y]) => `L ${x} ${y}`).join("");
+          svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+        });
+        svg.push("</g>");
+      }
+      if (this.#showDts) {
+        svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
+        subPaths.forEach((path2) => {
+          const svgPathData = this.#bezierSplineFromPath(points, path2);
+          svg.push(`<path d="${svgPathData}"/>`);
+        });
+        svg.push("</g>");
+      }
+      if (this.#showStipple) {
+        for (let i = 0; i < n; i++) {
+          svg.push(`<circle cx="${points[2 * i]}" cy="${points[2 * i + 1]}" r="0.6" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
+        }
+      }
       svg.push(`</svg>`);
       return svg.join("");
     }
@@ -1864,13 +1925,19 @@
     height: 800,
     cutoff: 210,
     nsamples: 1e4,
-    optIter: 1
+    optIter: 1,
+    showStipple: false,
+    showPoly: false,
+    showDts: true
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
     params.cutoff = controlCutoff.val();
     params.nsamples = controlNSamples.val();
     params.optIter = controlOptIter.val();
+    params.showStipple = controlShowStipple.val();
+    params.showPoly = controlShowPoly.val();
+    params.showDts = controlShowDts.val();
     return params;
   };
   var canvas;
@@ -1883,6 +1950,9 @@
     controlCutoff.set(params.cutoff);
     controlOptIter.set(params.optIter);
     controlNSamples.set(params.nsamples);
+    controlShowStipple.set(params.showStipple);
+    controlShowPoly.set(params.showPoly);
+    controlShowDts.set(params.showDts);
     updateUrl(params);
   };
   var renderFromWidgets = function() {
@@ -1934,6 +2004,24 @@
     renderFn: render,
     min: 0,
     max: 1e5
+  });
+  var controlShowStipple = new CheckboxControl({
+    name: "showStipple",
+    label: "Stipple points",
+    value: defaultParams["showStipple"],
+    renderFn: render
+  });
+  var controlShowPoly = new CheckboxControl({
+    name: "showPoly",
+    label: "Polygons",
+    value: defaultParams["showPoly"],
+    renderFn: render
+  });
+  var controlShowDts = new CheckboxControl({
+    name: "Splines",
+    label: "Dts points",
+    value: defaultParams["showDts"],
+    renderFn: render
   });
   new SvgSaveControl({
     name: "svgSave",
