@@ -2525,17 +2525,8 @@
         voronoi.update();
       }
     }
-    toSvg() {
-      let n = this.#nsamples;
-      const width = this.#image.width;
-      const height = this.#image.height;
-      n = this.#sampleStipplePoints();
-      if (n < 2) {
-        return "Less than 2 sampled points!";
-      } else {
-        console.log(`Initial sampling: ${n} points`);
-      }
-      this.#relaxCentroids();
+    #removeBrightPoints() {
+      const n = this.#points.length / 2;
       const points2 = new Float64Array(n * 2);
       let p = 0;
       for (let i = 0; i < n; i++) {
@@ -2550,7 +2541,10 @@
         }
       }
       this.#points = points2;
-      n = p;
+      return p;
+    }
+    #computeTsp() {
+      const n = this.#points.length / 2;
       const dist2 = (p1, p2) => (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
       const dist2i = (i1, i2) => dist2([this.#points[2 * i1], this.#points[2 * i1 + 1]], [this.#points[2 * i2], this.#points[2 * i2 + 1]]);
       const visited = new Float64Array(n);
@@ -2631,6 +2625,21 @@
           subPaths[++indexSub] = [ai2];
         }
       }
+      return subPaths;
+    }
+    toSvg() {
+      let n = this.#nsamples;
+      const width = this.#image.width;
+      const height = this.#image.height;
+      n = this.#sampleStipplePoints();
+      if (n < 2) {
+        return "Less than 2 sampled points!";
+      } else {
+        console.log(`Initial sampling: ${n} points`);
+      }
+      this.#relaxCentroids();
+      n = this.#removeBrightPoints();
+      const subPaths = this.#computeTsp();
       const svg = [];
       svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
       if (this.#showPoly) {

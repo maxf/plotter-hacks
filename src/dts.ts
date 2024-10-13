@@ -186,33 +186,10 @@ class DrunkTravellingSalesman {
 
       voronoi.update();
     }
-
   }
 
-
-  toSvg(): string {
-    let n = this.#nsamples;
-    const width = this.#image.width;
-    const height = this.#image.height;
-
-    // Step 1 : Voronoi stippling
-    // See: https://observablehq.com/@mbostock/voronoi-stippling
-
-    // 1.1 Initialize the points using rejection sampling.
-
-    n = this.#sampleStipplePoints();
-
-    if (n < 2) {
-      return 'Less than 2 sampled points!';
-    } else {
-      console.log(`Initial sampling: ${n} points`);
-    }
-
-    this.#relaxCentroids();
-
-
-    // 3. Remove the points in the brightest areas (above the cutoff point)
-
+  #removeBrightPoints(): number {
+    const n = this.#points.length / 2;
     const points2 = new Float64Array(n*2);
     let p = 0;
     for (let i=0; i<n; i++) {
@@ -227,12 +204,11 @@ class DrunkTravellingSalesman {
       }
     }
     this.#points = points2;
-    n = p;
+    return p;
+  }
 
-    // 3. now we can move on to the travelling salesman problem.
-
-    // 3.1 First calculate a nearest-neighbour path passing through every point
-    //const path: number[] = []; // indices
+  #computeTsp() {
+    const n = this.#points.length / 2;
     const dist2 = (p1: number[], p2: number[]) => (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
     const dist2i = (i1: number, i2: number) => dist2([this.#points[2*i1], this.#points[2*i1+1]], [this.#points[2*i2], this.#points[2*i2+1]]);
     const visited = new Float64Array(n);
@@ -337,12 +313,37 @@ class DrunkTravellingSalesman {
         subPaths[++indexSub] = [ai2];
       }
     }
+    return subPaths;
+  }
 
-    // later, we'll interpolate all the points in each polylines in subPaths, using
-    // quadratic bezier splines, to form the final rendering
 
+  toSvg(): string {
+    let n = this.#nsamples;
+    const width = this.#image.width;
+    const height = this.#image.height;
 
-    // =========== Rendering ===================
+    // Step 1 : Voronoi stippling
+    // See: https://observablehq.com/@mbostock/voronoi-stippling
+
+    // 1.1 Initialize the points using rejection sampling.
+
+    n = this.#sampleStipplePoints();
+
+    if (n < 2) {
+      return 'Less than 2 sampled points!';
+    } else {
+      console.log(`Initial sampling: ${n} points`);
+    }
+
+    this.#relaxCentroids();
+
+    // 3. Remove the points in the brightest areas (above the cutoff point)
+    n = this.#removeBrightPoints();
+
+    // 3. now we can move on to the travelling salesman problem.
+    const subPaths: number[][] = this.#computeTsp();
+
+    // From the polylines in subPath we can compute Bezier splines.
 
     const svg = [];
 
