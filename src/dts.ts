@@ -15,7 +15,7 @@ import { Delaunay } from 'd3-delaunay';
 
 class DrunkTravellingSalesman {
   #params: Params;
-  #inputPixmap: Pixmap;
+  #image: Pixmap;
   #cutoff: number;
   #nsamples: number;
   #optIter: number;
@@ -23,10 +23,12 @@ class DrunkTravellingSalesman {
   #showPoly: boolean;
   #showDts: boolean;
   #rng: any;
+  #points: Float64Array;
+  #path: number[];
 
   constructor(params: Params) {
     this.#params = params;
-    this.#inputPixmap = new Pixmap(this.#params.inputCanvas as HTMLCanvasElement);
+    this.#image = new Pixmap(this.#params.inputCanvas as HTMLCanvasElement);
     this.#cutoff = params.cutoff;
     this.#nsamples = params.nsamples;
     this.#optIter = params.optIter;
@@ -34,22 +36,23 @@ class DrunkTravellingSalesman {
     this.#showPoly = params.showPoly;
     this.#showDts = params.showDts;
     this.#rng = seedrandom(params.seed.toString());
+    this.#points = new Float64Array(this.#nsamples*2);
+    this.#path = [];
   }
 
-  #pathLength(path: number[], points: Float64Array): number {
+  #pathLength(): number {
     let dist = 0;
-    for (let i=0; i<path.length-1; i++) {
-      const ip1 = path[i];
-      const ip2 = path[i+1];
-      const p1 = [ points[2*ip1], points[2*ip1+1] ];
-      const p2 = [ points[2*ip2], points[2*ip2+1] ];
+    for (let i=0; i<this.#path.length-1; i++) {
+      const ip1 = this.#path[i];
+      const ip2 = this.#path[i+1];
+      const p1 = [ this.#points[2*ip1], this.#points[2*ip1+1] ];
+      const p2 = [ this.#points[2*ip2], this.#points[2*ip2+1] ];
       dist += (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
     }
     return dist;
   }
 
-  #bezierSplineFromPath(points: Float64Array, path: number[]): string {
-
+  #bezierSplineFromPath(path: number[]): string {
     const n = path.length;
     const pathParts: string[] = [];
     if (n < 3) {
@@ -57,8 +60,8 @@ class DrunkTravellingSalesman {
       return '';
     }
     const getPoint = (i: number) => ({
-      x: points[2 * path[i]],
-      y: points[2 * path[i] + 1]
+      x: this.#points[2 * path[i]],
+      y: this.#points[2 * path[i] + 1]
     });
 
 
@@ -106,12 +109,10 @@ class DrunkTravellingSalesman {
     return pathParts.join(" ");
   }
 
-
-  toSvg(): string {
-    let n = this.#nsamples;
-    let points = new Float64Array(n*2);
-    const width = this.#inputPixmap.width;
-    const height = this.#inputPixmap.height;
+  #sampleStipplePoints(): number {
+    let n = this.#points.length / 2;
+    const width = this.#image.width;
+    const height = this.#image.height;
 
     // Step 1 : Voronoi stippling
     // See: https://observablehq.com/@mbostock/voronoi-stippling
@@ -123,35 +124,32 @@ class DrunkTravellingSalesman {
       for (let j = 0; j < 30; ++j) {
         const x = Math.floor(width * this.#rng());
         const y = Math.floor(height * this.#rng());
-        const imageLevel = this.#inputPixmap.brightnessAt(x, y);
+        const imageLevel = this.#image.brightnessAt(x, y);
         // the darker the image at this point, the more likely we're going to keep the point.
         if (200 * this.#rng() > imageLevel) {
-          points[2*sampledPoints] = x+.5;
-          points[2*sampledPoints+1] = y+.5;
+          this.#points[2*sampledPoints] = x+.5;
+          this.#points[2*sampledPoints+1] = y+.5;
           sampledPoints++;
           break;
         }
       }
     }
-    n = sampledPoints;
-
-    if (sampledPoints < 2) {
-      return 'Less than 2 sampled points!';
-    } else {
-      console.log(`Initial sampling: ${sampledPoints} points`);
-    }
+    return sampledPoints;
+  }
 
 
-    // 1.2. Create voronoi diagram
+  #relaxCentroids() {
+    const n = this.#points.length / 2;
+    const width = this.#image.width;
+    const height = this.#image.height;
 
-    const delaunay = new Delaunay(points);
+    // Create voronoi diagram
+    const delaunay = new Delaunay(this.#points);
     const voronoi = delaunay.voronoi([0, 0, width, height]);
-    const centroids = new Float64Array(n * 2); // centroids
-    const weights = new Float64Array(n); // weights
+    const centroids = new Float64Array(n * 2);
+    const weights = new Float64Array(n);
 
-
-    // 1.3 Lloyd relaxation of the centroids
-
+    // Lloyd relaxation of the centroids
     for (let k = 0; k < 10; ++k) {
       // Compute the weighted centroid for each Voronoi cell.
       centroids.fill(0);
@@ -161,7 +159,7 @@ class DrunkTravellingSalesman {
       // of the voronoi cell where it falls
       for (let y = 0; y < height; ++y) {
         for (let x = 0; x < width; ++x) {
-          const weight = 255 - this.#inputPixmap.brightnessAt(x, y);
+          const weight = 255 - this.#image.brightnessAt(x, y);
           delaunayIndex = delaunay.find(x, y, delaunayIndex);
           weights[delaunayIndex] += weight;
           centroids[delaunayIndex * 2] += weight * x;
@@ -178,48 +176,69 @@ class DrunkTravellingSalesman {
       // Wiggle the points a little bit so they don’t get stuck.
       // const w = Math.pow(k + 1, -0.8) * 10;
       for (let i = 0; i < n; ++i) {
-        const x0 = points[i * 2];
-        const y0 = points[i * 2 + 1];
+        const x0 = this.#points[i * 2];
+        const y0 = this.#points[i * 2 + 1];
         const x1 = weights[i] ? centroids[i * 2] / weights[i] : x0;
         const y1 = weights[i] ? centroids[i * 2 + 1] / weights[i] : y0;
-        points[i * 2] = x0 + (x1 - x0) * 1.8; // + (this.#rng() - 0.5) * w;
-        points[i * 2 + 1] = y0 + (y1 - y0) * 1.8; // + (this.#rng() - 0.5) * w;
+        this.#points[i * 2] = x0 + (x1 - x0) * 1.8; // + (this.#rng() - 0.5) * w;
+        this.#points[i * 2 + 1] = y0 + (y1 - y0) * 1.8; // + (this.#rng() - 0.5) * w;
       }
 
       voronoi.update();
     }
 
-    // at this point we have stipple in the 'points' array
+  }
+
+
+  toSvg(): string {
+    let n = this.#nsamples;
+    const width = this.#image.width;
+    const height = this.#image.height;
+
+    // Step 1 : Voronoi stippling
+    // See: https://observablehq.com/@mbostock/voronoi-stippling
+
+    // 1.1 Initialize the points using rejection sampling.
+
+    n = this.#sampleStipplePoints();
+
+    if (n < 2) {
+      return 'Less than 2 sampled points!';
+    } else {
+      console.log(`Initial sampling: ${n} points`);
+    }
+
+    this.#relaxCentroids();
+
 
     // 3. Remove the points in the brightest areas (above the cutoff point)
 
     const points2 = new Float64Array(n*2);
     let p = 0;
     for (let i=0; i<n; i++) {
-      const brightness = this.#inputPixmap.brightnessAt(
-        Math.floor(points[2*i]),
-        Math.floor(points[2*i+1])
+      const brightness = this.#image.brightnessAt(
+        Math.floor(this.#points[2*i]),
+        Math.floor(this.#points[2*i+1])
       );
       if (brightness < this.#cutoff) {
-        points2[2*p] = points[2*i];
-        points2[2*p+1] = points[2*i+1];
+        points2[2*p] = this.#points[2*i];
+        points2[2*p+1] = this.#points[2*i+1];
         p++;
       }
     }
-    points = points2;
+    this.#points = points2;
     n = p;
 
     // 3. now we can move on to the travelling salesman problem.
 
     // 3.1 First calculate a nearest-neighbour path passing through every point
-    const path: number[] = []; // indices
+    //const path: number[] = []; // indices
     const dist2 = (p1: number[], p2: number[]) => (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
-    const dist2i = (i1: number, i2: number) => dist2([points[2*i1], points[2*i1+1]], [points[2*i2], points[2*i2+1]]);
+    const dist2i = (i1: number, i2: number) => dist2([this.#points[2*i1], this.#points[2*i1+1]], [this.#points[2*i2], this.#points[2*i2+1]]);
     const visited = new Float64Array(n);
-    visited.fill(0);
 
     let current = 0;
-    path.push(0);
+    this.#path.push(0);
     while(true) {
       let nearest;
       let dist = Infinity;
@@ -233,7 +252,7 @@ class DrunkTravellingSalesman {
         }
       }
       if (nearest) {
-        path.push(nearest);
+        this.#path.push(nearest);
         visited[nearest] = 1;
         current = nearest;
       } else {
@@ -255,15 +274,15 @@ class DrunkTravellingSalesman {
         [indexA, indexB] = [indexB, indexA];
       }
 
-      const ai = path[indexA];
-      const a0 = [ points[2*ai], points[2*ai+1] ];
-      const ai2 = path[indexA + 1];
-      const a1 = [ points[2*ai2], points[2*ai2+1] ];
+      const ai = this.#path[indexA];
+      const a0 = [ this.#points[2*ai], this.#points[2*ai+1] ];
+      const ai2 = this.#path[indexA + 1];
+      const a1 = [ this.#points[2*ai2], this.#points[2*ai2+1] ];
 
-      const bi = path[indexB];
-      const b0 = [ points[2*bi], points[2*bi+1] ];
-      const bi2 = path[indexB + 1];
-      const b1 = [ points[2*bi2], points[2*bi2+1] ];
+      const bi = this.#path[indexB];
+      const b0 = [ this.#points[2*bi], this.#points[2*bi+1] ];
+      const bi2 = this.#path[indexB + 1];
+      const b1 = [ this.#points[2*bi2], this.#points[2*bi2+1] ];
 
       // Original distance:
       const dx1 = a0[0] - a1[0];
@@ -287,9 +306,9 @@ class DrunkTravellingSalesman {
         let indexlow = indexA + 1;
 
         while (indexhigh > indexlow) {
-          const temp = path[indexlow];
-          path[indexlow] = path[indexhigh];
-          path[indexhigh] = temp;
+          const temp = this.#path[indexlow];
+          this.#path[indexlow] = this.#path[indexhigh];
+          this.#path[indexhigh] = temp;
 
           indexhigh--;
           indexlow++;
@@ -297,7 +316,7 @@ class DrunkTravellingSalesman {
       }
     }
 
-    console.log('total distance:', this.#pathLength(path, points));
+    console.log('total distance:', this.#pathLength());
 
     // 3.3 remove long edges, as they aren't aestethically pleasing.
     // We don't need a single path anyway and we don't want long straight lines
@@ -305,12 +324,12 @@ class DrunkTravellingSalesman {
     const minLength = 200;
     const subPaths: number[][] = [];
     let indexSub: number = 0;
-    subPaths[0] = [path[0]];
-    for (let i=0; i<path.length-1; i++) {
-      const ai = path[i];
-      const a0 = [ points[2*ai], points[2*ai+1] ];
-      const ai2 = path[i + 1];
-      const a1 = [ points[2*ai2], points[2*ai2+1] ];
+    subPaths[0] = [this.#path[0]];
+    for (let i=0; i<this.#path.length-1; i++) {
+      const ai = this.#path[i];
+      const a0 = [ this.#points[2*ai], this.#points[2*ai+1] ];
+      const ai2 = this.#path[i + 1];
+      const a1 = [ this.#points[2*ai2], this.#points[2*ai2+1] ];
 
       if ((a0[0]-a1[0])*(a0[0]-a1[0]) + (a0[1]-a1[1])*(a0[1]-a1[1]) < minLength) {
         subPaths[indexSub].push(ai2);
@@ -337,7 +356,7 @@ class DrunkTravellingSalesman {
     // });
 
     // Main TSP path
-    // const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
+    // const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);
     // const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
     // const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
     // svg.push(`<path d="${d0} ${d1}" stroke="red" fill="none" stroke-width="0.5"/>`);
@@ -346,7 +365,7 @@ class DrunkTravellingSalesman {
     if (this.#showPoly) {
       svg.push('<g style="fill: none; stroke: green">');
       subPaths.forEach(path => {
-        const svgTspPath = path.map(i => [points[2*i], points[2*i+1]]);
+        const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);
         //      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
         const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
         //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
@@ -360,7 +379,7 @@ class DrunkTravellingSalesman {
     if (this.#showDts) {
       svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
       subPaths.forEach(path => {
-        const svgPathData = this.#bezierSplineFromPath(points, path);
+        const svgPathData = this.#bezierSplineFromPath(path);
         svg.push(`<path d="${svgPathData}"/>`);
       });
       svg.push('</g>');
@@ -369,7 +388,7 @@ class DrunkTravellingSalesman {
     if (this.#showStipple) {
       // Stipple points
       for (let i=0; i<n; i++) {
-        svg.push(`<circle cx="${points[2*i]}" cy="${points[2*i+1]}" r="0.6" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
+        svg.push(`<circle cx="${this.#points[2*i]}" cy="${this.#points[2*i+1]}" r="0.6" vector-effect="non-scaling-stroke" stroke="none" fill="black"/>`);
       }
     }
     
