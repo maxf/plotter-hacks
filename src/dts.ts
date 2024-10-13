@@ -25,6 +25,7 @@ class DrunkTravellingSalesman {
   #rng: any;
   #points: Float64Array;
   #path: number[];
+  #curvature: number;
 
   constructor(params: Params) {
     this.#params = params;
@@ -35,6 +36,7 @@ class DrunkTravellingSalesman {
     this.#showStipple = params.showStipple;
     this.#showPoly = params.showPoly;
     this.#showDts = params.showDts;
+    this.#curvature = params.curvature;
     this.#rng = seedrandom(params.seed.toString());
     this.#points = new Float64Array(this.#nsamples*2);
     this.#path = [];
@@ -72,10 +74,10 @@ class DrunkTravellingSalesman {
     let curr = prev;
     let next = getPoint(1);
     let next2 = getPoint(2);
-    let curviness = this.#rng()*20-10;
+    let curvature = this.#rng()*this.#curvature - this.#curvature/2;
 
-    let c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
-    let n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+    let c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
+    let n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
     pathParts.push(`M ${prev.x} ${prev.y} C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
 
     // other segments
@@ -84,9 +86,9 @@ class DrunkTravellingSalesman {
       curr = getPoint(i);
       next = getPoint(i + 1);
       next2 = getPoint(i + 2);
-      curviness = this.#rng()*20-10;
-      c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
-      n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+      curvature = this.#rng()*this.#curvature - this.#curvature/2;
+      c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
+      n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
 
       // Create cubic Bézier curve command for this segment
       // assuming current bezier control point is at c,
@@ -98,9 +100,9 @@ class DrunkTravellingSalesman {
     curr = getPoint(n-2);
     next = getPoint(n-1);
     next2 = next;
-    curviness = this.#rng()*20-10;
-    c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
-    n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
+    curvature = this.#rng()*20-10;
+    c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
+    n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
 
     // Create cubic Bézier curve command for this segment
     // assuming current bezier control point is at c,
@@ -119,7 +121,7 @@ class DrunkTravellingSalesman {
 
     // 1.1 Initialize the points using rejection sampling.
     let sampledPoints = 0;
-    for (let i = 0; i < n; ++i) { // Do the following 10k times:
+    for (let i = 0; i < n; ++i) {
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
         const x = Math.floor(width * this.#rng());
@@ -367,9 +369,7 @@ class DrunkTravellingSalesman {
       svg.push('<g style="fill: none; stroke: green">');
       subPaths.forEach(path => {
         const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);
-        //      const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
         const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
-        //const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
         const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
         svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
       });
@@ -410,7 +410,8 @@ type Params = {
   showStipple: boolean,
   showPoly: boolean,
   showDts: boolean,
-  seed: number
+  seed: number,
+  curvature: number
 };
 
 
@@ -424,7 +425,8 @@ const defaultParams = {
   showStipple: false,
   showPoly: false,
   showDts: true,
-  seed: 128
+  seed: 128,
+  curvature: 20
 };
 
 
@@ -437,6 +439,7 @@ const paramsFromWidgets = (): any => {
   params.showPoly = controlShowPoly.val() as boolean;
   params.showDts = controlShowDts.val() as boolean;
   params.seed = controlSeed.val() as number;
+  params.curvature = controlCurvature.val() as number;
   return params;
 };
 
@@ -455,6 +458,7 @@ const renderFromQsp = function() {
   controlShowPoly.set(params.showPoly);
   controlShowDts.set(params.showDts);
   controlSeed.set(params.seed);
+  controlCurvature.set(params.curvature);
   updateUrl(params);
 };
 
@@ -527,6 +531,16 @@ const controlOptIter = new NumberControl({
   max: 100_000,
 });
 
+const controlCurvature = new NumberControl({
+  name: 'curvature',
+  label: 'Curvature',
+  value: defaultParams['curvature'],
+  renderFn: render,
+  min: 1,
+  max: 50,
+});
+
+
 const controlShowStipple = new CheckboxControl({
   name: 'showStipple',
   label: 'Stipple points',
@@ -547,6 +561,7 @@ const controlShowDts = new CheckboxControl({
   value: defaultParams['showDts'],
   renderFn: render
 });
+
 
 new SvgSaveControl({
   name: 'svgSave',

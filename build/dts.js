@@ -2411,6 +2411,7 @@
     #rng;
     #points;
     #path;
+    #curvature;
     constructor(params) {
       this.#params = params;
       this.#image = new Pixmap(this.#params.inputCanvas);
@@ -2420,6 +2421,7 @@
       this.#showStipple = params.showStipple;
       this.#showPoly = params.showPoly;
       this.#showDts = params.showDts;
+      this.#curvature = params.curvature;
       this.#rng = (0, import_seedrandom.default)(params.seed.toString());
       this.#points = new Float64Array(this.#nsamples * 2);
       this.#path = [];
@@ -2449,27 +2451,27 @@
       let curr = prev;
       let next = getPoint(1);
       let next2 = getPoint(2);
-      let curviness = this.#rng() * 20 - 10;
-      let c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
-      let n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+      let curvature = this.#rng() * this.#curvature - this.#curvature / 2;
+      let c0 = { x: curr.x + curvature * (next.x - prev.x), y: curr.y + curvature * (next.y - prev.y) };
+      let n0 = { x: next.x - curvature * (next2.x - curr.x), y: next.y - curvature * (next2.y - curr.y) };
       pathParts.push(`M ${prev.x} ${prev.y} C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
       for (let i = 1; i < n - 2; i++) {
         prev = getPoint(i - 1);
         curr = getPoint(i);
         next = getPoint(i + 1);
         next2 = getPoint(i + 2);
-        curviness = this.#rng() * 20 - 10;
-        c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
-        n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+        curvature = this.#rng() * this.#curvature - this.#curvature / 2;
+        c0 = { x: curr.x + curvature * (next.x - prev.x), y: curr.y + curvature * (next.y - prev.y) };
+        n0 = { x: next.x - curvature * (next2.x - curr.x), y: next.y - curvature * (next2.y - curr.y) };
         pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
       }
       prev = getPoint(n - 3);
       curr = getPoint(n - 2);
       next = getPoint(n - 1);
       next2 = next;
-      curviness = this.#rng() * 20 - 10;
-      c0 = { x: curr.x + curviness * (next.x - prev.x), y: curr.y + curviness * (next.y - prev.y) };
-      n0 = { x: next.x - curviness * (next2.x - curr.x), y: next.y - curviness * (next2.y - curr.y) };
+      curvature = this.#rng() * 20 - 10;
+      c0 = { x: curr.x + curvature * (next.x - prev.x), y: curr.y + curvature * (next.y - prev.y) };
+      n0 = { x: next.x - curvature * (next2.x - curr.x), y: next.y - curvature * (next2.y - curr.y) };
       pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
       return pathParts.join(" ");
     }
@@ -2679,7 +2681,8 @@
     showStipple: false,
     showPoly: false,
     showDts: true,
-    seed: 128
+    seed: 128,
+    curvature: 20
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
@@ -2690,6 +2693,7 @@
     params.showPoly = controlShowPoly.val();
     params.showDts = controlShowDts.val();
     params.seed = controlSeed.val();
+    params.curvature = controlCurvature.val();
     return params;
   };
   var canvas;
@@ -2706,6 +2710,7 @@
     controlShowPoly.set(params.showPoly);
     controlShowDts.set(params.showDts);
     controlSeed.set(params.seed);
+    controlCurvature.set(params.curvature);
     updateUrl(params);
   };
   var renderFromWidgets = function() {
@@ -2765,6 +2770,14 @@
     renderFn: render,
     min: 0,
     max: 1e5
+  });
+  var controlCurvature = new NumberControl({
+    name: "curvature",
+    label: "Curvature",
+    value: defaultParams["curvature"],
+    renderFn: render,
+    min: 1,
+    max: 50
   });
   var controlShowStipple = new CheckboxControl({
     name: "showStipple",
