@@ -1,4 +1,5 @@
-//import seedrandom from 'seedrandom';
+import seedrandom from 'seedrandom';
+
 import {
   NumberControl,
   ImageUploadControl,
@@ -21,6 +22,7 @@ class DrunkTravellingSalesman {
   #showStipple: boolean;
   #showPoly: boolean;
   #showDts: boolean;
+  #rng: any;
 
   constructor(params: Params) {
     this.#params = params;
@@ -31,6 +33,7 @@ class DrunkTravellingSalesman {
     this.#showStipple = params.showStipple;
     this.#showPoly = params.showPoly;
     this.#showDts = params.showDts;
+    this.#rng = seedrandom(params.seed.toString());
   }
 
   #pathLength(path: number[], points: Float64Array): number {
@@ -66,7 +69,7 @@ class DrunkTravellingSalesman {
     let curr = prev;
     let next = getPoint(1);
     let next2 = getPoint(2);
-    let curviness = Math.random()*20-10;
+    let curviness = this.#rng()*20-10;
 
     let c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
     let n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
@@ -78,7 +81,7 @@ class DrunkTravellingSalesman {
       curr = getPoint(i);
       next = getPoint(i + 1);
       next2 = getPoint(i + 2);
-      curviness = Math.random()*20-10;
+      curviness = this.#rng()*20-10;
       c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
       n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
 
@@ -92,7 +95,7 @@ class DrunkTravellingSalesman {
     curr = getPoint(n-2);
     next = getPoint(n-1);
     next2 = next;
-    curviness = Math.random()*20-10;
+    curviness = this.#rng()*20-10;
     c0 = { x: curr.x + curviness*(next.x - prev.x), y: curr.y + curviness*(next.y - prev.y) };
     n0 = { x: next.x - curviness*(next2.x - curr.x), y: next.y - curviness*(next2.y - curr.y) };
 
@@ -118,11 +121,11 @@ class DrunkTravellingSalesman {
     for (let i = 0; i < n; ++i) { // Do the following 10k times:
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
-        const x = Math.floor(width * Math.random());
-        const y = Math.floor(height * Math.random());
+        const x = Math.floor(width * this.#rng());
+        const y = Math.floor(height * this.#rng());
         const imageLevel = this.#inputPixmap.brightnessAt(x, y);
         // the darker the image at this point, the more likely we're going to keep the point.
-        if (200 * Math.random() > imageLevel) {
+        if (200 * this.#rng() > imageLevel) {
           points[2*sampledPoints] = x+.5;
           points[2*sampledPoints+1] = y+.5;
           sampledPoints++;
@@ -179,8 +182,8 @@ class DrunkTravellingSalesman {
         const y0 = points[i * 2 + 1];
         const x1 = weights[i] ? centroids[i * 2] / weights[i] : x0;
         const y1 = weights[i] ? centroids[i * 2 + 1] / weights[i] : y0;
-        points[i * 2] = x0 + (x1 - x0) * 1.8; // + (Math.random() - 0.5) * w;
-        points[i * 2 + 1] = y0 + (y1 - y0) * 1.8; // + (Math.random() - 0.5) * w;
+        points[i * 2] = x0 + (x1 - x0) * 1.8; // + (this.#rng() - 0.5) * w;
+        points[i * 2 + 1] = y0 + (y1 - y0) * 1.8; // + (this.#rng() - 0.5) * w;
       }
 
       voronoi.update();
@@ -241,8 +244,8 @@ class DrunkTravellingSalesman {
     // 3.2 Then optimise the path by swapping random edges if it reduces the path length
     // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
     for (let i = 0; i < this.#optIter; ++i) {
-      let indexA = Math.floor(Math.random()*(n - 1));
-      let indexB = Math.floor(Math.random()*(n - 1));
+      let indexA = Math.floor(this.#rng()*(n - 1));
+      let indexB = Math.floor(this.#rng()*(n - 1));
 
       if (Math.abs(indexA - indexB) < 2) {
         continue;
@@ -386,7 +389,8 @@ type Params = {
   optIter: number,
   showStipple: boolean,
   showPoly: boolean,
-  showDts: boolean
+  showDts: boolean,
+  seed: number
 };
 
 
@@ -399,7 +403,8 @@ const defaultParams = {
   optIter: 1,
   showStipple: false,
   showPoly: false,
-  showDts: true
+  showDts: true,
+  seed: 128
 };
 
 
@@ -411,6 +416,7 @@ const paramsFromWidgets = (): any => {
   params.showStipple = controlShowStipple.val() as boolean;
   params.showPoly = controlShowPoly.val() as boolean;
   params.showDts = controlShowDts.val() as boolean;
+  params.seed = controlSeed.val() as number;
   return params;
 };
 
@@ -428,6 +434,7 @@ const renderFromQsp = function() {
   controlShowStipple.set(params.showStipple);
   controlShowPoly.set(params.showPoly);
   controlShowDts.set(params.showDts);
+  controlSeed.set(params.seed);
   updateUrl(params);
 };
 
@@ -462,6 +469,16 @@ const imageUpload = new ImageUploadControl({
 });
 
 canvas = imageUpload.canvasEl();
+
+const controlSeed = new NumberControl({
+  name: 'seed',
+  label: 'seed',
+  value: defaultParams['seed'],
+  renderFn: render,
+  min: 0,
+  max: 500
+});
+
 
 const controlCutoff = new NumberControl({
   name: 'cutoff',
