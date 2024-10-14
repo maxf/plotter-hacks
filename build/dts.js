@@ -2697,12 +2697,17 @@
     return params;
   };
   var canvas;
-  var renderFromQsp = function() {
-    const params = paramsFromUrl(defaultParams);
+  var doRender = function(params) {
     params.inputCanvas = canvas;
     const dts = new DrunkTravellingSalesman(params);
-    $("canvas").innerHTML = dts.toSvg();
+    $("canvas").innerHTML = "<h1>Rendering. Please wait</h1>";
+    setTimeout(() => $("canvas").innerHTML = dts.toSvg(), 100);
     delete params.inputCanvas;
+    updateUrl(params);
+  };
+  var renderFromQsp = function() {
+    const params = paramsFromUrl(defaultParams);
+    doRender(params);
     controlCutoff.set(params.cutoff);
     controlOptIter.set(params.optIter);
     controlNSamples.set(params.nsamples);
@@ -2711,25 +2716,9 @@
     controlShowDts.set(params.showDts);
     controlSeed.set(params.seed);
     controlCurvature.set(params.curvature);
-    updateUrl(params);
   };
   var renderFromWidgets = function() {
-    const params = paramsFromWidgets();
-    params.inputCanvas = canvas;
-    const dts = new DrunkTravellingSalesman(params);
-    $("canvas").innerHTML = dts.toSvg();
-    delete params.inputCanvas;
-    updateUrl(params);
-  };
-  var render = (params) => {
-    if (!params) {
-      params = paramsFromWidgets();
-    }
-    params.inputCanvas = canvas;
-    const dts = new DrunkTravellingSalesman(params);
-    $("canvas").innerHTML = dts.toSvg();
-    delete params.inputCanvas;
-    updateUrl(params);
+    doRender(paramsFromWidgets());
   };
   var imageUpload = new ImageUploadControl({
     name: "inputImage",
@@ -2743,7 +2732,7 @@
     name: "seed",
     label: "seed",
     value: defaultParams["seed"],
-    renderFn: render,
+    renderFn: renderFromWidgets,
     min: 0,
     max: 500
   });
@@ -2751,7 +2740,7 @@
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
-    renderFn: render,
+    renderFn: renderFromWidgets,
     min: 0,
     max: 255
   });
@@ -2759,7 +2748,7 @@
     name: "nsamples",
     label: "Samples",
     value: defaultParams["nsamples"],
-    renderFn: render,
+    renderFn: renderFromWidgets,
     min: 10,
     max: 2e4
   });
@@ -2767,7 +2756,7 @@
     name: "optIter",
     label: "Optimisation",
     value: defaultParams["optIter"],
-    renderFn: render,
+    renderFn: renderFromWidgets,
     min: 0,
     max: 1e5
   });
@@ -2775,7 +2764,7 @@
     name: "curvature",
     label: "Curvature",
     value: defaultParams["curvature"],
-    renderFn: render,
+    renderFn: renderFromWidgets,
     min: 1,
     max: 50
   });
@@ -2783,19 +2772,19 @@
     name: "showStipple",
     label: "Stipple points",
     value: defaultParams["showStipple"],
-    renderFn: render
+    renderFn: renderFromWidgets
   });
   var controlShowPoly = new CheckboxControl({
     name: "showPoly",
     label: "Polygons",
     value: defaultParams["showPoly"],
-    renderFn: render
+    renderFn: renderFromWidgets
   });
   var controlShowDts = new CheckboxControl({
     name: "Splines",
     label: "Dts points",
     value: defaultParams["showDts"],
-    renderFn: render
+    renderFn: renderFromWidgets
   });
   new SvgSaveControl({
     name: "svgSave",

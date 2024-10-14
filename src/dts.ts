@@ -445,12 +445,20 @@ const paramsFromWidgets = (): any => {
 
 let canvas: HTMLCanvasElement;
 
-const renderFromQsp = function() {
-  const params = paramsFromUrl(defaultParams);
+const doRender = function(params: any) {
   params.inputCanvas = canvas;
   const dts = new DrunkTravellingSalesman(params);
-  $('canvas').innerHTML = dts.toSvg();
+  $('canvas').innerHTML = "<h1>Rendering. Please wait</h1>";
+  // need to give the browser a little bit of time to update the dom with the
+  // message above, before running the long calculation
+  setTimeout(() => $('canvas').innerHTML = dts.toSvg(), 100);
   delete params.inputCanvas; // don't put the whole image in the URL
+  updateUrl(params);
+};
+
+const renderFromQsp = function() {
+  const params = paramsFromUrl(defaultParams);
+  doRender(params);
   controlCutoff.set(params.cutoff);
   controlOptIter.set(params.optIter);
   controlNSamples.set(params.nsamples);
@@ -459,30 +467,11 @@ const renderFromQsp = function() {
   controlShowDts.set(params.showDts);
   controlSeed.set(params.seed);
   controlCurvature.set(params.curvature);
-  updateUrl(params);
 };
 
 const renderFromWidgets = function() {
-  const params = paramsFromWidgets();
-  params.inputCanvas = canvas;
-  const dts = new DrunkTravellingSalesman(params);
-  $('canvas').innerHTML = dts.toSvg();
-  delete params.inputCanvas; // don't put the whole image in the URL
-  updateUrl(params);
+  doRender(paramsFromWidgets());
 };
-
-const render = (params?: any) => {
-  if (!params) {
-    params = paramsFromWidgets();
-  }
-  params.inputCanvas = canvas;
-  const dts = new DrunkTravellingSalesman(params);
-  $('canvas').innerHTML = dts.toSvg();
-  delete params.inputCanvas; // don't put the whole image in the URL
-  updateUrl(params);
-};
-
-
 
 const imageUpload = new ImageUploadControl({
   name: 'inputImage',
@@ -498,7 +487,7 @@ const controlSeed = new NumberControl({
   name: 'seed',
   label: 'seed',
   value: defaultParams['seed'],
-  renderFn: render,
+  renderFn: renderFromWidgets,
   min: 0,
   max: 500
 });
@@ -508,7 +497,7 @@ const controlCutoff = new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  renderFn: render,
+  renderFn: renderFromWidgets,
   min: 0,
   max: 255
 });
@@ -517,7 +506,7 @@ const controlNSamples = new NumberControl({
   name: 'nsamples',
   label: 'Samples',
   value: defaultParams['nsamples'],
-  renderFn: render,
+  renderFn: renderFromWidgets,
   min: 10,
   max: 20_000,
 });
@@ -526,7 +515,7 @@ const controlOptIter = new NumberControl({
   name: 'optIter',
   label: 'Optimisation',
   value: defaultParams['optIter'],
-  renderFn: render,
+  renderFn: renderFromWidgets,
   min: 0,
   max: 100_000,
 });
@@ -535,7 +524,7 @@ const controlCurvature = new NumberControl({
   name: 'curvature',
   label: 'Curvature',
   value: defaultParams['curvature'],
-  renderFn: render,
+  renderFn: renderFromWidgets,
   min: 1,
   max: 50,
 });
@@ -545,23 +534,22 @@ const controlShowStipple = new CheckboxControl({
   name: 'showStipple',
   label: 'Stipple points',
   value: defaultParams['showStipple'],
-  renderFn: render
+  renderFn: renderFromWidgets
 });
 
 const controlShowPoly = new CheckboxControl({
   name: 'showPoly',
   label: 'Polygons',
   value: defaultParams['showPoly'],
-  renderFn: render
+  renderFn: renderFromWidgets
 });
 
 const controlShowDts = new CheckboxControl({
   name: 'Splines',
   label: 'Dts points',
   value: defaultParams['showDts'],
-  renderFn: render
+  renderFn: renderFromWidgets
 });
-
 
 new SvgSaveControl({
   name: 'svgSave',
@@ -569,6 +557,4 @@ new SvgSaveControl({
   label: 'Save SVG',
   saveFilename: 'dts.svg'
 });
-
-
 
