@@ -2758,7 +2758,7 @@
     value: defaultParams["optIter"],
     renderFn: renderFromWidgets,
     min: 0,
-    max: 1e5
+    max: 2e7
   });
   var controlCurvature = new NumberControl({
     name: "curvature",

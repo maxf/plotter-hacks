@@ -517,7 +517,7 @@ const controlOptIter = new NumberControl({
   value: defaultParams['optIter'],
   renderFn: renderFromWidgets,
   min: 0,
-  max: 100_000,
+  max: 20_000_000,
 });
 
 const controlCurvature = new NumberControl({
