@@ -261,7 +261,7 @@ class ImageUploadControl {
   #createHtmlControl(name: string, label: string) {
     const html = [];
     html.push(`<div class="control" id="${name}-control">`);
-    html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
+    html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
     html.push(`<canvas id="${name}-canvas"></canvas>`);
     html.push(`</div>`);
     const anchorElement = document.getElementById('controls');

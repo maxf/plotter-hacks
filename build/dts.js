@@ -924,7 +924,7 @@
     #createHtmlControl(name, label) {
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
+      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
       html.push(`<canvas id="${name}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
@@ -2643,7 +2643,7 @@
       n = this.#removeBrightPoints();
       const subPaths = this.#computeTsp();
       const svg = [];
-      svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
+      svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${width} ${height}">`);
       if (this.#showPoly) {
         svg.push('<g style="fill: none; stroke: green">');
         subPaths.forEach((path) => {

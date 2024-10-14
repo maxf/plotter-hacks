@@ -4,7 +4,7 @@ body {
 }
 #controls {
     position: absolute;
-    bottom: 0;
+    top: 0;
     right: 0;
     background: #ddd;
     padding: 5px;

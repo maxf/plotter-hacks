@@ -11,7 +11,7 @@
 
 # All
 
-- Make rendering asynchronous to reduce blocking time, especially for DTS
+- DONE - Make rendering asynchronous to reduce blocking time, especially for DTS
 - Add thumbnails on the home page
 - Small popups to describe parameters
 

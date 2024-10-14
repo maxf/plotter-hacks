@@ -349,7 +349,7 @@ class DrunkTravellingSalesman {
 
     const svg = [];
 
-    svg.push(`<svg id="svg-canvas" width="${800}" height="${800}" viewBox="0 0 ${width} ${height}">`);
+    svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${width} ${height}">`);
 
     // // voronoi polygons
     // const polys = Array.from(voronoi.cellPolygons());
