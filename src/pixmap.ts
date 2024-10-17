@@ -42,15 +42,17 @@ class Pixmap {
   }
 
   colorAverageAt(x: number, y: number, radius: number): Color {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
     let index;
     let resultR=0.0, resultG=0.0, resultB=0.0;
     let count=0;
 
     for (let i = -radius; i <= radius; i++) {
       for (let j = -radius; j <= radius; j++) {
-        if (x + i >= 0 && x + i < this.width && y + j >= 0 && y + j < this.height) {
+        if (xi + i >= 0 && xi + i < this.width && yi + j >= 0 && yi + j < this.height) {
           count++;
-          index = 4*((x+i)+this.width*(y+j));
+          index = 4*((xi+i)+this.width*(yi+j));
           if (this._pixels[index+3] === 0) {
             resultR += 255;
             resultG += 255;
@@ -75,11 +77,13 @@ class Pixmap {
   }
 
   colorAt(x: number, y: number): Color {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
     let index;
     let resultR=0.0, resultG=0.0, resultB=0.0;
 
-    if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
-      index = 4*((x)+this.width*(y));
+    if (xi >= 0 && xi < this.width && yi >= 0 && yi < this.height) {
+      index = 4*(xi+this.width*yi);
       if (this._pixels[index+3] === 0) {
         // If the pixel is transparent, color is white
         resultR = 255;
