@@ -1020,14 +1020,16 @@
       this._pixels = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     }
     colorAverageAt(x, y, radius) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
       let index;
       let resultR = 0, resultG = 0, resultB = 0;
       let count = 0;
       for (let i = -radius; i <= radius; i++) {
         for (let j = -radius; j <= radius; j++) {
-          if (x + i >= 0 && x + i < this.width && y + j >= 0 && y + j < this.height) {
+          if (xi + i >= 0 && xi + i < this.width && yi + j >= 0 && yi + j < this.height) {
             count++;
-            index = 4 * (x + i + this.width * (y + j));
+            index = 4 * (xi + i + this.width * (yi + j));
             if (this._pixels[index + 3] === 0) {
               resultR += 255;
               resultG += 255;
@@ -1050,10 +1052,12 @@
       return this.colorAverageAt(x, y, radius).brightness();
     }
     colorAt(x, y) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
       let index;
       let resultR = 0, resultG = 0, resultB = 0;
-      if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
-        index = 4 * (x + this.width * y);
+      if (xi >= 0 && xi < this.width && yi >= 0 && yi < this.height) {
+        index = 4 * (xi + this.width * yi);
         if (this._pixels[index + 3] === 0) {
           resultR = 255;
           resultG = 255;
