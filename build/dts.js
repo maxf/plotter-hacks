@@ -950,7 +950,9 @@
       };
       if (typeof source === "string") {
         img.src = source;
+        this.#imageUrl = source;
       } else {
+        this.#imageUrl = "";
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target && event.target.result) {
@@ -2686,6 +2688,7 @@
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
+    params.inputImageUrl = imageUpload.imageUrl();
     params.cutoff = controlCutoff.val();
     params.nsamples = controlNSamples.val();
     params.optIter = controlOptIter.val();

@@ -238,6 +238,11 @@ class DrunkTravellingSalesman {
       }
     }
 
+
+    //for (let i=0; i<this.#points.length; i++) {
+    //  this.#path.push(i);
+    // }
+
     // 3.2 Then optimise the path by swapping random edges if it reduces the path length
     // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
     for (let i = 0; i < this.#optIter; ++i) {
@@ -344,6 +349,7 @@ class DrunkTravellingSalesman {
 
     // 3. now we can move on to the travelling salesman problem.
     const subPaths: number[][] = this.#computeTsp();
+    //const subPaths: number[][] = this.#computeTsp2();
 
     // From the polylines in subPath we can compute Bezier splines.
 
@@ -432,6 +438,7 @@ const defaultParams = {
 
 const paramsFromWidgets = (): any => {
   const params = {...defaultParams};
+  params.inputImageUrl = imageUpload.imageUrl() as string;
   params.cutoff = controlCutoff.val() as number;
   params.nsamples = controlNSamples.val() as number;
   params.optIter = controlOptIter.val() as number;

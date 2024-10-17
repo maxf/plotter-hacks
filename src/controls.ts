@@ -289,7 +289,9 @@ class ImageUploadControl {
 
     if (typeof source === 'string') {
       img.src = source;
+      this.#imageUrl = source;
     } else {
+      this.#imageUrl = '';
       const reader = new FileReader();
       reader.onload = event => {
         if (event.target && event.target.result) {
