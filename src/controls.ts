@@ -331,4 +331,54 @@ const updateUrl = (params: any) => {
 };
 
 
-export { NumberControl, SelectControl, CheckboxControl, ImageUploadControl, paramsFromUrl, SvgSaveControl, updateUrl, $ };
+class TextControl {
+  #value: string;
+  #wrapperEl: HTMLDivElement;
+  #widgetEl: HTMLInputElement;
+
+  constructor(params: any) {
+    this.#value = params.value;
+    this.#createHtmlControl(params.name, params.label, params.value);
+    this.#widgetEl = $(params.name) as HTMLInputElement;
+    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
+    this.#widgetEl.onchange = event => {
+      this.#value = (event.target as HTMLInputElement).value;
+      params.renderFn();
+    };
+  }
+
+  #createHtmlControl(name: string, label: string, value: number) {
+    const html = [];
+    html.push(`<div class="control" id="${name}-control">`);
+    html.push(`
+      <input id="${name}" value="${value}"/>
+      ${label}
+    `);
+    html.push('</div>');
+    // Find the anchor element and insert the constructed HTML as the last child
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html.join(''));
+    }
+  }
+
+  set(newValue: string) {
+    this.#value = newValue;
+    this.#widgetEl.value = newValue.toString();
+  }
+
+  val(): string {
+    return this.#value;
+  }
+
+  show() {
+    this.#wrapperEl.style.display = 'block';
+  }
+
+  hide() {
+    this.#wrapperEl.style.display = 'none';
+  }
+}
+
+
+export { NumberControl, SelectControl, CheckboxControl, ImageUploadControl, SvgSaveControl, TextControl, paramsFromUrl, updateUrl, $ };

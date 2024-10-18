@@ -1,11 +1,12 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, SvgSaveControl, TextControl, paramsFromUrl, updateUrl, $ } from './controls';
 
 type Params = {
   width: number,
   height: number,
   zoom: number,
+  cssStyle: string,
   iterations: number,
   startIteration: number,
   nboids: number,
@@ -25,6 +26,7 @@ type Params = {
 const defaultParams: Params = {
   width: 800,
   height: 800,
+  cssStyle: 'stroke: black; stroke-width: 0.5',
   zoom: 0,
   seed: 128,
   iterations: 400,
@@ -69,6 +71,7 @@ class Boids {
   attractors: number[][];
   iterations: number;
   startIteration: number;
+  cssStyle: string;
   nboids: number;
   boids: [number, number, number, number, number, number][];
 
@@ -77,6 +80,7 @@ class Boids {
 
     this.rng = seedrandom(opts.seed.toString()) || Math.random;
     this.width = opts.width;
+    this.cssStyle = opts.cssStyle;
     this.height = opts.height;  
     this.speedLimitRoot = opts.speedLimit || 0;
     this.accelerationLimitRoot = opts.accelerationLimit || 1;
@@ -302,10 +306,9 @@ const renderBoids = (params: Params): string => {
         xmlns="http://www.w3.org/2000/svg"
         height="${params.height}"
         width="${params.width}"
-        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
-        style="border: 1px solid black">
+        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}">
       ${renderAttractors(b.attractors)}
-      <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
+      <g id="pattern" style="fill:none; ${params.cssStyle}">
         ${svgPaths.join('')}
       </g>
     </svg>
@@ -323,6 +326,7 @@ const paramsFromWidgets = () => {
   params.iterations = controls.iterations.val() as number;
   params.startIteration = controls.startIteration.val() as number;
   params.nbAttractors = controls.nbAttractors.val() as number;
+  params.cssStyle = controls.cssStyle.val() as string;
   return params;
 };
 
@@ -357,6 +361,7 @@ const controls = {
   cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], renderFn: render, min: 0, max: 1, step: 0.01}),
   cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], renderFn: render, min: 10, max: 300 }),
   nbAttractors: new NumberControl({name: 'nbAttractors', label: 'Attractors', value: defaultParams['nbAttractors'], renderFn: render, min: 0, max: 10 }),
+  cssStyle: new TextControl({name: 'cssStyle', label: 'CSS style', value: 'stroke: black; stroke-width: 0.5', renderFn: render}),
   svgSave: new SvgSaveControl({
     name: 'svgSave',
     canvasId: 'svg-canvas',
@@ -382,6 +387,7 @@ controls.startIteration.set(params.startIteration);
 controls.speedLimit.set(params.speedLimit);
 controls.nboids.set(params.nboids);
 controls.nbAttractors.set(params.nbAttractors);
+controls.cssStyle.set(params.cssStyle);
 
 
 updateUrl(params);

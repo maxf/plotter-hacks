@@ -811,6 +811,7 @@
     }
     set(newValue) {
       this.#value = newValue;
+      this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
     }
     val() {
@@ -869,11 +870,53 @@
     const url = objectToQueryString(params2);
     history.pushState(null, "", url);
   };
+  var TextControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params2) {
+      this.#value = params2.value;
+      this.#createHtmlControl(params2.name, params2.label, params2.value);
+      this.#widgetEl = $(params2.name);
+      this.#wrapperEl = $(`${params2.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.value;
+        params2.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`
+      <input id="${name}" value="${value}"/>
+      ${label}
+    `);
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.value = newValue.toString();
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
 
   // src/boids.ts
   var defaultParams = {
     width: 800,
     height: 800,
+    cssStyle: "stroke: black; stroke-width: 0.5",
     zoom: 0,
     seed: 128,
     iterations: 400,
@@ -913,12 +956,14 @@
     attractors;
     iterations;
     startIteration;
+    cssStyle;
     nboids;
     boids;
     constructor(opts) {
       opts = opts || {};
       this.rng = (0, import_seedrandom.default)(opts.seed.toString()) || Math.random;
       this.width = opts.width;
+      this.cssStyle = opts.cssStyle;
       this.height = opts.height;
       this.speedLimitRoot = opts.speedLimit || 0;
       this.accelerationLimitRoot = opts.accelerationLimit || 1;
@@ -1091,10 +1136,9 @@
         xmlns="http://www.w3.org/2000/svg"
         height="${params2.height}"
         width="${params2.width}"
-        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}"
-        style="border: 1px solid black">
+        viewBox="${vboxX} ${vboxY} ${vboxW} ${vboxH}">
       ${renderAttractors(b.attractors)}
-      <g id="pattern" style="fill:none; stroke: black; stroke-width: 0.5">
+      <g id="pattern" style="fill:none; ${params2.cssStyle}">
         ${svgPaths.join("")}
       </g>
     </svg>
@@ -1111,6 +1155,7 @@
     params2.iterations = controls.iterations.val();
     params2.startIteration = controls.startIteration.val();
     params2.nbAttractors = controls.nbAttractors.val();
+    params2.cssStyle = controls.cssStyle.val();
     return params2;
   };
   var render = (params2) => {
@@ -1139,6 +1184,7 @@
     cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], renderFn: render, min: 0, max: 1, step: 0.01 }),
     cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], renderFn: render, min: 10, max: 300 }),
     nbAttractors: new NumberControl({ name: "nbAttractors", label: "Attractors", value: defaultParams["nbAttractors"], renderFn: render, min: 0, max: 10 }),
+    cssStyle: new TextControl({ name: "cssStyle", label: "CSS style", value: "stroke: black; stroke-width: 0.5", renderFn: render }),
     svgSave: new SvgSaveControl({
       name: "svgSave",
       canvasId: "svg-canvas",
@@ -1156,6 +1202,7 @@
   controls.speedLimit.set(params.speedLimit);
   controls.nboids.set(params.nboids);
   controls.nbAttractors.set(params.nbAttractors);
+  controls.cssStyle.set(params.cssStyle);
   updateUrl(params);
   $("canvas").innerHTML = renderBoids(params);
 })();
