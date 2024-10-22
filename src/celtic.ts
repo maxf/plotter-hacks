@@ -819,7 +819,7 @@ controls.nbNodesPerOrbit = new NumberControl({
   label: 'Nodes per orbit',
   value: defaultParams['nbNodesPerOrbit'],
   renderFn: render,
-  min: 1,
+  min: 3,
   max: 20
 });
 
