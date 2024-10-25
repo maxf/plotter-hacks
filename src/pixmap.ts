@@ -27,18 +27,16 @@ class Color {
 //################################################################################
 
 class Pixmap {
-  canvas: HTMLCanvasElement;
+  canvas: ImageData;
   width: number;
   height: number;
   context: any;
   _pixels: any;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: ImageData) {
     this.canvas = canvas;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
-    this.context = this.canvas.getContext('2d');
-    this._pixels = this.context.getImageData(0,0,this.canvas.width,this.canvas.height).data;
   }
 
   colorAverageAt(x: number, y: number, radius: number): Color {
@@ -53,14 +51,14 @@ class Pixmap {
         if (xi + i >= 0 && xi + i < this.width && yi + j >= 0 && yi + j < this.height) {
           count++;
           index = 4*((xi+i)+this.width*(yi+j));
-          if (this._pixels[index+3] === 0) {
+          if (this.canvas.data[index+3] === 0) {
             resultR += 255;
             resultG += 255;
             resultB += 255;
           } else {
-            resultR+=this._pixels[index];
-            resultG+=this._pixels[index+1];
-            resultB+=this._pixels[index+2];
+            resultR+=this.canvas.data[index];
+            resultG+=this.canvas.data[index+1];
+            resultB+=this.canvas.data[index+2];
           }
         }
       }
@@ -84,15 +82,15 @@ class Pixmap {
 
     if (xi >= 0 && xi < this.width && yi >= 0 && yi < this.height) {
       index = 4*(xi+this.width*yi);
-      if (this._pixels[index+3] === 0) {
+      if (this.canvas.data[index+3] === 0) {
         // If the pixel is transparent, color is white
         resultR = 255;
         resultG = 255;
         resultB = 255;
       } else {
-        resultR = this._pixels[index];
-        resultG = this._pixels[index+1];
-        resultB = this._pixels[index+2];
+        resultR = this.canvas.data[index];
+        resultG = this.canvas.data[index+1];
+        resultB = this.canvas.data[index+2];
       }
       return new Color(resultR, resultG, resultB, 1);
     } else {

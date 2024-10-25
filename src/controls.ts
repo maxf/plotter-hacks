@@ -245,7 +245,6 @@ class ImageUploadControl {
     this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
     this.#uploadEl = document.getElementById(`${params.name}-upload`) as HTMLInputElement;
     this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
-
     this.loadImage(this.#imageUrl, () => {
       params.firstCallback(this);
     });

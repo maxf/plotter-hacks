@@ -12,7 +12,8 @@
     "watch-boids": "npx esbuild src/boids.ts --bundle --outfile=build/boids.js --watch",
     "watch-celtic": "npx esbuild src/celtic.ts --bundle --outfile=build/celtic.js --watch",
     "watch-excoffizer": "npx esbuild src/excoffizer.ts --bundle --outfile=build/excoffizer.js --watch",
-    "watch-dts": "npx esbuild src/dts.ts --bundle --outfile=build/dts.js --watch"
+    "watch-dts": "npx esbuild src/dts.ts --bundle --outfile=build/dts.js --watch",
+    "watch-dts-ww": "npx esbuild src/dts-ww.ts --bundle --outfile=build/dts-ww.js --watch"
   },
   "dependencies": {
     "@types/d3-delaunay": "^6.0.4",
