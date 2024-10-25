@@ -1,4 +1,4 @@
 TODO:
 
-- attractors: optionally display their position and radius (and force)
+- use webworkers for background jobs
 
