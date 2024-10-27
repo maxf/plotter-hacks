@@ -73,44 +73,27 @@ class DrunkTravellingSalesman {
 
     // Loop through points to compute bezier segments
     // first segment
+    const nextBezierPoints = (iprev: number, icurr: number, inext: number, inext2: number, curviness: number, rng: any) => {
+      const prev = getPoint(iprev);
+      const curr = getPoint(icurr);
+      const next = getPoint(inext);
+      const next2 = getPoint(inext2);
+      const curvature = rng()*curviness - curviness/2;
+      const c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
+      const n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
+      return ` C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`;
+    };
 
-    let prev = getPoint(0);
-    let curr = prev;
-    let next = getPoint(1);
-    let next2 = getPoint(2);
-    let curvature = this.#rng()*this.#curvature - this.#curvature/2;
-
-    let c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
-    let n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
-    pathParts.push(`M ${prev.x} ${prev.y} C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+    pathParts.push(`M ${getPoint(0).x} ${getPoint(0).y}
+      ${nextBezierPoints(0, 0, 1, 2, this.#curvature, this.#rng)}`);
 
     // other segments
     for (let i = 1; i < n - 2; i++) {
-      prev = getPoint(i - 1);
-      curr = getPoint(i);
-      next = getPoint(i + 1);
-      next2 = getPoint(i + 2);
-      curvature = this.#rng()*this.#curvature - this.#curvature/2;
-      c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
-      n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
-
-      // Create cubic Bézier curve command for this segment
-      // assuming current bezier control point is at c,
-      pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+      pathParts.push(nextBezierPoints(i-1, i, i+1, i+2, this.#curvature, this.#rng));
     }
 
     // last segment
-    prev = getPoint(n-3);
-    curr = getPoint(n-2);
-    next = getPoint(n-1);
-    next2 = next;
-    curvature = this.#rng()*20-10;
-    c0 = { x: curr.x + curvature*(next.x - prev.x), y: curr.y + curvature*(next.y - prev.y) };
-    n0 = { x: next.x - curvature*(next2.x - curr.x), y: next.y - curvature*(next2.y - curr.y) };
-
-    // Create cubic Bézier curve command for this segment
-    // assuming current bezier control point is at c,
-    pathParts.push(`C ${c0.x},${c0.y} ${n0.x},${n0.y} ${next.x},${next.y}`);
+    pathParts.push(nextBezierPoints(n-3, n-2, n-1, n-1, this.#curvature, this.#rng));
 
     return pathParts.join(" ");
   }
@@ -376,22 +359,26 @@ class DrunkTravellingSalesman {
 
     // TSP sub paths
     if (this.#showPoly) {
-      svg.push('<g style="fill: none; stroke: green">');
+      svg.push('<g id="paths" style="fill: none; stroke: green">');
       subPaths.forEach(path => {
-        const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);
-        const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
-        const d1 = svgTspPath.slice(1).map(([x,y]) => `L ${x} ${y}`).join('');
-        svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+        if (path.length > 1) {
+          const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);
+          const d0 = `M ${svgTspPath[0][0]} ${svgTspPath[0][1]}`;
+          const d1 = svgTspPath.slice(1).map(([x,y]) => ` L ${x} ${y}`).join('');
+          svg.push(`<path d="${d0} ${d1}" stroke="green" fill="none" stroke-width="0.5"/>`);
+        }
       });
       svg.push('</g>');
     }
 
     // Drunk TSP spline
     if (this.#showDts) {
-      svg.push('<g style="fill: none; stroke: blue; stroke-width: 0.2">');
+      svg.push('<g id="splines" style="fill: none; stroke: blue; stroke-width: 0.2">');
       subPaths.forEach(path => {
-        const svgPathData = this.#bezierSplineFromPath(path);
-        svg.push(`<path d="${svgPathData}"/>`);
+        if (path.length > 1) {
+          const svgPathData = this.#bezierSplineFromPath(path);
+          svg.push(`<path d="${svgPathData}"/>`);
+        }
       });
       svg.push('</g>');
     }

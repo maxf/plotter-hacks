@@ -358,8 +358,8 @@
     label: "Curvature",
     value: defaultParams["curvature"],
     renderFn: renderFromWidgets,
-    min: 1,
-    max: 50
+    min: 0,
+    max: 20
   });
   var controlShowStipple = new CheckboxControl({
     name: "showStipple",

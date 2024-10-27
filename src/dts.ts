@@ -123,8 +123,8 @@ const controlCurvature = new NumberControl({
   label: 'Curvature',
   value: defaultParams['curvature'],
   renderFn: renderFromWidgets,
-  min: 1,
-  max: 50,
+  min: 0,
+  max: 20,
 });
 
 
