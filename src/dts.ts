@@ -19,6 +19,7 @@ const defaultParams = {
   showStipple: false,
   showPoly: false,
   showDts: true,
+  showVoronoi: false,
   seed: 128,
   curvature: 20
 };
@@ -33,6 +34,7 @@ const paramsFromWidgets = (): any => {
   params.showStipple = controlShowStipple.val() as boolean;
   params.showPoly = controlShowPoly.val() as boolean;
   params.showDts = controlShowDts.val() as boolean;
+  params.showVoronoi = controlShowVoronoi.val() as boolean;
   params.seed = controlSeed.val() as number;
   params.curvature = controlCurvature.val() as number;
   return params;
@@ -62,6 +64,7 @@ const renderFromQsp = function() {
   controlShowStipple.set(params.showStipple);
   controlShowPoly.set(params.showPoly);
   controlShowDts.set(params.showDts);
+  controlShowVoronoi.set(params.showVoronoi);
   controlSeed.set(params.seed);
   controlCurvature.set(params.curvature);
 };
@@ -124,7 +127,7 @@ const controlCurvature = new NumberControl({
   value: defaultParams['curvature'],
   renderFn: renderFromWidgets,
   min: 0,
-  max: 20,
+  max: 50,
 });
 
 
@@ -143,11 +146,19 @@ const controlShowPoly = new CheckboxControl({
 });
 
 const controlShowDts = new CheckboxControl({
-  name: 'Splines',
-  label: 'Dts points',
+  name: 'showSplines',
+  label: 'Splines',
   value: defaultParams['showDts'],
   renderFn: renderFromWidgets
 });
+
+const controlShowVoronoi = new CheckboxControl({
+  name: 'showVoronoi',
+  label: 'Voronoi diagram',
+  value: defaultParams['showVoronoi'],
+  renderFn: renderFromWidgets
+});
+
 
 new SvgSaveControl({
   name: 'svgSave',

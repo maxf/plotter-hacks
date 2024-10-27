@@ -269,6 +269,7 @@
     showStipple: false,
     showPoly: false,
     showDts: true,
+    showVoronoi: false,
     seed: 128,
     curvature: 20
   };
@@ -281,6 +282,7 @@
     params.showStipple = controlShowStipple.val();
     params.showPoly = controlShowPoly.val();
     params.showDts = controlShowDts.val();
+    params.showVoronoi = controlShowVoronoi.val();
     params.seed = controlSeed.val();
     params.curvature = controlCurvature.val();
     return params;
@@ -306,6 +308,7 @@
     controlShowStipple.set(params.showStipple);
     controlShowPoly.set(params.showPoly);
     controlShowDts.set(params.showDts);
+    controlShowVoronoi.set(params.showVoronoi);
     controlSeed.set(params.seed);
     controlCurvature.set(params.curvature);
   };
@@ -359,7 +362,7 @@
     value: defaultParams["curvature"],
     renderFn: renderFromWidgets,
     min: 0,
-    max: 20
+    max: 50
   });
   var controlShowStipple = new CheckboxControl({
     name: "showStipple",
@@ -374,9 +377,15 @@
     renderFn: renderFromWidgets
   });
   var controlShowDts = new CheckboxControl({
-    name: "Splines",
-    label: "Dts points",
+    name: "showSplines",
+    label: "Splines",
     value: defaultParams["showDts"],
+    renderFn: renderFromWidgets
+  });
+  var controlShowVoronoi = new CheckboxControl({
+    name: "showVoronoi",
+    label: "Voronoi diagram",
+    value: defaultParams["showVoronoi"],
     renderFn: renderFromWidgets
   });
   new SvgSaveControl({

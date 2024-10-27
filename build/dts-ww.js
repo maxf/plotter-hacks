@@ -2153,10 +2153,12 @@
     #showStipple;
     #showPoly;
     #showDts;
+    #showVoronoi;
     #rng;
     #points;
     #path;
     #curvature;
+    #voronoi;
     constructor(params, imageData) {
       this.#image = new Pixmap(imageData);
       this.#cutoff = params.cutoff;
@@ -2165,6 +2167,7 @@
       this.#showStipple = params.showStipple;
       this.#showPoly = params.showPoly;
       this.#showDts = params.showDts;
+      this.#showVoronoi = params.showVoronoi;
       this.#curvature = params.curvature;
       this.#rng = (0, import_seedrandom.default)(params.seed.toString());
       this.#points = new Float64Array(this.#nsamples * 2);
@@ -2234,7 +2237,7 @@
       const width = this.#image.width;
       const height = this.#image.height;
       const delaunay = new Delaunay(this.#points);
-      const voronoi = delaunay.voronoi([0, 0, width, height]);
+      this.#voronoi = delaunay.voronoi([0, 0, width, height]);
       const centroids = new Float64Array(n * 2);
       const weights = new Float64Array(n);
       for (let k = 0; k < 10; ++k) {
@@ -2258,7 +2261,7 @@
           this.#points[i * 2] = x0 + (x1 - x0) * 1.8;
           this.#points[i * 2 + 1] = y0 + (y1 - y0) * 1.8;
         }
-        voronoi.update();
+        this.#voronoi.update();
       }
     }
     #removeBrightPoints() {
@@ -2378,6 +2381,13 @@
       const subPaths = this.#computeTsp();
       const svg = [];
       svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${width} ${height}">`);
+      if (this.#showVoronoi) {
+        const polys = Array.from(this.#voronoi.cellPolygons());
+        polys.forEach((poly) => {
+          const polyPoints = poly.map((pp) => `${pp[0]},${pp[1]} `);
+          svg.push(`<polygon points="${polyPoints.join("")}" stroke="black" fill="none" stroke-width="0.1"/>`);
+        });
+      }
       if (this.#showPoly) {
         svg.push('<g id="paths" style="fill: none; stroke: green">');
         subPaths.forEach((path) => {

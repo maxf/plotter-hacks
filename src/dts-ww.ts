@@ -14,6 +14,7 @@ type Params = {
   showStipple: boolean,
   showPoly: boolean,
   showDts: boolean,
+  showVoronoi: boolean,
   seed: number,
   curvature: number
 };
@@ -26,10 +27,12 @@ class DrunkTravellingSalesman {
   #showStipple: boolean;
   #showPoly: boolean;
   #showDts: boolean;
+  #showVoronoi: boolean;
   #rng: any;
   #points: Float64Array;
   #path: number[];
   #curvature: number;
+  #voronoi: any;
 
   constructor(params: Params, imageData: ImageData) {
     //this.#image = new Pixmap(this.#params.inputCanvas as HTMLCanvasElement);
@@ -40,6 +43,7 @@ class DrunkTravellingSalesman {
     this.#showStipple = params.showStipple;
     this.#showPoly = params.showPoly;
     this.#showDts = params.showDts;
+    this.#showVoronoi = params.showVoronoi;
     this.#curvature = params.curvature;
     this.#rng = seedrandom(params.seed.toString());
     this.#points = new Float64Array(this.#nsamples*2);
@@ -134,7 +138,7 @@ class DrunkTravellingSalesman {
 
     // Create voronoi diagram
     const delaunay = new Delaunay(this.#points);
-    const voronoi = delaunay.voronoi([0, 0, width, height]);
+    this.#voronoi = delaunay.voronoi([0, 0, width, height]);
     const centroids = new Float64Array(n * 2);
     const weights = new Float64Array(n);
 
@@ -173,7 +177,7 @@ class DrunkTravellingSalesman {
         this.#points[i * 2 + 1] = y0 + (y1 - y0) * 1.8; // + (this.#rng() - 0.5) * w;
       }
 
-      voronoi.update();
+      this.#voronoi.update();
     }
   }
 
@@ -345,11 +349,13 @@ class DrunkTravellingSalesman {
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${width} ${height}">`);
 
     // // voronoi polygons
-    // const polys = Array.from(voronoi.cellPolygons());
-    // polys.forEach(poly => {
-    //   const polyPoints = poly.map(pp => `${pp[0]},${pp[1]} `);
-    //   svg.push(`<polygon points="${polyPoints.join('')}" stroke="black" fill="none" stroke-width="0.1"/>`);
-    // });
+    if (this.#showVoronoi) {
+      const polys = Array.from(this.#voronoi.cellPolygons());
+      polys.forEach((poly: any) => {
+        const polyPoints = poly.map((pp: number[]) => `${pp[0]},${pp[1]} `);
+        svg.push(`<polygon points="${polyPoints.join('')}" stroke="black" fill="none" stroke-width="0.1"/>`);
+      });
+    }
 
     // Main TSP path
     // const svgTspPath = path.map(i => [this.#points[2*i], this.#points[2*i+1]]);

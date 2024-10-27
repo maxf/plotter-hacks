@@ -3,7 +3,8 @@
 # DTS
 
 - Optimize the code. Make rendering faster
-
+- Fewer squiggles when stipple points are close. Maybe space out points more?
+- Don't re-render everything when toggling what to show
 
 # Excoffizer
 
@@ -12,7 +13,7 @@
 # All
 
 - DONE - Make rendering asynchronous to reduce blocking time, especially for DTS
-- Add thumbnails on the home page
+- DONE - Add thumbnails on the home page
 - Small popups to describe parameters
 
 
