@@ -160,7 +160,7 @@
     #createHtmlControl(name, label) {
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*">`);
+      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
       html.push(`<canvas id="${name}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
@@ -186,7 +186,9 @@
       };
       if (typeof source === "string") {
         img.src = source;
+        this.#imageUrl = source;
       } else {
+        this.#imageUrl = "";
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target && event.target.result) {
@@ -216,6 +218,47 @@
   var updateUrl = (params) => {
     const url = objectToQueryString(params);
     history.pushState(null, "", url);
+  };
+  var TextControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.value;
+        params.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`
+      <input id="${name}" value="${value}"/>
+      ${label}
+    `);
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.value = newValue.toString();
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
   };
 
   // src/pixmap.ts
@@ -250,26 +293,26 @@
       this.canvas = canvas;
       this.width = this.canvas.width;
       this.height = this.canvas.height;
-      this.context = this.canvas.getContext("2d");
-      this._pixels = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     }
     colorAverageAt(x, y, radius) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
       let index;
       let resultR = 0, resultG = 0, resultB = 0;
       let count = 0;
       for (let i = -radius; i <= radius; i++) {
         for (let j = -radius; j <= radius; j++) {
-          if (x + i >= 0 && x + i < this.width && y + j >= 0 && y + j < this.height) {
+          if (xi + i >= 0 && xi + i < this.width && yi + j >= 0 && yi + j < this.height) {
             count++;
-            index = 4 * (x + i + this.width * (y + j));
-            if (this._pixels[index + 3] === 0) {
+            index = 4 * (xi + i + this.width * (yi + j));
+            if (this.canvas.data[index + 3] === 0) {
               resultR += 255;
               resultG += 255;
               resultB += 255;
             } else {
-              resultR += this._pixels[index];
-              resultG += this._pixels[index + 1];
-              resultB += this._pixels[index + 2];
+              resultR += this.canvas.data[index];
+              resultG += this.canvas.data[index + 1];
+              resultB += this.canvas.data[index + 2];
             }
           }
         }
@@ -284,18 +327,20 @@
       return this.colorAverageAt(x, y, radius).brightness();
     }
     colorAt(x, y) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
       let index;
       let resultR = 0, resultG = 0, resultB = 0;
-      if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
-        index = 4 * (x + this.width * y);
-        if (this._pixels[index + 3] === 0) {
+      if (xi >= 0 && xi < this.width && yi >= 0 && yi < this.height) {
+        index = 4 * (xi + this.width * yi);
+        if (this.canvas.data[index + 3] === 0) {
           resultR = 255;
           resultG = 255;
           resultB = 255;
         } else {
-          resultR = this._pixels[index];
-          resultG = this._pixels[index + 1];
-          resultB = this._pixels[index + 2];
+          resultR = this.canvas.data[index];
+          resultG = this.canvas.data[index + 1];
+          resultB = this.canvas.data[index + 2];
         }
         return new Color(resultR, resultG, resultB, 1);
       } else {
@@ -316,16 +361,20 @@
     #blur;
     #outputWidth;
     #cutoff;
+    #style;
     constructor(params) {
       this.#params = params;
       this.#params.tx = 1;
       this.#params.ty = 1;
-      this.#inputPixmap = new Pixmap(params.inputCanvas);
+      const ctx = params.inputCanvas.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+      this.#inputPixmap = new Pixmap(imageData);
       this.#wiggleFrequency = this.#params.waviness / 100;
       this.#wiggleAmplitude = this.#wiggleFrequency === 0 ? 0 : 0.5 / this.#wiggleFrequency;
       this.#blur = params.blur;
       this.#outputWidth = params.width;
       this.#cutoff = params.cutoff;
+      this.#style = params.style;
     }
     excoffize() {
       return this.#excoffize();
@@ -424,7 +473,7 @@
         - tx: ${this.#params.tx}
         - ty: ${this.#params.ty}
       </desc>
-      <g stroke="black" stroke-width="1" fill="none">
+        <g style="${this.#style}">
     `;
       const corner1 = this.#P2S({ x: 0, y: 0 });
       const corner2 = this.#P2S({ x: inputWidth, y: 0 });
@@ -487,7 +536,8 @@
     tx: 1,
     ty: 1,
     blur: 1,
-    cutoff: 0.5
+    cutoff: 0.5,
+    style: "stroke: black; stroke-width: 1; fill: none"
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
@@ -505,6 +555,7 @@
     params.sy = controlSy.val();
     params.blur = controlBlur.val();
     params.cutoff = controlCutoff.val();
+    params.style = controlStyle.val();
     return params;
   };
   var render = (params) => {
@@ -525,6 +576,12 @@
     renderFn: render,
     min: 0,
     max: 500
+  });
+  var controlStyle = new TextControl({
+    name: "style",
+    label: "CSS Style",
+    value: defaultParams["style"],
+    renderFn: render
   });
   var controlTheta = new NumberControl({
     name: "theta",

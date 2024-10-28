@@ -1,28 +1,32 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  $ } from './controls';
+import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  TextControl, $ } from './controls';
 import { Pixmap } from './pixmap';
 
 
 class Excoffizer {
   #params;
-  #inputPixmap;
+  #inputPixmap: Pixmap;
   #wiggleFrequency;
   #wiggleAmplitude;
   #blur;
   #outputWidth: number;
   #cutoff: number;
+  #style: string;
 
   constructor(params: any) {
     this.#params = params;
     this.#params.tx = 1;
     this.#params.ty = 1;
-    this.#inputPixmap = new Pixmap(params.inputCanvas);
+    const ctx = params.inputCanvas.getContext('2d') as CanvasRenderingContext2D;
+    const imageData: ImageData = ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+    this.#inputPixmap = new Pixmap(imageData);
     this.#wiggleFrequency = this.#params.waviness/100.0;
     this.#wiggleAmplitude = this.#wiggleFrequency===0 ? 0 : 0.5/this.#wiggleFrequency;
     this.#blur = params.blur;
     this.#outputWidth = params.width;
     this.#cutoff = params.cutoff;
+    this.#style = params.style;
   }
 
   excoffize() {
@@ -130,7 +134,7 @@ class Excoffizer {
         - tx: ${this.#params.tx}
         - ty: ${this.#params.ty}
       </desc>
-      <g stroke="black" stroke-width="1" fill="none">
+        <g style="${this.#style}">
     `;
 
     // boundaries of the image in sine space
@@ -220,7 +224,8 @@ type Params = {
   tx: number,
   ty: number,
   blur: number,
-  cutoff: number
+  cutoff: number,
+  style: string
 };
 
 
@@ -239,7 +244,8 @@ const defaultParams: Params = {
   tx: 1,
   ty: 1,
   blur: 1,
-  cutoff: 0.5
+  cutoff: 0.5,
+  style: "stroke: black; stroke-width: 1; fill: none"
 };
 
 
@@ -259,6 +265,7 @@ const paramsFromWidgets = () => {
   params.sy = controlSy.val() as number;
   params.blur = controlBlur.val() as number;
   params.cutoff = controlCutoff.val() as number;
+  params.style = controlStyle.val() as string;
   return params;
 };
 
@@ -269,7 +276,6 @@ const render = (params?: any) => {
   }
   params.width ||= 800;
   params.height ||= 800;
-
   const excoffizator = new Excoffizer(params);
   delete params.inputCanvas; // don't put the whole image in the URL
   updateUrl(params);
@@ -286,6 +292,15 @@ const controlMargin = new NumberControl({
   max: 500
 });
 
+
+const controlStyle = new TextControl({
+  name: 'style',
+  label: 'CSS Style',
+  value: defaultParams['style'],
+  renderFn: render
+});
+
+
 const controlTheta = new NumberControl({
   name: 'theta',
   label: 'Angle',
@@ -295,6 +310,7 @@ const controlTheta = new NumberControl({
   max: 6.28,
   step: 0.01
 });
+
 
 const controlWaviness = new NumberControl({
   name: 'waviness',
@@ -306,6 +322,7 @@ const controlWaviness = new NumberControl({
   step: 0.1
 });
 
+
 const controlLineHeight = new NumberControl({
   name: 'lineHeight',
   label: 'Line height',
@@ -315,6 +332,7 @@ const controlLineHeight = new NumberControl({
   max: 15,
   step: 0.1
 });
+
 
 const controlDensity = new NumberControl({
   name: 'density',
@@ -326,6 +344,7 @@ const controlDensity = new NumberControl({
   step: 0.1
 });
 
+
 const controlThickness = new NumberControl({
   label: 'Thickness',
   value: defaultParams['thickness'],
@@ -334,6 +353,7 @@ const controlThickness = new NumberControl({
   max: 10,
   step: 0.1
 });
+
 
 const controlSx = new NumberControl({
   name: 'sx',
@@ -345,6 +365,7 @@ const controlSx = new NumberControl({
   step: 0.01
 });
 
+
 const controlSy = new NumberControl({
   name: 'sy',
   label: 'Stretch Y',
@@ -355,6 +376,7 @@ const controlSy = new NumberControl({
   step: 0.01
 });
 
+
 const controlBlur = new NumberControl({
   name: 'blur',
   label: 'Blur',
@@ -363,6 +385,7 @@ const controlBlur = new NumberControl({
   min: 1,
   max: 10
 });
+
 
 const controlCutoff = new NumberControl({
   name: 'cutoff',
@@ -374,12 +397,14 @@ const controlCutoff = new NumberControl({
   step: 0.01
 });
 
+
 new SvgSaveControl({
   name: 'svgSave',
   canvasId: 'svg-canvas',
   label: 'Save SVG',
   saveFilename: 'excoffizer.svg'
 });
+
 
 const controlInputImage = new ImageUploadControl({
   name: 'inputImage',
