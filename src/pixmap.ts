@@ -19,7 +19,8 @@ class Color {
   }
 
   brightness() {
-    return (this.#r+this.#g+this.#b)/3;
+    // return (this.#r+this.#g+this.#b)/3;
+    return 0.2126*this.#r + 0.7152*this.#g + 0.0722*this.#b;
   }
 }
 
@@ -103,6 +104,35 @@ class Pixmap {
     return this.colorAt(x, y).brightness();
   }
 
+  gradientAt(x: number, y: number): number[] {
+    // Sobel kernels for x and y directions
+    const sobelX = [
+      [-1, 0, 1],
+      [-2, 0, 2],
+      [-1, 0, 1]
+    ];
+    const sobelY = [
+      [-1, -2, -1],
+      [0, 0, 0],
+      [1, 2, 1]
+    ];
+
+    // Initialize gradient components
+    let gx = 0;
+    let gy = 0;
+
+    // Apply Sobel kernels
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        // Get the pixel intensity, ensuring we don't go out of bounds
+        const brightness = this.brightnessAt(x + i, y + j);
+        gx += brightness * sobelX[i + 1][j + 1];
+        gy += brightness * sobelY[i + 1][j + 1];
+      }
+    }
+
+    return [gx, gy];
+  }
 }
 
 export { Pixmap };
