@@ -115,9 +115,9 @@ class DrunkTravellingSalesman {
     for (let i = 0; i < n; ++i) {
       // for each sample, 30 times pick a random point
       for (let j = 0; j < 30; ++j) {
-        const x = Math.floor(width * this.#rng());
-        const y = Math.floor(height * this.#rng());
-        const imageLevel = this.#image.brightnessAt(x, y);
+        const x = width * this.#rng();
+        const y = height * this.#rng();
+        const imageLevel = this.#image.brightnessAt(Math.floor(x), Math.floor(y));
         // the darker the image at this point, the more likely we're going to keep the point.
         if (200 * this.#rng() > imageLevel) {
           this.#points[2*sampledPoints] = x+.5;

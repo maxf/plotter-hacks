@@ -15,7 +15,9 @@
     "watch-dts": "npx esbuild src/dts.ts --bundle --outfile=build/dts.js --watch",
     "watch-dts-ww": "npx esbuild src/dts-ww.ts --bundle --outfile=build/dts-ww.js --watch",
     "watch-vector-field": "npx esbuild src/vector-field.ts --bundle --outfile=build/vector-field.js --watch",
-    "watch-vector-field-ww": "npx esbuild src/vector-field-ww.ts --bundle --outfile=build/vector-field-ww.js --watch"
+    "watch-vector-field-ww": "npx esbuild src/vector-field-ww.ts --bundle --outfile=build/vector-field-ww.js --watch",
+    "watch-gandalf": "npx esbuild src/gandalf.ts --bundle --outfile=build/gandalf.js --watch",
+    "watch-gandalf-ww": "npx esbuild src/gandalf-ww.ts --bundle --outfile=build/gandalf-ww.js --watch"
   },
   "dependencies": {
     "@types/d3-delaunay": "^6.0.4",

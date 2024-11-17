@@ -106,6 +106,8 @@ class Pixmap {
 
   gradientAt(x: number, y: number): number[] {
     // Sobel kernels for x and y directions
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
     const sobelX = [
       [-1, 0, 1],
       [-2, 0, 2],
@@ -125,12 +127,11 @@ class Pixmap {
     for (let i = -1; i <= 1; i++) {
       for (let j = -1; j <= 1; j++) {
         // Get the pixel intensity, ensuring we don't go out of bounds
-        const brightness = this.brightnessAt(x + i, y + j);
+        const brightness = this.brightnessAt(xi + i, yi + j);
         gx += brightness * sobelX[i + 1][j + 1];
         gy += brightness * sobelY[i + 1][j + 1];
       }
     }
-
     return [gx, gy];
   }
 }
