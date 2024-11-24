@@ -9,11 +9,12 @@ import {
 
 
 const defaultParams = {
-  inputImageUrl: 'portrait.jpg',
+  inputImageUrl: 'images/boat.jpg',
   width: 800,
   height: 800,
   cutoff: 90,
   nsamples: 250, // vector grid is nsamples x nsamples
+  strokeLength: 10
 };
 
 
@@ -22,6 +23,7 @@ const paramsFromWidgets = (): any => {
   params.inputImageUrl = imageUpload.imageUrl() as string;
   params.cutoff = controlCutoff.val() as number;
   params.nsamples = controlNSamples.val() as number;
+  params.strokeLength = controlStrokeLength.val() as number;
   return params;
 };
 
@@ -45,6 +47,7 @@ const renderFromQsp = function() {
   doRender(params);
   controlCutoff.set(params.cutoff);
   controlNSamples.set(params.nsamples);
+  controlStrokeLength.set(params.strokeLength);
 };
 
 const renderFromWidgets = function() {
@@ -78,6 +81,15 @@ const controlNSamples = new NumberControl({
   renderFn: renderFromWidgets,
   min: 10,
   max: 500,
+});
+
+const controlStrokeLength = new NumberControl({
+  name: 'strokeLength',
+  label: 'Stroke length',
+  value: 10,
+  renderFn: renderFromWidgets,
+  min: 1,
+  max: 50
 });
 
 new SvgSaveControl({

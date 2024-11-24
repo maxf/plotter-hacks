@@ -7,17 +7,20 @@ type Params = {
   height: number,
   cutoff: number,
   nsamples: number,
+  strokeLength: number
 };
 
 class VectorField {
   #image: Pixmap;
   #cutoff: number;
   #nsamples: number;
+  #strokeLength: number;
 
   constructor(params: Params, imageData: ImageData) {
     this.#image = new Pixmap(imageData);
     this.#cutoff = params.cutoff;
     this.#nsamples = params.nsamples;
+    this.#strokeLength = params.strokeLength;
   }
 
   toSvg(): string {
@@ -38,8 +41,8 @@ class VectorField {
         if (gradientMagnitude < this.#cutoff) {
           continue
         }
-        vx = 10 * vx / gradientMagnitude;
-        vy = 10 * vy / gradientMagnitude;
+        vx = this.#strokeLength * vx / gradientMagnitude;
+        vy = this.#strokeLength * vy / gradientMagnitude;
 
         svg.push(`<line x1="${ix}" y1="${iy}" x2="${ix+vx}" y2="${iy+vy}" style="stroke:red;stroke-width:0.2" />`);
       }
