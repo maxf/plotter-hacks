@@ -32,8 +32,8 @@ class VectorField {
 
     for (let i=0; i<n; i++) {
       for (let j=0; j<n; j++) {
-        const ix = Math.floor(width*i/n);
-        const iy = Math.floor(height*j/n);
+        const ix = width*i/n;
+        const iy = height*j/n;
         let [vx, vy] = this.#image.gradientAt(ix, iy);
         vx = -vx; // reorient
 
