@@ -1,23 +1,22 @@
 {
   "devDependencies": {
     "esbuild": "0.23.1",
+    "http-server": "^14.1.1",
     "nodemon": "^3.1.4",
     "typescript": "^5.5.4"
   },
   "scripts": {
+    "serve": "npx http-server",
     "check": "npx tsc --noEmit",
-    "build": "npx esbuild src/main.ts --bundle --outfile=build/out.js",
-    "watch-check": "ls src/*.ts | entr -cdr npx tsc --noEmit",
-    "watch": "npx esbuild src/main.ts --bundle --outfile=build/out.js --watch",
-    "watch-boids": "npx esbuild src/boids.ts --bundle --outfile=build/boids.js --watch",
-    "watch-celtic": "npx esbuild src/celtic.ts --bundle --outfile=build/celtic.js --watch",
-    "watch-excoffizer": "npx esbuild src/excoffizer.ts --bundle --outfile=build/excoffizer.js --watch",
-    "watch-dts": "npx esbuild src/dts.ts --bundle --outfile=build/dts.js --watch",
-    "watch-dts-ww": "npx esbuild src/dts-ww.ts --bundle --outfile=build/dts-ww.js --watch",
-    "watch-vector-field": "npx esbuild src/vector-field.ts --bundle --outfile=build/vector-field.js --watch",
-    "watch-vector-field-ww": "npx esbuild src/vector-field-ww.ts --bundle --outfile=build/vector-field-ww.js --watch",
-    "watch-gandalf": "npx esbuild src/gandalf.ts --bundle --outfile=build/gandalf.js --watch",
-    "watch-gandalf-ww": "npx esbuild src/gandalf-ww.ts --bundle --outfile=build/gandalf-ww.js --watch"
+    "check-watch": "ls src/*.ts | entr -cdr npx tsc --noEmit",
+    "build-watch": "npx esbuild src/* --bundle --outdir=build --watch",
+
+    "boids-watch": "npx esbuild src/boids.ts --bundle --outdir=build --watch",
+    "celtic-watch": "npx esbuild src/celtic.ts --bundle --outdir=build --watch",
+    "excoffizer-watch": "npx esbuild src/excoffizer.ts --bundle --outdir=build --watch",
+    "dts-watch": "npx esbuild src/dts.ts src/dts-ww.ts --bundle --outdir=build --watch",
+    "vector-field-watch": "npx esbuild src/vector-field.ts src/vector-field-ww.ts --bundle --outdir=build --watch",
+    "gandalf-watch": "npx esbuild src/gandalf.ts src/gandalf-ww.ts --bundle --outdir=build --watch"
   },
   "dependencies": {
     "@types/d3-delaunay": "^6.0.4",
