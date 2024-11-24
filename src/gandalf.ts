@@ -28,6 +28,7 @@ const paramsFromWidgets = (): any => {
 };
 
 let canvas: HTMLCanvasElement;
+
 let ctx: CanvasRenderingContext2D;
 
 const gandalfWorker = new Worker('build/gandalf-ww.js');

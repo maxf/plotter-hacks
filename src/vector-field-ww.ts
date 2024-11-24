@@ -38,8 +38,8 @@ class VectorField {
         if (gradientMagnitude < this.#cutoff) {
           continue
         }
-        vx = 2 * vx / gradientMagnitude;
-        vy = 2 * vy / gradientMagnitude;
+        vx = 10 * vx / gradientMagnitude;
+        vy = 10 * vy / gradientMagnitude;
 
         svg.push(`<line x1="${ix}" y1="${iy}" x2="${ix+vx}" y2="${iy+vy}" style="stroke:red;stroke-width:0.2" />`);
       }

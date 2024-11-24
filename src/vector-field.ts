@@ -12,8 +12,8 @@ const defaultParams = {
   inputImageUrl: 'portrait.jpg',
   width: 800,
   height: 800,
-  cutoff: 210,
-  nsamples: 10, // vector grid is nsamples x nsamples
+  cutoff: 90,
+  nsamples: 250, // vector grid is nsamples x nsamples
 };
 
 
