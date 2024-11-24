@@ -98,6 +98,87 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var SelectControl = class {
+    #name;
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      this.#name = params.name;
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value, params.choices);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.value;
+        params.renderFn.call(this);
+      };
+    }
+    #createHtmlControl(name, label, value, choices) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(label);
+      html.push(`<select id="${this.#name}">`);
+      choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
+      html.push("</select>");
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.value = newValue;
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
+  var CheckboxControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.checked;
+        params.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
+      html.push(`</div>`);
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.checked = newValue;
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
   var SvgSaveControl = class {
     #wrapperEl;
     #createHtmlControl(name, label) {
@@ -169,7 +250,7 @@
       }
     }
     loadImage(source, callback) {
-      const ctx2 = this.#canvasEl.getContext("2d", { willReadFrequently: true });
+      const ctx = this.#canvasEl.getContext("2d", { willReadFrequently: true });
       const img = new Image();
       img.onload = () => {
         const desiredWidth = 200;
@@ -177,8 +258,8 @@
         const desiredHeight = desiredWidth / aspectRatio;
         this.#canvasEl.width = desiredWidth;
         this.#canvasEl.height = desiredHeight;
-        if (ctx2) {
-          ctx2.drawImage(img, 0, 0, desiredWidth, desiredHeight);
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, desiredWidth, desiredHeight);
         }
         if (callback) {
           callback();
@@ -219,73 +300,45 @@
     const url = objectToQueryString(params);
     history.pushState(null, "", url);
   };
-
-  // src/vector-field.ts
-  var defaultParams = {
-    inputImageUrl: "portrait.jpg",
-    width: 800,
-    height: 800,
-    cutoff: 90,
-    nsamples: 250
-    // vector grid is nsamples x nsamples
+  var TextControl = class {
+    #value;
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      this.#value = params.value;
+      this.#createHtmlControl(params.name, params.label, params.value);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.#value = event.target.value;
+        params.renderFn();
+      };
+    }
+    #createHtmlControl(name, label, value) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`
+      <input id="${name}" value="${value}"/>
+      ${label}
+    `);
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.#value = newValue;
+      this.#widgetEl.value = newValue.toString();
+    }
+    val() {
+      return this.#value;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
   };
-  var paramsFromWidgets = () => {
-    const params = { ...defaultParams };
-    params.inputImageUrl = imageUpload.imageUrl();
-    params.cutoff = controlCutoff.val();
-    params.nsamples = controlNSamples.val();
-    return params;
-  };
-  var canvas;
-  var ctx;
-  var vectorFieldWorker = new Worker("build/vector-field-ww.js");
-  vectorFieldWorker.onmessage = function(e) {
-    $("canvas").innerHTML = e.data;
-  };
-  var doRender = function(params) {
-    $("canvas").innerHTML = "<h1>Rendering. Please wait</h1>";
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    vectorFieldWorker.postMessage({ params, imageData });
-    updateUrl(params);
-  };
-  var renderFromQsp = function() {
-    const params = paramsFromUrl(defaultParams);
-    doRender(params);
-    controlCutoff.set(params.cutoff);
-    controlNSamples.set(params.nsamples);
-  };
-  var renderFromWidgets = function() {
-    doRender(paramsFromWidgets());
-  };
-  var imageUpload = new ImageUploadControl({
-    name: "inputImage",
-    label: "Image",
-    value: defaultParams["inputImageUrl"],
-    firstCallback: renderFromQsp,
-    callback: renderFromWidgets
-  });
-  canvas = imageUpload.canvasEl();
-  ctx = canvas.getContext("2d");
-  var controlCutoff = new NumberControl({
-    name: "cutoff",
-    label: "White cutoff",
-    value: defaultParams["cutoff"],
-    renderFn: renderFromWidgets,
-    min: 0,
-    max: 255
-  });
-  var controlNSamples = new NumberControl({
-    name: "nsamples",
-    label: "Samples",
-    value: defaultParams["nsamples"],
-    renderFn: renderFromWidgets,
-    min: 10,
-    max: 500
-  });
-  new SvgSaveControl({
-    name: "svgSave",
-    canvasId: "svg-canvas",
-    label: "Save SVG",
-    saveFilename: "vector-field.svg"
-  });
 })();
