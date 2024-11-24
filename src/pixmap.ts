@@ -106,6 +106,12 @@ class Pixmap {
 
   gradientAt(x: number, y: number): number[] {
     // Sobel kernels for x and y directions
+
+    // if we're too close to the picture edge, return zero gradient.
+    if (x < 1 || x > this.width - 2 || y < 1 || y > this.height - 2) {
+      return [0, 0];
+    }
+
     const xi = Math.floor(x);
     const yi = Math.floor(y);
     const sobelX = [
