@@ -2072,7 +2072,7 @@
       return this.#r + this.#g + this.#b >= 3 * 255;
     }
     brightness() {
-      return (this.#r + this.#g + this.#b) / 3;
+      return 0.2126 * this.#r + 0.7152 * this.#g + 0.0722 * this.#b;
     }
   };
   var Pixmap = class {
@@ -2141,6 +2141,30 @@
     }
     brightnessAt(x, y) {
       return this.colorAt(x, y).brightness();
+    }
+    gradientAt(x, y) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
+      const sobelX = [
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1]
+      ];
+      const sobelY = [
+        [-1, -2, -1],
+        [0, 0, 0],
+        [1, 2, 1]
+      ];
+      let gx = 0;
+      let gy = 0;
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const brightness = this.brightnessAt(xi + i, yi + j);
+          gx += brightness * sobelX[i + 1][j + 1];
+          gy += brightness * sobelY[i + 1][j + 1];
+        }
+      }
+      return [gx, gy];
     }
   };
 
@@ -2219,9 +2243,9 @@
       let sampledPoints = 0;
       for (let i = 0; i < n; ++i) {
         for (let j = 0; j < 30; ++j) {
-          const x = Math.floor(width * this.#rng());
-          const y = Math.floor(height * this.#rng());
-          const imageLevel = this.#image.brightnessAt(x, y);
+          const x = width * this.#rng();
+          const y = height * this.#rng();
+          const imageLevel = this.#image.brightnessAt(Math.floor(x), Math.floor(y));
           if (200 * this.#rng() > imageLevel) {
             this.#points[2 * sampledPoints] = x + 0.5;
             this.#points[2 * sampledPoints + 1] = y + 0.5;

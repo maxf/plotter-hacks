@@ -280,7 +280,7 @@
       return this.#r + this.#g + this.#b >= 3 * 255;
     }
     brightness() {
-      return (this.#r + this.#g + this.#b) / 3;
+      return 0.2126 * this.#r + 0.7152 * this.#g + 0.0722 * this.#b;
     }
   };
   var Pixmap = class {
@@ -349,6 +349,30 @@
     }
     brightnessAt(x, y) {
       return this.colorAt(x, y).brightness();
+    }
+    gradientAt(x, y) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
+      const sobelX = [
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1]
+      ];
+      const sobelY = [
+        [-1, -2, -1],
+        [0, 0, 0],
+        [1, 2, 1]
+      ];
+      let gx = 0;
+      let gy = 0;
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const brightness = this.brightnessAt(xi + i, yi + j);
+          gx += brightness * sobelX[i + 1][j + 1];
+          gy += brightness * sobelY[i + 1][j + 1];
+        }
+      }
+      return [gx, gy];
     }
   };
 

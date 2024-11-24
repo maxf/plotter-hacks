@@ -90,6 +90,8 @@
       return this.colorAt(x, y).brightness();
     }
     gradientAt(x, y) {
+      const xi = Math.floor(x);
+      const yi = Math.floor(y);
       const sobelX = [
         [-1, 0, 1],
         [-2, 0, 2],
@@ -104,7 +106,7 @@
       let gy = 0;
       for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
-          const brightness = this.brightnessAt(x + i, y + j);
+          const brightness = this.brightnessAt(xi + i, yi + j);
           gx += brightness * sobelX[i + 1][j + 1];
           gy += brightness * sobelY[i + 1][j + 1];
         }
