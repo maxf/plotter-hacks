@@ -351,6 +351,9 @@
       return this.colorAt(x, y).brightness();
     }
     gradientAt(x, y) {
+      if (x < 1 || x > this.width - 2 || y < 1 || y > this.height - 2) {
+        return [0, 0];
+      }
       const xi = Math.floor(x);
       const yi = Math.floor(y);
       const sobelX = [

@@ -90,6 +90,9 @@
       return this.colorAt(x, y).brightness();
     }
     gradientAt(x, y) {
+      if (x < 1 || x > this.width - 2 || y < 1 || y > this.height - 2) {
+        return [0, 0];
+      }
       const xi = Math.floor(x);
       const yi = Math.floor(y);
       const sobelX = [
@@ -120,10 +123,12 @@
     #image;
     #cutoff;
     #nsamples;
+    #strokeLength;
     constructor(params, imageData) {
       this.#image = new Pixmap(imageData);
       this.#cutoff = params.cutoff;
       this.#nsamples = params.nsamples;
+      this.#strokeLength = params.strokeLength;
     }
     toSvg() {
       let n = this.#nsamples;
@@ -133,16 +138,16 @@
       svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${width} ${height}">`);
       for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-          const ix = Math.floor(width * i / n);
-          const iy = Math.floor(height * j / n);
+          const ix = width * i / n;
+          const iy = height * j / n;
           let [vx, vy] = this.#image.gradientAt(ix, iy);
           vx = -vx;
           const gradientMagnitude = Math.sqrt(vx * vx + vy * vy);
           if (gradientMagnitude < this.#cutoff) {
             continue;
           }
-          vx = 10 * vx / gradientMagnitude;
-          vy = 10 * vy / gradientMagnitude;
+          vx = this.#strokeLength * vx / gradientMagnitude;
+          vy = this.#strokeLength * vy / gradientMagnitude;
           svg.push(`<line x1="${ix}" y1="${iy}" x2="${ix + vx}" y2="${iy + vy}" style="stroke:red;stroke-width:0.2" />`);
         }
       }

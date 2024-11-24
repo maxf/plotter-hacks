@@ -222,18 +222,20 @@
 
   // src/vector-field.ts
   var defaultParams = {
-    inputImageUrl: "portrait.jpg",
+    inputImageUrl: "images/boat.jpg",
     width: 800,
     height: 800,
     cutoff: 90,
-    nsamples: 250
+    nsamples: 250,
     // vector grid is nsamples x nsamples
+    strokeLength: 10
   };
   var paramsFromWidgets = () => {
     const params = { ...defaultParams };
     params.inputImageUrl = imageUpload.imageUrl();
     params.cutoff = controlCutoff.val();
     params.nsamples = controlNSamples.val();
+    params.strokeLength = controlStrokeLength.val();
     return params;
   };
   var canvas;
@@ -253,6 +255,7 @@
     doRender(params);
     controlCutoff.set(params.cutoff);
     controlNSamples.set(params.nsamples);
+    controlStrokeLength.set(params.strokeLength);
   };
   var renderFromWidgets = function() {
     doRender(paramsFromWidgets());
@@ -281,6 +284,14 @@
     renderFn: renderFromWidgets,
     min: 10,
     max: 500
+  });
+  var controlStrokeLength = new NumberControl({
+    name: "strokeLength",
+    label: "Stroke length",
+    value: 10,
+    renderFn: renderFromWidgets,
+    min: 1,
+    max: 50
   });
   new SvgSaveControl({
     name: "svgSave",
