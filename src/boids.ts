@@ -354,7 +354,7 @@ const controls = {
     max: 20
   }),
   seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], renderFn: render, min: 0, max: 500}),
-  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 100 }),
+  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], renderFn: render, min: 1, max: 1000 }),
   iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], renderFn: render, min: 1, max: 1000}),
   startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], renderFn: render, min: 1, max: 1000}),
   speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], renderFn: render, min: 0 , max: 20, step: 0.1}),
