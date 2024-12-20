@@ -406,3 +406,5 @@ onmessage = function(e) {
   const dts = new DrunkTravellingSalesman(params, imageData);
   postMessage(dts.toSvg());
 };
+
+export {}; // This is needed to make TypeScript happy

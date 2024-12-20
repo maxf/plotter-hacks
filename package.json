@@ -3,14 +3,14 @@
     "esbuild": "0.23.1",
     "http-server": "^14.1.1",
     "nodemon": "^3.1.4",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vite": "^6.0.5"
   },
   "scripts": {
     "serve": "npx http-server",
     "check": "npx tsc --noEmit",
     "check-watch": "ls src/*.ts | entr -cdr npx tsc --noEmit",
     "build-watch": "npx esbuild src/* --bundle --outdir=build --watch",
-
     "boids-watch": "npx esbuild src/boids.ts --bundle --outdir=build --watch",
     "celtic-watch": "npx esbuild src/celtic.ts --bundle --outdir=build --watch",
     "excoffizer-watch": "npx esbuild src/excoffizer.ts --bundle --outdir=build --watch",

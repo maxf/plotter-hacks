@@ -8,6 +8,8 @@ import {
   $
 } from './controls';
 
+import Worker from './dts-ww.ts?worker'; // How Vite declares Workers
+
 
 const defaultParams = {
   inputImageUrl: 'tbl.png',
@@ -43,7 +45,7 @@ const paramsFromWidgets = (): any => {
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-const dtsWorker = new Worker('build/dts-ww.js');
+const dtsWorker = new Worker();
 dtsWorker.onmessage = function(e) {
   $('canvas').innerHTML = e.data;
 }
@@ -109,7 +111,7 @@ const controlNSamples = new NumberControl({
   value: defaultParams['nsamples'],
   renderFn: renderFromWidgets,
   min: 10,
-  max: 20_000,
+  max: 200_000,
 });
 
 const controlOptIter = new NumberControl({
