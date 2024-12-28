@@ -217,6 +217,57 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var VideoStreamControl = class {
+    #wrapperEl;
+    #videoEl;
+    #canvasEl;
+    #ctx;
+    constructor(params) {
+      const fps = 0.1;
+      this.#createHtmlControl(params.name, params.label);
+      this.#wrapperEl = document.getElementById(`${params.name}-control`);
+      this.#videoEl = document.getElementById(`${params.name}-video`);
+      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      const contextOrNull = this.#canvasEl.getContext(
+        "2d",
+        { alpha: false, willReadFrequently: true }
+      );
+      if (!contextOrNull) throw "Failed to get context";
+      this.#ctx = contextOrNull;
+      navigator.mediaDevices.getUserMedia({
+        audio: false,
+        //        video: { width: 192, height: 108 },
+        video: { width: 1920, height: 1080 }
+      }).then((stream) => {
+        this.#videoEl.srcObject = stream;
+        this.#videoEl.play();
+      }).catch(function(e) {
+        console.log("An error with camera occured:", e.name);
+      });
+      window.setInterval(() => {
+        console.log(223, this.#videoEl);
+        this.#ctx.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        params.callback(this.#ctx);
+      }, 1e3 / fps);
+    }
+    #createHtmlControl(name, label) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`${label} <video id="${name}-upload" autoplay playsinline webkit-playsinline muted hidden></video>`);
+      html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`</div>`);
+      const anchorElement = document.getElementById("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
   var ImageUploadControl = class {
     #wrapperEl;
     #uploadEl;
