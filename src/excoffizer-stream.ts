@@ -18,7 +18,10 @@ class Excoffizer {
     this.#params = params;
     this.#params.tx = 1;
     this.#params.ty = 1;
-    const imageData: ImageData = this.#params.ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+    const imageData: ImageData = this.#params.context.getImageData(
+      0, 0,
+      params.canvasWidth, params.canvasHeight
+    );
     this.#inputPixmap = new Pixmap(imageData);
     this.#wiggleFrequency = this.#params.waviness/100.0;
     this.#wiggleAmplitude = this.#wiggleFrequency===0 ? 0 : 0.5/this.#wiggleFrequency;
@@ -212,6 +215,8 @@ type Params = {
   theta: number,
   width: number,
   height: number,
+  canvasWidth: number,
+  canvasHeight: number,
   margin: number
   waviness: number,
   lineHeight: number,
@@ -231,6 +236,8 @@ const defaultParams: Params = {
   theta: 3.58,
   width: 800,
   height: 800,
+  canvasWidth: 100,
+  canvasHeight: 100,
   margin: 10,
   waviness: 3.1,
   lineHeight: 3.4,
@@ -399,13 +406,14 @@ new SvgSaveControl({
 });
 
 
-
 new VideoStreamControl({
   name: 'inputStream',
   label: 'Stream',
-  callback: (context: CanvasRenderingContext2D) => {
+  callback: (context: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) => {
     const params = paramsFromWidgets();
     params.context = context;
+    params.canvasWidth = canvasWidth;
+    params.canvasHeight = canvasHeight;
     const excoffizator = new Excoffizer(params);
     $('canvas').innerHTML = excoffizator.excoffize();
     delete params.context; // don't put the whole image in the URL

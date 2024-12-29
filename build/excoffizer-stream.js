@@ -114,7 +114,7 @@
     #canvasEl;
     #ctx;
     constructor(params) {
-      const fps = 0.1;
+      const fps = 1;
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#videoEl = document.getElementById(`${params.name}-video`);
@@ -127,7 +127,6 @@
       this.#ctx = contextOrNull;
       navigator.mediaDevices.getUserMedia({
         audio: false,
-        //        video: { width: 192, height: 108 },
         video: { width: 1920, height: 1080 }
       }).then((stream) => {
         this.#videoEl.srcObject = stream;
@@ -136,7 +135,6 @@
         console.log("An error with camera occured:", e.name);
       });
       window.setInterval(() => {
-        console.log(223, this.#videoEl);
         this.#ctx.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
         params.callback(this.#ctx);
       }, 1e3 / fps);
@@ -144,7 +142,7 @@
     #createHtmlControl(name, label) {
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <video id="${name}-upload" autoplay playsinline webkit-playsinline muted hidden></video>`);
+      html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
       html.push(`<canvas id="${name}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
@@ -337,7 +335,12 @@
       this.#params = params;
       this.#params.tx = 1;
       this.#params.ty = 1;
-      const imageData = this.#params.ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+      const imageData = this.#params.context.getImageData(
+        0,
+        0,
+        params.canvasWidth,
+        params.canvasHeight
+      );
       this.#inputPixmap = new Pixmap(imageData);
       this.#wiggleFrequency = this.#params.waviness / 100;
       this.#wiggleAmplitude = this.#wiggleFrequency === 0 ? 0 : 0.5 / this.#wiggleFrequency;
@@ -495,6 +498,8 @@
     theta: 3.58,
     width: 800,
     height: 800,
+    canvasWidth: 100,
+    canvasHeight: 100,
     margin: 10,
     waviness: 3.1,
     lineHeight: 3.4,
@@ -636,9 +641,11 @@
   new VideoStreamControl({
     name: "inputStream",
     label: "Stream",
-    callback: (context) => {
+    callback: (context, canvasWidth, canvasHeight) => {
       const params = paramsFromWidgets();
       params.context = context;
+      params.canvasWidth = canvasWidth;
+      params.canvasHeight = canvasHeight;
       const excoffizator = new Excoffizer(params);
       $("canvas").innerHTML = excoffizator.excoffize();
       delete params.context;

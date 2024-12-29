@@ -239,7 +239,7 @@ class VideoStreamControl {
   #ctx: CanvasRenderingContext2D;
 
   constructor(params: any) {
-    const fps = 0.1;
+    const fps = 1;
     this.#createHtmlControl(params.name, params.label);
     
     this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
@@ -257,7 +257,6 @@ class VideoStreamControl {
     navigator.mediaDevices
       .getUserMedia({
         audio: false,
-        //        video: { width: 192, height: 108 },
         video: { width: 1920, height: 1080 },
       })
       .then((stream: MediaStream) => {
@@ -269,7 +268,6 @@ class VideoStreamControl {
       })
 
     window.setInterval(() => {
-      console.log(223, this.#videoEl);
       this.#ctx.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
       params.callback(this.#ctx);
     }, 1000 / fps);
@@ -278,7 +276,7 @@ class VideoStreamControl {
   #createHtmlControl(name: string, label: string) {
     const html = [];
     html.push(`<div class="control" id="${name}-control">`);
-    html.push(`${label} <video id="${name}-upload" autoplay playsinline webkit-playsinline muted hidden></video>`);
+    html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
     html.push(`<canvas id="${name}-canvas"></canvas>`);
     html.push(`</div>`);
     const anchorElement = document.getElementById('controls');
