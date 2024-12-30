@@ -112,19 +112,20 @@
     #wrapperEl;
     #videoEl;
     #canvasEl;
-    #ctx;
+    #callback;
     constructor(params) {
-      const fps = 1;
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#videoEl = document.getElementById(`${params.name}-video`);
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
-      const contextOrNull = this.#canvasEl.getContext(
+      this.#callback = params.callback;
+    }
+    async startStreaming() {
+      const context = this.#canvasEl.getContext(
         "2d",
         { alpha: false, willReadFrequently: true }
       );
-      if (!contextOrNull) throw "Failed to get context";
-      this.#ctx = contextOrNull;
+      if (!context) throw "Failed to get context";
       navigator.mediaDevices.getUserMedia({
         audio: false,
         video: { width: 1920, height: 1080 }
@@ -134,20 +135,23 @@
       }).catch(function(e) {
         console.log("An error with camera occured:", e.name);
       });
-      window.setInterval(() => {
-        this.#ctx.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-        params.callback(this.#ctx);
-      }, 1e3 / fps);
+      while (true) {
+        context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        this.#callback(context, this.#canvasEl.width, this.#canvasEl.height);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
     }
     #createHtmlControl(name, label) {
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
       html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
       html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`<button id="${name}-start">Start</button>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+        $(`${name}-start`).onclick = async () => await this.startStreaming();
       }
     }
     show() {
