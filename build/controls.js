@@ -221,13 +221,25 @@
     #wrapperEl;
     #videoEl;
     #canvasEl;
+    #startButtonEl;
     #callback;
     constructor(params) {
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#videoEl = document.getElementById(`${params.name}-video`);
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.#startButtonEl = document.getElementById(`${params.name}-start`);
       this.#callback = params.callback;
+    }
+    async pauseStreaming() {
+      this.#videoEl.pause();
+      this.#startButtonEl.innerText = "Restart";
+      this.#startButtonEl.onclick = async () => this.restartStreaming();
+    }
+    async restartStreaming() {
+      this.#videoEl.play();
+      this.#startButtonEl.innerText = "Pause";
+      this.#startButtonEl.onclick = async () => this.pauseStreaming();
     }
     async startStreaming() {
       const context = this.#canvasEl.getContext(
@@ -244,6 +256,8 @@
       }).catch(function(e) {
         console.log("An error with camera occured:", e.name);
       });
+      this.#startButtonEl.innerText = "Pause";
+      this.#startButtonEl.onclick = async () => await this.pauseStreaming();
       while (true) {
         context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
         this.#callback(context, this.#canvasEl.width, this.#canvasEl.height);
@@ -260,7 +274,9 @@
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
-        $(`${name}-start`).onclick = async () => await this.startStreaming();
+        $(`${name}-start`).onclick = async () => {
+          await this.startStreaming();
+        };
       }
     }
     show() {
