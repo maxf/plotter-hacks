@@ -258,11 +258,12 @@
       });
       this.#startButtonEl.innerText = "Pause";
       this.#startButtonEl.onclick = async () => await this.pauseStreaming();
-      while (true) {
+      const renderFrame = () => {
         context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
         this.#callback(context, this.#canvasEl.width, this.#canvasEl.height);
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
+        requestAnimationFrame(renderFrame);
+      };
+      renderFrame();
     }
     #createHtmlControl(name, label) {
       const html = [];

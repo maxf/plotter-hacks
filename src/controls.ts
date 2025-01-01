@@ -280,13 +280,14 @@ class VideoStreamControl {
       })
     this.#startButtonEl.innerText = 'Pause';
     this.#startButtonEl.onclick = async () => await this.pauseStreaming();
-    while(true) {
+
+    const renderFrame = () => {
       context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
       this.#callback(context, this.#canvasEl.width, this.#canvasEl.height);
+      requestAnimationFrame(renderFrame);
+    };
 
-      // Make the loop non-blocking by yielding to the event loop
-      await new Promise(resolve => setTimeout(resolve, 0));
-    }
+    renderFrame();
   }
 
   #createHtmlControl(name: string, label: string) {
