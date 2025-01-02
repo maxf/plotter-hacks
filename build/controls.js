@@ -261,6 +261,9 @@
     #canvasEl;
     #startButtonEl;
     #callback;
+    #isRunning;
+    #animationId;
+    #context;
     constructor(params) {
       super(params);
       this.#createHtmlControl(params.name, params.label);
@@ -269,23 +272,39 @@
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
       this.#startButtonEl = document.getElementById(`${params.name}-start`);
       this.#callback = params.callback;
+      this.#animationId = 0;
+      this.#isRunning = false;
+      this.#context = this.#canvasEl.getContext(
+        "2d",
+        { alpha: false, willReadFrequently: true }
+      );
     }
     async pauseStreaming() {
       this.#videoEl.pause();
       this.#startButtonEl.innerText = "Restart";
       this.#startButtonEl.onclick = async () => this.restartStreaming();
+      this.#isRunning = false;
+      if (this.#animationId) {
+        cancelAnimationFrame(this.#animationId);
+        this.#animationId = null;
+      }
     }
     async restartStreaming() {
       this.#videoEl.play();
       this.#startButtonEl.innerText = "Pause";
       this.#startButtonEl.onclick = async () => this.pauseStreaming();
+      this.#isRunning = true;
+      this.#animate();
+    }
+    #animate() {
+      this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+      this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
+      if (this.#isRunning) {
+        this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+      }
     }
     async startStreaming() {
-      const context = this.#canvasEl.getContext(
-        "2d",
-        { alpha: false, willReadFrequently: true }
-      );
-      if (!context) throw "Failed to get context";
+      if (!this.#context) throw "Failed to get context";
       navigator.mediaDevices.getUserMedia({
         audio: false,
         video: { width: 1920, height: 1080 }
@@ -297,12 +316,8 @@
       });
       this.#startButtonEl.innerText = "Pause";
       this.#startButtonEl.onclick = async () => await this.pauseStreaming();
-      const renderFrame = () => {
-        context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-        this.#callback(context, this.#canvasEl.width, this.#canvasEl.height);
-        requestAnimationFrame(renderFrame);
-      };
-      renderFrame();
+      this.#isRunning = true;
+      this.#animate();
     }
     #createHtmlControl(name, label) {
       const html = [];
