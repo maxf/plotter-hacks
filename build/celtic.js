@@ -1498,23 +1498,46 @@
     });
     return obj;
   }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
+  }
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var NumberControl = class {
+  var Control = class {
+    #name;
     #value;
+    constructor(params2) {
+      this.#name = params2.name;
+      this.#value = params2.value;
+      controls.push(this);
+    }
+    name() {
+      return this.#name;
+    }
+    setVal(val) {
+      this.#value = val;
+    }
+    val() {
+      return this.#value;
+    }
+  };
+  var NumberControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     #valueEl;
     constructor(params2) {
-      this.#value = params2.value;
+      super(params2);
       this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
       this.#widgetEl = $(params2.name);
       this.#valueEl = $(`${params2.name}-value`);
       this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = parseFloat(event.target.value);
-        this.#valueEl.innerText = this.#value.toString();
+        this.setVal(parseFloat(event.target.value));
+        this.#valueEl.innerText = this.val().toString();
+        updateUrlParam(this.name(), this.val());
         params2.renderFn();
       };
     }
@@ -1534,12 +1557,9 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -1548,19 +1568,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SelectControl = class {
-    #name;
-    #value;
+  var SelectControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params2) {
-      this.#name = params2.name;
-      this.#value = params2.value;
+      super(params2);
+      this.setVal(params2.value);
       this.#createHtmlControl(params2.name, params2.label, params2.value, params2.choices);
       this.#widgetEl = $(params2.name);
       this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.value;
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
         params2.renderFn.call(this);
       };
     }
@@ -1568,7 +1587,7 @@
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
       html.push(label);
-      html.push(`<select id="${this.#name}">`);
+      html.push(`<select id="${this.name()}">`);
       choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
       html.push("</select>");
       html.push("</div>");
@@ -1578,11 +1597,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue;
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -1591,17 +1607,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var CheckboxControl = class {
-    #value;
+  var CheckboxControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params2) {
-      this.#value = params2.value;
+      super(params2);
+      this.setVal(params2.value);
       this.#createHtmlControl(params2.name, params2.label, params2.value);
       this.#widgetEl = $(params2.name);
       this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.checked;
+        this.setVal(event.target.checked);
+        updateUrlParam(this.name(), this.val());
         params2.renderFn();
       };
     }
@@ -1616,11 +1633,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.checked = newValue;
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -1629,7 +1643,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SvgSaveControl = class {
+  var SvgSaveControl = class extends Control {
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
@@ -1643,6 +1657,7 @@
       }
     }
     constructor(params2) {
+      super(params2);
       this.#createHtmlControl(params2.name, params2.label);
       this.#wrapperEl = $(`${params2.name}-control`);
       $(params2.name).onclick = () => {
@@ -1675,6 +1690,7 @@
     const url = objectToQueryString(params2);
     history.pushState(null, "", url);
   };
+  var controls = [];
 
   // src/celtic.ts
   var assert = function(assertion) {
@@ -2137,24 +2153,24 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     </svg>
   `;
   };
-  var paramsFromWidgets = (controls2) => {
+  var paramsFromWidgets = (controls3) => {
     const params2 = { ...defaultParams };
-    params2.graphType = controls2.graphType.val();
-    params2.margin = controls2.margin.val();
-    params2.shape1 = controls2.shape1.val();
-    params2.shape2 = controls2.shape2.val();
-    params2.showGraph = controls2.showGraph.val();
-    params2.seed = controls2.seed.val();
-    params2.nbNodes = controls2.nbNodes.val();
-    params2.cells = controls2.cells.val();
-    params2.perturbation = controls2.perturbation.val();
-    params2.nbOrbits = controls2.nbOrbits.val();
-    params2.nbNodesPerOrbit = controls2.nbNodesPerOrbit.val();
+    params2.graphType = controls3.graphType.val();
+    params2.margin = controls3.margin.val();
+    params2.shape1 = controls3.shape1.val();
+    params2.shape2 = controls3.shape2.val();
+    params2.showGraph = controls3.showGraph.val();
+    params2.seed = controls3.seed.val();
+    params2.nbNodes = controls3.nbNodes.val();
+    params2.cells = controls3.cells.val();
+    params2.perturbation = controls3.perturbation.val();
+    params2.nbOrbits = controls3.nbOrbits.val();
+    params2.nbNodesPerOrbit = controls3.nbNodesPerOrbit.val();
     return params2;
   };
   var render = (params2) => {
     if (!params2) {
-      params2 = paramsFromWidgets(controls);
+      params2 = paramsFromWidgets(controls2);
     }
     params2.width ||= 800;
     params2.height ||= 800;
@@ -2163,19 +2179,19 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     activateControls(graphType.value);
     $("canvas").innerHTML = renderCeltic(params2);
   };
-  var controls = {};
-  controls.graphType = new SelectControl({
+  var controls2 = {};
+  controls2.graphType = new SelectControl({
     name: "graphType",
     label: "",
     value: defaultParams["graphType"],
     choices: ["Polar", "Grid", "Random"],
     renderFn: function() {
-      Object.values(controls).forEach((c) => c.hide());
-      paramsPerType[this.val()].forEach((name) => controls[name].show());
+      Object.values(controls2).forEach((c) => c.hide());
+      paramsPerType[this.val()].forEach((name) => controls2[name].show());
       render();
     }
   });
-  controls.margin = new NumberControl({
+  controls2.margin = new NumberControl({
     name: "margin",
     label: "Margin",
     value: defaultParams["margin"],
@@ -2183,7 +2199,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 0,
     max: 500
   });
-  controls.shape1 = new NumberControl({
+  controls2.shape1 = new NumberControl({
     name: "shape1",
     label: "Shape1",
     value: defaultParams["shape1"],
@@ -2192,7 +2208,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     max: 2,
     step: 0.01
   });
-  controls.shape2 = new NumberControl({
+  controls2.shape2 = new NumberControl({
     name: "shape2",
     label: "Shape2",
     value: defaultParams["shape2"],
@@ -2201,7 +2217,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     max: 2,
     step: 0.01
   });
-  controls.perturbation = new NumberControl({
+  controls2.perturbation = new NumberControl({
     name: "perturbation",
     label: "Perturbation",
     value: defaultParams["perturbation"],
@@ -2209,13 +2225,13 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 0,
     max: 300
   });
-  controls.showGraph = new CheckboxControl({
+  controls2.showGraph = new CheckboxControl({
     name: "showGraph",
     label: "Graph",
     value: defaultParams["showGraph"],
     renderFn: render
   });
-  controls.seed = new NumberControl({
+  controls2.seed = new NumberControl({
     name: "seed",
     label: "seed",
     value: defaultParams["seed"],
@@ -2223,7 +2239,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 0,
     max: 500
   });
-  controls.nbNodes = new NumberControl({
+  controls2.nbNodes = new NumberControl({
     name: "nbNodes",
     label: "Nodes",
     value: defaultParams["nbNodes"],
@@ -2231,7 +2247,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 3,
     max: 40
   });
-  controls.cells = new NumberControl({
+  controls2.cells = new NumberControl({
     name: "cells",
     label: "Cells",
     value: defaultParams["cells"],
@@ -2239,7 +2255,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 2,
     max: 100
   });
-  controls.nbOrbits = new NumberControl({
+  controls2.nbOrbits = new NumberControl({
     name: "nbOrbits",
     label: "Orbits",
     value: defaultParams["nbOrbits"],
@@ -2247,7 +2263,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 1,
     max: 20
   });
-  controls.nbNodesPerOrbit = new NumberControl({
+  controls2.nbNodesPerOrbit = new NumberControl({
     name: "nbNodesPerOrbit",
     label: "Nodes per orbit",
     value: defaultParams["nbNodesPerOrbit"],
@@ -2255,7 +2271,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     min: 3,
     max: 20
   });
-  controls.svgSave = new SvgSaveControl({
+  controls2.svgSave = new SvgSaveControl({
     name: "svgSave",
     canvasId: "svg-canvas",
     label: "Save SVG",
@@ -2267,16 +2283,16 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     Polar: ["seed", "graphType", "margin", "showGraph", "shape1", "shape2", "nbOrbits", "nbNodesPerOrbit", "perturbation", "svgSave"]
   };
   var activateControls = (graphType) => {
-    Object.values(controls).forEach((c) => c.hide());
-    paramsPerType[graphType].forEach((name) => controls[name].show());
+    Object.values(controls2).forEach((c) => c.hide());
+    paramsPerType[graphType].forEach((name) => controls2[name].show());
   };
   var params = paramsFromUrl(defaultParams);
   activateControls(params.graphType);
   Object.keys(params).forEach((key) => {
-    if (key in controls) {
+    if (key in controls2) {
       const index = key;
       const paramValue = params[index];
-      controls[key].set(paramValue);
+      controls2[key].set(paramValue);
     }
   });
   $("canvas").innerHTML = renderCeltic(params);

@@ -48,23 +48,46 @@
     });
     return obj;
   }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
+  }
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var NumberControl = class {
+  var Control = class {
+    #name;
     #value;
+    constructor(params) {
+      this.#name = params.name;
+      this.#value = params.value;
+      controls.push(this);
+    }
+    name() {
+      return this.#name;
+    }
+    setVal(val) {
+      this.#value = val;
+    }
+    val() {
+      return this.#value;
+    }
+  };
+  var NumberControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     #valueEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
       this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
       this.#widgetEl = $(params.name);
       this.#valueEl = $(`${params.name}-value`);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = parseFloat(event.target.value);
-        this.#valueEl.innerText = this.#value.toString();
+        this.setVal(parseFloat(event.target.value));
+        this.#valueEl.innerText = this.val().toString();
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -84,12 +107,9 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -98,17 +118,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var CheckboxControl = class {
-    #value;
+  var CheckboxControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
+      this.setVal(params.value);
       this.#createHtmlControl(params.name, params.label, params.value);
       this.#widgetEl = $(params.name);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.checked;
+        this.setVal(event.target.checked);
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -123,11 +144,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.checked = newValue;
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -136,7 +154,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SvgSaveControl = class {
+  var SvgSaveControl = class extends Control {
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
@@ -150,6 +168,7 @@
       }
     }
     constructor(params) {
+      super(params);
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = $(`${params.name}-control`);
       $(params.name).onclick = () => {
@@ -174,19 +193,20 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var ImageUploadControl = class {
+  var ImageUploadControl = class extends Control {
     #wrapperEl;
     #uploadEl;
     #canvasEl;
     #imageUrl;
     constructor(params) {
+      super(params);
       this.#imageUrl = params.value;
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#uploadEl = document.getElementById(`${params.name}-upload`);
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
       this.loadImage(this.#imageUrl, () => {
-        params.firstCallback(this);
+        params.callback(this);
       });
       this.#uploadEl.onchange = () => {
         const file = this.#uploadEl.files[0];
@@ -239,7 +259,7 @@
     imageUrl() {
       return this.#imageUrl;
     }
-    canvasEl() {
+    canvas() {
       return this.#canvasEl;
     }
     show() {
@@ -257,6 +277,7 @@
     const url = objectToQueryString(params);
     history.pushState(null, "", url);
   };
+  var controls = [];
 
   // src/dts.ts
   var defaultParams = {
@@ -322,7 +343,7 @@
     firstCallback: renderFromQsp,
     callback: renderFromWidgets
   });
-  canvas = imageUpload.canvasEl();
+  canvas = imageUpload.canvas();
   ctx = canvas.getContext("2d");
   var controlSeed = new NumberControl({
     name: "seed",

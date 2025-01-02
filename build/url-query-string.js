@@ -48,4 +48,32 @@
     });
     return obj;
   }
+  function paramFromQueryString(name, queryString) {
+    const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
+    const params = new URLSearchParams(query);
+    if (params.has(name)) {
+      const value = params.get(name);
+      if (value === null) return null;
+      try {
+        return JSON.parse(value);
+      } catch {
+      }
+      if (!isNaN(Number(value))) {
+        return Number(value);
+      }
+      if (value.toLowerCase() === "true") {
+        return true;
+      }
+      if (value.toLowerCase() === "false") {
+        return false;
+      }
+      return value.toString();
+    }
+    return void 0;
+  }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
+  }
 })();

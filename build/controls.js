@@ -48,23 +48,69 @@
     });
     return obj;
   }
+  function paramFromQueryString(name, queryString) {
+    const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
+    const params = new URLSearchParams(query);
+    if (params.has(name)) {
+      const value = params.get(name);
+      if (value === null) return null;
+      try {
+        return JSON.parse(value);
+      } catch {
+      }
+      if (!isNaN(Number(value))) {
+        return Number(value);
+      }
+      if (value.toLowerCase() === "true") {
+        return true;
+      }
+      if (value.toLowerCase() === "false") {
+        return false;
+      }
+      return value.toString();
+    }
+    return void 0;
+  }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
+  }
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var NumberControl = class {
+  var Control = class {
+    #name;
     #value;
+    constructor(params) {
+      this.#name = params.name;
+      this.#value = params.value;
+      controls.push(this);
+    }
+    name() {
+      return this.#name;
+    }
+    setVal(val) {
+      this.#value = val;
+    }
+    val() {
+      return this.#value;
+    }
+  };
+  var NumberControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     #valueEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
       this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
       this.#widgetEl = $(params.name);
       this.#valueEl = $(`${params.name}-value`);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = parseFloat(event.target.value);
-        this.#valueEl.innerText = this.#value.toString();
+        this.setVal(parseFloat(event.target.value));
+        this.#valueEl.innerText = this.val().toString();
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -84,12 +130,9 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -98,19 +141,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SelectControl = class {
-    #name;
-    #value;
+  var SelectControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params) {
-      this.#name = params.name;
-      this.#value = params.value;
+      super(params);
+      this.setVal(params.value);
       this.#createHtmlControl(params.name, params.label, params.value, params.choices);
       this.#widgetEl = $(params.name);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.value;
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
         params.renderFn.call(this);
       };
     }
@@ -118,7 +160,7 @@
       const html = [];
       html.push(`<div class="control" id="${name}-control">`);
       html.push(label);
-      html.push(`<select id="${this.#name}">`);
+      html.push(`<select id="${this.name()}">`);
       choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
       html.push("</select>");
       html.push("</div>");
@@ -128,11 +170,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue;
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -141,17 +180,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var CheckboxControl = class {
-    #value;
+  var CheckboxControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
+      this.setVal(params.value);
       this.#createHtmlControl(params.name, params.label, params.value);
       this.#widgetEl = $(params.name);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.checked;
+        this.setVal(event.target.checked);
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -166,11 +206,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.checked = newValue;
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -179,7 +216,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SvgSaveControl = class {
+  var SvgSaveControl = class extends Control {
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
@@ -193,6 +230,7 @@
       }
     }
     constructor(params) {
+      super(params);
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = $(`${params.name}-control`);
       $(params.name).onclick = () => {
@@ -217,13 +255,14 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var VideoStreamControl = class {
+  var VideoStreamControl = class extends Control {
     #wrapperEl;
     #videoEl;
     #canvasEl;
     #startButtonEl;
     #callback;
     constructor(params) {
+      super(params);
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#videoEl = document.getElementById(`${params.name}-video`);
@@ -287,19 +326,20 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var ImageUploadControl = class {
+  var ImageUploadControl = class extends Control {
     #wrapperEl;
     #uploadEl;
     #canvasEl;
     #imageUrl;
     constructor(params) {
+      super(params);
       this.#imageUrl = params.value;
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#uploadEl = document.getElementById(`${params.name}-upload`);
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
       this.loadImage(this.#imageUrl, () => {
-        params.firstCallback(this);
+        params.callback(this);
       });
       this.#uploadEl.onchange = () => {
         const file = this.#uploadEl.files[0];
@@ -352,7 +392,7 @@
     imageUrl() {
       return this.#imageUrl;
     }
-    canvasEl() {
+    canvas() {
       return this.#canvasEl;
     }
     show() {
@@ -370,17 +410,18 @@
     const url = objectToQueryString(params);
     history.pushState(null, "", url);
   };
-  var TextControl = class {
-    #value;
+  var TextControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
+      this.setVal(params.value);
       this.#createHtmlControl(params.name, params.label, params.value);
       this.#widgetEl = $(params.name);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.value;
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -398,11 +439,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -410,5 +448,29 @@
     hide() {
       this.#wrapperEl.style.display = "none";
     }
+  };
+  var controls = [];
+  var getParams = function(defaults) {
+    const params = {};
+    controls.forEach((control) => {
+      const key = control.name();
+      let value = paramFromQueryString(
+        control.name(),
+        window.location.search
+      );
+      if (value) {
+        params[key] = value;
+        control.setVal(value);
+      } else {
+        value = control.val();
+        if (value) {
+          params[key] = control.val();
+          updateUrlParam(key, params[key]);
+        } else {
+          params[key] = defaults[key];
+        }
+      }
+    });
+    return params;
   };
 })();

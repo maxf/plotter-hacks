@@ -774,23 +774,46 @@
     });
     return obj;
   }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
+  }
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var NumberControl = class {
+  var Control = class {
+    #name;
     #value;
+    constructor(params2) {
+      this.#name = params2.name;
+      this.#value = params2.value;
+      controls.push(this);
+    }
+    name() {
+      return this.#name;
+    }
+    setVal(val) {
+      this.#value = val;
+    }
+    val() {
+      return this.#value;
+    }
+  };
+  var NumberControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     #valueEl;
     constructor(params2) {
-      this.#value = params2.value;
+      super(params2);
       this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
       this.#widgetEl = $(params2.name);
       this.#valueEl = $(`${params2.name}-value`);
       this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = parseFloat(event.target.value);
-        this.#valueEl.innerText = this.#value.toString();
+        this.setVal(parseFloat(event.target.value));
+        this.#valueEl.innerText = this.val().toString();
+        updateUrlParam(this.name(), this.val());
         params2.renderFn();
       };
     }
@@ -810,12 +833,9 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -824,7 +844,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SvgSaveControl = class {
+  var SvgSaveControl = class extends Control {
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
@@ -838,6 +858,7 @@
       }
     }
     constructor(params2) {
+      super(params2);
       this.#createHtmlControl(params2.name, params2.label);
       this.#wrapperEl = $(`${params2.name}-control`);
       $(params2.name).onclick = () => {
@@ -870,17 +891,18 @@
     const url = objectToQueryString(params2);
     history.pushState(null, "", url);
   };
-  var TextControl = class {
-    #value;
+  var TextControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params2) {
-      this.#value = params2.value;
+      super(params2);
+      this.setVal(params2.value);
       this.#createHtmlControl(params2.name, params2.label, params2.value);
       this.#widgetEl = $(params2.name);
       this.#wrapperEl = $(`${params2.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.value;
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
         params2.renderFn();
       };
     }
@@ -898,11 +920,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -911,6 +930,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var controls = [];
 
   // src/boids.ts
   var defaultParams = {
@@ -1146,16 +1166,16 @@
   };
   var paramsFromWidgets = () => {
     const params2 = { ...defaultParams };
-    params2.zoom = controls.zoom.val();
-    params2.seed = controls.seed.val();
-    params2.nboids = controls.nboids.val();
-    params2.speedLimit = controls.speedLimit.val();
-    params2.cohesionForce = controls.cohesionForce.val();
-    params2.cohesionDistance = controls.cohesionDistance.val();
-    params2.iterations = controls.iterations.val();
-    params2.startIteration = controls.startIteration.val();
-    params2.nbAttractors = controls.nbAttractors.val();
-    params2.cssStyle = controls.cssStyle.val();
+    params2.zoom = controls2.zoom.val();
+    params2.seed = controls2.seed.val();
+    params2.nboids = controls2.nboids.val();
+    params2.speedLimit = controls2.speedLimit.val();
+    params2.cohesionForce = controls2.cohesionForce.val();
+    params2.cohesionDistance = controls2.cohesionDistance.val();
+    params2.iterations = controls2.iterations.val();
+    params2.startIteration = controls2.startIteration.val();
+    params2.nbAttractors = controls2.nbAttractors.val();
+    params2.cssStyle = controls2.cssStyle.val();
     return params2;
   };
   var render = (params2) => {
@@ -1167,7 +1187,7 @@
     updateUrl(params2);
     $("canvas").innerHTML = renderBoids(params2);
   };
-  var controls = {
+  var controls2 = {
     zoom: new NumberControl({
       name: "zoom",
       label: "Zoom",
@@ -1193,16 +1213,16 @@
     })
   };
   var params = paramsFromUrl(defaultParams);
-  controls.zoom.set(params.zoom);
-  controls.seed.set(params.seed);
-  controls.cohesionForce.set(params.cohesionForce);
-  controls.cohesionDistance.set(params.cohesionDistance);
-  controls.iterations.set(params.iterations);
-  controls.startIteration.set(params.startIteration);
-  controls.speedLimit.set(params.speedLimit);
-  controls.nboids.set(params.nboids);
-  controls.nbAttractors.set(params.nbAttractors);
-  controls.cssStyle.set(params.cssStyle);
+  controls2.zoom.set(params.zoom);
+  controls2.seed.set(params.seed);
+  controls2.cohesionForce.set(params.cohesionForce);
+  controls2.cohesionDistance.set(params.cohesionDistance);
+  controls2.iterations.set(params.iterations);
+  controls2.startIteration.set(params.startIteration);
+  controls2.speedLimit.set(params.speedLimit);
+  controls2.nboids.set(params.nboids);
+  controls2.nbAttractors.set(params.nbAttractors);
+  controls2.cssStyle.set(params.cssStyle);
   updateUrl(params);
   $("canvas").innerHTML = renderBoids(params);
 })();

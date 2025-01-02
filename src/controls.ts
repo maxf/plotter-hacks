@@ -1,33 +1,43 @@
-import { objectToQueryString, queryStringToObject } from './url-query-string';
+import { objectToQueryString, queryStringToObject, paramFromQueryString, updateUrlParam } from './url-query-string';
 
 const $ = (id: string) => document.getElementById(id)!;
 
+class Control {
+  #name: string;
+  #value: any;
 
-class NumberControl {
-  #value: number;
+  constructor(params: any) {
+    this.#name = params.name;
+    this.#value = params.value;
+    controls.push(this);
+  }
+  name(): string {
+    return this.#name;
+  }
+  setVal(val: any) {
+    this.#value = val;
+  }
+  val(): any {
+    return this.#value;
+  }
+}
+
+class NumberControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
   #valueEl: HTMLSpanElement;
 
   constructor(params: any) {
-
-    //name: string,
-    //label: string,
-    //value: number,
-    //min: number,
-    //max: number,
-    //step: number:
-    //renderFn: any
-
-    this.#value = params.value;
+    super(params);
     this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
     this.#widgetEl = $(params.name) as HTMLInputElement;
     this.#valueEl = $(`${params.name}-value`) as HTMLSpanElement;
     this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
-      this.#value = parseFloat((event.target as HTMLInputElement).value);
-      this.#valueEl.innerText = this.#value.toString();
+      this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
+      this.#valueEl.innerText = this.val().toString();
+      updateUrlParam(this.name(), this.val());
       params.renderFn();
     };
   }
@@ -50,72 +60,9 @@ class NumberControl {
   }
 
   set(newValue: number) {
-    this.#value = newValue;
+    this.setVal(newValue);
     this.#widgetEl.value = newValue.toString(); // TODO: clamp to min/max
     this.#valueEl.innerText = newValue.toString();
-  }
-
-  val(): number {
-    return this.#value;
-  }  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
-  }
-}
-
-
-class SelectControl {
-  #name: string;
-  #value: string;
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
-
-  constructor(params: any) {
-
-    //name: string,
-    //label: string,
-    //value: number,
-    //renderFn: any
-    //choices: string[]
-
-    this.#name = params.name;
-    this.#value = params.value;
-    this.#createHtmlControl(params.name, params.label, params.value, params.choices);
-    this.#widgetEl = $(params.name) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
-
-    this.#widgetEl.onchange = event => {
-      this.#value = (event.target as HTMLInputElement).value;
-      params.renderFn.call(this);
-    };
-  }
-
-  #createHtmlControl(name: string, label: string, value: string, choices: string[]) {
-    const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
-    html.push(label);
-    html.push(`<select id="${this.#name}">`);
-    choices.forEach((choice: string) =>
-      html.push(`<option ${choice===value ? 'selected' : ''}>${choice}</option>`));
-    html.push('</select>');
-    html.push('</div>');
-    // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
-    if (anchorElement) {
-      anchorElement.insertAdjacentHTML('beforeend', html.join(''));
-    }
-  }
-
-  set(newValue: string) {
-    this.#value = newValue;
-    this.#widgetEl.value = newValue;
-  }
-
-  val(): string {
-    return this.#value;
   }
 
   show() {
@@ -128,25 +75,69 @@ class SelectControl {
 }
 
 
-class CheckboxControl {
-  #value: boolean;
+class SelectControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
 
   constructor(params: any) {
+    super(params);
+    this.setVal(params.value);
+    this.#createHtmlControl(params.name, params.label, params.value, params.choices);
+    this.#widgetEl = $(params.name) as HTMLInputElement;
+    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
 
-    //name: string,
-    //label: string,
-    //value: boolean,
-    //renderFn: any
+    this.#widgetEl.onchange = event => {
+      this.setVal((event.target as HTMLInputElement).value);
+      updateUrlParam(this.name(), this.val());
+      params.renderFn.call(this);
+    };
+  }
 
-    this.#value = params.value;
+  #createHtmlControl(name: string, label: string, value: string, choices: string[]) {
+    const html = [];
+    html.push(`<div class="control" id="${name}-control">`);
+    html.push(label);
+    html.push(`<select id="${this.name()}">`);
+    choices.forEach((choice: string) =>
+      html.push(`<option ${choice===value ? 'selected' : ''}>${choice}</option>`));
+    html.push('</select>');
+    html.push('</div>');
+    // Find the anchor element and insert the constructed HTML as the last child
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html.join(''));
+    }
+  }
+
+  set(newValue: string) {
+    this.setVal(newValue);
+    this.#widgetEl.value = newValue;
+  }
+
+  show() {
+    this.#wrapperEl.style.display = 'block';
+  }
+
+  hide() {
+    this.#wrapperEl.style.display = 'none';
+  }
+}
+
+
+class CheckboxControl extends Control {
+  #wrapperEl: HTMLDivElement;
+  #widgetEl: HTMLInputElement;
+
+  constructor(params: any) {
+    super(params)
+    this.setVal(params.value);
     this.#createHtmlControl(params.name, params.label, params.value);
     this.#widgetEl = $(params.name) as HTMLInputElement;
     this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
-      this.#value = (event.target as HTMLInputElement).checked;
+      this.setVal((event.target as HTMLInputElement).checked);
+      updateUrlParam(this.name(), this.val());
       params.renderFn();
     };
   }
@@ -165,12 +156,8 @@ class CheckboxControl {
   }
 
   set(newValue: boolean) {
-    this.#value = newValue;
+    this.setVal(newValue);
     this.#widgetEl.checked = newValue;
-  }
-
-  val(): boolean {
-    return this.#value;
   }
 
   show() {
@@ -183,7 +170,7 @@ class CheckboxControl {
 }
 
 
-class SvgSaveControl {
+class SvgSaveControl extends Control {
   #wrapperEl: HTMLSpanElement;
 
   #createHtmlControl(name: string, label: string) {
@@ -199,9 +186,7 @@ class SvgSaveControl {
   }
 
   constructor(params: any) {
-    // params:
-    //   name, canvasId, label, saveFilename
-
+    super(params)
     this.#createHtmlControl(params.name, params.label);
     this.#wrapperEl = $(`${params.name}-control`) as HTMLSpanElement;
 
@@ -220,6 +205,7 @@ class SvgSaveControl {
       document.body.removeChild(downloadLink);
     }
   }
+  
   show() {
     this.#wrapperEl.style.display = 'block';
   }
@@ -230,7 +216,7 @@ class SvgSaveControl {
 }
 
 
-class VideoStreamControl {
+class VideoStreamControl extends Control {
   #wrapperEl: HTMLDivElement;
   #videoEl: HTMLVideoElement;
   #canvasEl: HTMLCanvasElement;
@@ -238,12 +224,12 @@ class VideoStreamControl {
   #callback: any;
 
   constructor(params: any) {
+    super(params);
     this.#createHtmlControl(params.name, params.label);
     this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
     this.#videoEl = document.getElementById(`${params.name}-video`) as HTMLVideoElement;
     this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
     this.#startButtonEl = document.getElementById(`${params.name}-start`) as HTMLButtonElement;
-
     this.#callback = params.callback;
   }
 
@@ -315,13 +301,14 @@ class VideoStreamControl {
   }
 }
 
-class ImageUploadControl {
+class ImageUploadControl extends Control {
   #wrapperEl: HTMLDivElement;
   #uploadEl: HTMLInputElement;
   #canvasEl: HTMLCanvasElement;
   #imageUrl: string;
 
   constructor(params: any) {
+    super(params);
     this.#imageUrl = params.value;
     this.#createHtmlControl(params.name, params.label);
 
@@ -329,7 +316,7 @@ class ImageUploadControl {
     this.#uploadEl = document.getElementById(`${params.name}-upload`) as HTMLInputElement;
     this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
     this.loadImage(this.#imageUrl, () => {
-      params.firstCallback(this);
+      params.callback(this);
     });
 
     this.#uploadEl.onchange = () => {
@@ -388,7 +375,7 @@ class ImageUploadControl {
     return this.#imageUrl;
   }
 
-  canvasEl(): HTMLCanvasElement {
+  canvas(): HTMLCanvasElement {
     return this.#canvasEl;
   }
 
@@ -413,18 +400,19 @@ const updateUrl = (params: any) => {
 };
 
 
-class TextControl {
-  #value: string;
+class TextControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
 
   constructor(params: any) {
-    this.#value = params.value;
+    super(params);
+    this.setVal(params.value);
     this.#createHtmlControl(params.name, params.label, params.value);
     this.#widgetEl = $(params.name) as HTMLInputElement;
     this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
     this.#widgetEl.onchange = event => {
-      this.#value = (event.target as HTMLInputElement).value;
+      this.setVal((event.target as HTMLInputElement).value);
+      updateUrlParam(this.name(), this.val());
       params.renderFn();
     };
   }
@@ -445,12 +433,8 @@ class TextControl {
   }
 
   set(newValue: string) {
-    this.#value = newValue;
+    this.setVal(newValue);
     this.#widgetEl.value = newValue.toString();
-  }
-
-  val(): string {
-    return this.#value;
   }
 
   show() {
@@ -460,6 +444,32 @@ class TextControl {
   hide() {
     this.#wrapperEl.style.display = 'none';
   }
+}
+
+const controls: Control[] = [];
+
+const getParams = function(defaults: any) {
+  const params: Record<string, any> = {};
+  controls.forEach((control: Control) => {
+    const key: string = control.name();
+    let value = paramFromQueryString(
+      control.name(),
+      window.location.search
+    );
+    if (value) {
+      params[key] = value;
+      control.setVal(value);
+    } else {
+      value = control.val();
+      if (value) {
+        params[key] = control.val();
+        updateUrlParam(key, params[key]);
+      } else {
+        params[key] = defaults[key];
+      }
+    }
+  });
+  return params;
 }
 
 
@@ -473,5 +483,6 @@ export {
   TextControl,
   paramsFromUrl,
   updateUrl,
+  getParams,
   $
 };

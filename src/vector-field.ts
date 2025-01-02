@@ -62,7 +62,7 @@ const imageUpload = new ImageUploadControl({
   callback: renderFromWidgets
 });
 
-canvas = imageUpload.canvasEl();
+canvas = imageUpload.canvas();
 ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 const controlCutoff = new NumberControl({

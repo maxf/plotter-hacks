@@ -1,3 +1,4 @@
+
 /**
  * Converts an object to a query string.
  * - Numbers, strings, and booleans are added directly.
@@ -87,4 +88,45 @@ function queryStringToObject(queryString: string): Record<string, any> {
   return obj;
 }
 
-export { objectToQueryString, queryStringToObject };
+
+function paramFromQueryString(name: string, queryString: string): any {
+  // Remove the leading '?' if present
+  const query = queryString.startsWith('?') ? queryString.slice(1) : queryString;
+  const params = new URLSearchParams(query);
+  if (params.has(name)) {
+    const value = params.get(name);
+    if (value === null) return null;
+
+    // Try to parse as JSON
+    try {
+      return JSON.parse(value);
+    } catch {
+      // Not JSON, continue
+    }
+
+    // Try to parse as number
+    if (!isNaN(Number(value))) {
+      return Number(value);
+    }
+
+    // Check for boolean values
+    if (value.toLowerCase() === 'true') {
+      return true;
+    }
+    if (value.toLowerCase() === 'false') {
+      return false;
+    }
+
+    // Default to string
+    return value.toString();
+  }
+  return undefined;
+}
+
+function updateUrlParam(key: string, value: any) {
+  const url = new URL(window.location.href);
+  url.searchParams.set(key, value);
+  history.replaceState(null, '', url.toString());
+}
+
+export { objectToQueryString, queryStringToObject, paramFromQueryString, updateUrlParam };

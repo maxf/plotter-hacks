@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, ImageUploadControl, SvgSaveControl, paramsFromUrl, updateUrl,  TextControl, $ } from './controls';
+import { NumberControl, ImageUploadControl, SvgSaveControl, TextControl, $, getParams } from './controls';
 import { Pixmap } from './pixmap';
 
 
@@ -14,17 +14,17 @@ class Excoffizer {
   #cutoff: number;
   #style: string;
 
-  constructor(params: any) {
+  constructor(params: any, inputCanvas: HTMLCanvasElement) {
     this.#params = params;
     this.#params.tx = 1;
     this.#params.ty = 1;
-    const ctx = params.inputCanvas.getContext('2d') as CanvasRenderingContext2D;
-    const imageData: ImageData = ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+    const ctx = inputCanvas.getContext('2d') as CanvasRenderingContext2D;
+    const imageData: ImageData = ctx.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
     this.#inputPixmap = new Pixmap(imageData);
     this.#wiggleFrequency = this.#params.waviness/100.0;
     this.#wiggleAmplitude = this.#wiggleFrequency===0 ? 0 : 0.5/this.#wiggleFrequency;
     this.#blur = params.blur;
-    this.#outputWidth = params.width;
+    this.#outputWidth = 800;
     this.#cutoff = params.cutoff;
     this.#style = params.style;
   }
@@ -210,7 +210,6 @@ class Excoffizer {
 
 type Params = {
   inputImageUrl: string,
-  inputCanvas?: HTMLCanvasElement,
   theta: number,
   width: number,
   height: number,
@@ -248,42 +247,16 @@ const defaultParams: Params = {
   style: "stroke: black; stroke-width: 1; fill: none"
 };
 
-
-const paramsFromWidgets = () => {
-  const params: Params = {...defaultParams};
-  if (controlInputImage) {
-    params.inputImageUrl = (controlInputImage as ImageUploadControl).imageUrl() as string;
-    params.inputCanvas = (controlInputImage as ImageUploadControl).canvasEl();
-  }
-  params.theta = controlTheta.val() as number;
-  params.margin = controlMargin.val() as number;
-  params.waviness = controlWaviness.val() as number;
-  params.lineHeight = controlLineHeight.val() as number;
-  params.density = controlDensity.val() as number;
-  params.thickness = controlThickness.val() as number;
-  params.sx = controlSx.val() as number;
-  params.sy = controlSy.val() as number;
-  params.blur = controlBlur.val() as number;
-  params.cutoff = controlCutoff.val() as number;
-  params.style = controlStyle.val() as string;
-  return params;
-};
-
-
-const render = (params?: any) => {
-  if (!params) {
-    params = paramsFromWidgets();
-  }
-  params.width ||= 800;
-  params.height ||= 800;
-  const excoffizator = new Excoffizer(params);
-  delete params.inputCanvas; // don't put the whole image in the URL
-  updateUrl(params);
+const render = () => {
+  const params = getParams(defaultParams);
+  params['width'] ||= 800;
+  params['height'] ||= 800;
+  const excoffizator = new Excoffizer(params, imageUpload.canvas());
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
 
-const controlMargin = new NumberControl({
+new NumberControl({
   name: 'margin',
   label: 'Margin',
   value: defaultParams['margin'],
@@ -293,7 +266,7 @@ const controlMargin = new NumberControl({
 });
 
 
-const controlStyle = new TextControl({
+new TextControl({
   name: 'style',
   label: 'CSS Style',
   value: defaultParams['style'],
@@ -301,7 +274,7 @@ const controlStyle = new TextControl({
 });
 
 
-const controlTheta = new NumberControl({
+new NumberControl({
   name: 'theta',
   label: 'Angle',
   value: defaultParams['theta'],
@@ -312,7 +285,7 @@ const controlTheta = new NumberControl({
 });
 
 
-const controlWaviness = new NumberControl({
+new NumberControl({
   name: 'waviness',
   label: 'Waviness',
   value: defaultParams['waviness'],
@@ -323,7 +296,7 @@ const controlWaviness = new NumberControl({
 });
 
 
-const controlLineHeight = new NumberControl({
+new NumberControl({
   name: 'lineHeight',
   label: 'Line height',
   value: defaultParams['lineHeight'],
@@ -334,7 +307,7 @@ const controlLineHeight = new NumberControl({
 });
 
 
-const controlDensity = new NumberControl({
+new NumberControl({
   name: 'density',
   label: 'Density',
   value: defaultParams['density'],
@@ -345,7 +318,8 @@ const controlDensity = new NumberControl({
 });
 
 
-const controlThickness = new NumberControl({
+new NumberControl({
+  name: 'thickness',
   label: 'Thickness',
   value: defaultParams['thickness'],
   renderFn: render,
@@ -355,7 +329,7 @@ const controlThickness = new NumberControl({
 });
 
 
-const controlSx = new NumberControl({
+new NumberControl({
   name: 'sx',
   label: 'Stretch X',
   value: defaultParams['sx'],
@@ -366,7 +340,7 @@ const controlSx = new NumberControl({
 });
 
 
-const controlSy = new NumberControl({
+new NumberControl({
   name: 'sy',
   label: 'Stretch Y',
   value: defaultParams['sy'],
@@ -377,7 +351,7 @@ const controlSy = new NumberControl({
 });
 
 
-const controlBlur = new NumberControl({
+new NumberControl({
   name: 'blur',
   label: 'Blur',
   value: defaultParams['blur'],
@@ -387,7 +361,7 @@ const controlBlur = new NumberControl({
 });
 
 
-const controlCutoff = new NumberControl({
+new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
@@ -406,34 +380,9 @@ new SvgSaveControl({
 });
 
 
-const controlInputImage = new ImageUploadControl({
+const imageUpload = new ImageUploadControl({
   name: 'inputImage',
   label: 'Image',
   value: defaultParams['inputImageUrl'],
-  firstCallback: (instance: ImageUploadControl) => {
-    const params = paramsFromUrl(defaultParams);
-    controlTheta.set(params.theta);
-    controlMargin.set(params.margin);
-    controlWaviness.set(params.waviness);
-    controlLineHeight.set(params.lineHeight);
-    controlDensity.set(params.density);
-    controlThickness.set(params.thickness);
-    controlCutoff.set(params.cutoff);
-    controlSx.set(params.sx);
-    controlSy.set(params.sy);
-    controlBlur.set(params.blur);
-    params.inputCanvas = instance.canvasEl();
-    const excoffizator = new Excoffizer(params);
-    $('canvas').innerHTML = excoffizator.excoffize();
-    delete params.inputCanvas; // don't put the whole image in the URL
-    updateUrl(params);
-  },
-  callback: (instance: ImageUploadControl) => {
-    const params = paramsFromWidgets();
-    params.inputCanvas = instance.canvasEl();
-    const excoffizator = new Excoffizer(params);
-    $('canvas').innerHTML = excoffizator.excoffize();
-    delete params.inputCanvas; // don't put the whole image in the URL
-    updateUrl(params);
-  }
+  callback: render
 });

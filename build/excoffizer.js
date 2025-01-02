@@ -1,70 +1,69 @@
 "use strict";
 (() => {
   // src/url-query-string.ts
-  function objectToQueryString(obj) {
-    const params = new URLSearchParams();
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const value = obj[key];
-        let paramValue;
-        if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
-          paramValue = String(value);
-        } else if (typeof value === "object") {
-          paramValue = JSON.stringify(value);
-        } else {
-          continue;
-        }
-        params.append(key, paramValue);
-      }
-    }
-    const queryString = params.toString();
-    return queryString ? `?${queryString}` : "";
-  }
-  function queryStringToObject(queryString) {
-    const obj = {};
+  function paramFromQueryString(name, queryString) {
     const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
     const params = new URLSearchParams(query);
-    params.forEach((value, key) => {
-      let parsedValue;
+    if (params.has(name)) {
+      const value = params.get(name);
+      if (value === null) return null;
       try {
-        parsedValue = JSON.parse(value);
-        obj[key] = parsedValue;
-        return;
+        return JSON.parse(value);
       } catch {
       }
       if (!isNaN(Number(value))) {
-        obj[key] = Number(value);
-        return;
+        return Number(value);
       }
       if (value.toLowerCase() === "true") {
-        obj[key] = true;
-        return;
+        return true;
       }
       if (value.toLowerCase() === "false") {
-        obj[key] = false;
-        return;
+        return false;
       }
-      obj[key] = value;
-    });
-    return obj;
+      return value.toString();
+    }
+    return void 0;
+  }
+  function updateUrlParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    history.replaceState(null, "", url.toString());
   }
 
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
-  var NumberControl = class {
+  var Control = class {
+    #name;
     #value;
+    constructor(params) {
+      this.#name = params.name;
+      this.#value = params.value;
+      controls.push(this);
+    }
+    name() {
+      return this.#name;
+    }
+    setVal(val) {
+      this.#value = val;
+    }
+    val() {
+      return this.#value;
+    }
+  };
+  var NumberControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     #valueEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
       this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
       this.#widgetEl = $(params.name);
       this.#valueEl = $(`${params.name}-value`);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = parseFloat(event.target.value);
-        this.#valueEl.innerText = this.#value.toString();
+        this.setVal(parseFloat(event.target.value));
+        this.#valueEl.innerText = this.val().toString();
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -84,12 +83,9 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -98,7 +94,7 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var SvgSaveControl = class {
+  var SvgSaveControl = class extends Control {
     #wrapperEl;
     #createHtmlControl(name, label) {
       const html = `
@@ -112,6 +108,7 @@
       }
     }
     constructor(params) {
+      super(params);
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = $(`${params.name}-control`);
       $(params.name).onclick = () => {
@@ -136,19 +133,20 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var ImageUploadControl = class {
+  var ImageUploadControl = class extends Control {
     #wrapperEl;
     #uploadEl;
     #canvasEl;
     #imageUrl;
     constructor(params) {
+      super(params);
       this.#imageUrl = params.value;
       this.#createHtmlControl(params.name, params.label);
       this.#wrapperEl = document.getElementById(`${params.name}-control`);
       this.#uploadEl = document.getElementById(`${params.name}-upload`);
       this.#canvasEl = document.getElementById(`${params.name}-canvas`);
       this.loadImage(this.#imageUrl, () => {
-        params.firstCallback(this);
+        params.callback(this);
       });
       this.#uploadEl.onchange = () => {
         const file = this.#uploadEl.files[0];
@@ -201,7 +199,7 @@
     imageUrl() {
       return this.#imageUrl;
     }
-    canvasEl() {
+    canvas() {
       return this.#canvasEl;
     }
     show() {
@@ -211,25 +209,18 @@
       this.#wrapperEl.style.display = "none";
     }
   };
-  var paramsFromUrl = (defaults) => {
-    const params = queryStringToObject(window.location.search);
-    return { ...defaults, ...params };
-  };
-  var updateUrl = (params) => {
-    const url = objectToQueryString(params);
-    history.pushState(null, "", url);
-  };
-  var TextControl = class {
-    #value;
+  var TextControl = class extends Control {
     #wrapperEl;
     #widgetEl;
     constructor(params) {
-      this.#value = params.value;
+      super(params);
+      this.setVal(params.value);
       this.#createHtmlControl(params.name, params.label, params.value);
       this.#widgetEl = $(params.name);
       this.#wrapperEl = $(`${params.name}-control`);
       this.#widgetEl.onchange = (event) => {
-        this.#value = event.target.value;
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
         params.renderFn();
       };
     }
@@ -247,11 +238,8 @@
       }
     }
     set(newValue) {
-      this.#value = newValue;
+      this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
-    }
-    val() {
-      return this.#value;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -259,6 +247,30 @@
     hide() {
       this.#wrapperEl.style.display = "none";
     }
+  };
+  var controls = [];
+  var getParams = function(defaults) {
+    const params = {};
+    controls.forEach((control) => {
+      const key = control.name();
+      let value = paramFromQueryString(
+        control.name(),
+        window.location.search
+      );
+      if (value) {
+        params[key] = value;
+        control.setVal(value);
+      } else {
+        value = control.val();
+        if (value) {
+          params[key] = control.val();
+          updateUrlParam(key, params[key]);
+        } else {
+          params[key] = defaults[key];
+        }
+      }
+    });
+    return params;
   };
 
   // src/pixmap.ts
@@ -389,17 +401,17 @@
     #outputWidth;
     #cutoff;
     #style;
-    constructor(params) {
+    constructor(params, inputCanvas) {
       this.#params = params;
       this.#params.tx = 1;
       this.#params.ty = 1;
-      const ctx = params.inputCanvas.getContext("2d");
-      const imageData = ctx.getImageData(0, 0, params.inputCanvas.width, params.inputCanvas.height);
+      const ctx = inputCanvas.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
       this.#inputPixmap = new Pixmap(imageData);
       this.#wiggleFrequency = this.#params.waviness / 100;
       this.#wiggleAmplitude = this.#wiggleFrequency === 0 ? 0 : 0.5 / this.#wiggleFrequency;
       this.#blur = params.blur;
-      this.#outputWidth = params.width;
+      this.#outputWidth = 800;
       this.#cutoff = params.cutoff;
       this.#style = params.style;
     }
@@ -566,37 +578,14 @@
     cutoff: 0.5,
     style: "stroke: black; stroke-width: 1; fill: none"
   };
-  var paramsFromWidgets = () => {
-    const params = { ...defaultParams };
-    if (controlInputImage) {
-      params.inputImageUrl = controlInputImage.imageUrl();
-      params.inputCanvas = controlInputImage.canvasEl();
-    }
-    params.theta = controlTheta.val();
-    params.margin = controlMargin.val();
-    params.waviness = controlWaviness.val();
-    params.lineHeight = controlLineHeight.val();
-    params.density = controlDensity.val();
-    params.thickness = controlThickness.val();
-    params.sx = controlSx.val();
-    params.sy = controlSy.val();
-    params.blur = controlBlur.val();
-    params.cutoff = controlCutoff.val();
-    params.style = controlStyle.val();
-    return params;
-  };
-  var render = (params) => {
-    if (!params) {
-      params = paramsFromWidgets();
-    }
-    params.width ||= 800;
-    params.height ||= 800;
-    const excoffizator = new Excoffizer(params);
-    delete params.inputCanvas;
-    updateUrl(params);
+  var render = () => {
+    const params = getParams(defaultParams);
+    params["width"] ||= 800;
+    params["height"] ||= 800;
+    const excoffizator = new Excoffizer(params, imageUpload.canvas());
     $("canvas").innerHTML = excoffizator.excoffize();
   };
-  var controlMargin = new NumberControl({
+  new NumberControl({
     name: "margin",
     label: "Margin",
     value: defaultParams["margin"],
@@ -604,13 +593,13 @@
     min: 0,
     max: 500
   });
-  var controlStyle = new TextControl({
+  new TextControl({
     name: "style",
     label: "CSS Style",
     value: defaultParams["style"],
     renderFn: render
   });
-  var controlTheta = new NumberControl({
+  new NumberControl({
     name: "theta",
     label: "Angle",
     value: defaultParams["theta"],
@@ -619,7 +608,7 @@
     max: 6.28,
     step: 0.01
   });
-  var controlWaviness = new NumberControl({
+  new NumberControl({
     name: "waviness",
     label: "Waviness",
     value: defaultParams["waviness"],
@@ -628,7 +617,7 @@
     max: 10,
     step: 0.1
   });
-  var controlLineHeight = new NumberControl({
+  new NumberControl({
     name: "lineHeight",
     label: "Line height",
     value: defaultParams["lineHeight"],
@@ -637,7 +626,7 @@
     max: 15,
     step: 0.1
   });
-  var controlDensity = new NumberControl({
+  new NumberControl({
     name: "density",
     label: "Density",
     value: defaultParams["density"],
@@ -646,7 +635,8 @@
     max: 4,
     step: 0.1
   });
-  var controlThickness = new NumberControl({
+  new NumberControl({
+    name: "thickness",
     label: "Thickness",
     value: defaultParams["thickness"],
     renderFn: render,
@@ -654,7 +644,7 @@
     max: 10,
     step: 0.1
   });
-  var controlSx = new NumberControl({
+  new NumberControl({
     name: "sx",
     label: "Stretch X",
     value: defaultParams["sx"],
@@ -663,7 +653,7 @@
     max: 2,
     step: 0.01
   });
-  var controlSy = new NumberControl({
+  new NumberControl({
     name: "sy",
     label: "Stretch Y",
     value: defaultParams["sy"],
@@ -672,7 +662,7 @@
     max: 2,
     step: 0.01
   });
-  var controlBlur = new NumberControl({
+  new NumberControl({
     name: "blur",
     label: "Blur",
     value: defaultParams["blur"],
@@ -680,7 +670,7 @@
     min: 1,
     max: 10
   });
-  var controlCutoff = new NumberControl({
+  new NumberControl({
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
@@ -695,35 +685,10 @@
     label: "Save SVG",
     saveFilename: "excoffizer.svg"
   });
-  var controlInputImage = new ImageUploadControl({
+  var imageUpload = new ImageUploadControl({
     name: "inputImage",
     label: "Image",
     value: defaultParams["inputImageUrl"],
-    firstCallback: (instance) => {
-      const params = paramsFromUrl(defaultParams);
-      controlTheta.set(params.theta);
-      controlMargin.set(params.margin);
-      controlWaviness.set(params.waviness);
-      controlLineHeight.set(params.lineHeight);
-      controlDensity.set(params.density);
-      controlThickness.set(params.thickness);
-      controlCutoff.set(params.cutoff);
-      controlSx.set(params.sx);
-      controlSy.set(params.sy);
-      controlBlur.set(params.blur);
-      params.inputCanvas = instance.canvasEl();
-      const excoffizator = new Excoffizer(params);
-      $("canvas").innerHTML = excoffizator.excoffize();
-      delete params.inputCanvas;
-      updateUrl(params);
-    },
-    callback: (instance) => {
-      const params = paramsFromWidgets();
-      params.inputCanvas = instance.canvasEl();
-      const excoffizator = new Excoffizer(params);
-      $("canvas").innerHTML = excoffizator.excoffize();
-      delete params.inputCanvas;
-      updateUrl(params);
-    }
+    callback: render
   });
 })();
