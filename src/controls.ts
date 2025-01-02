@@ -224,7 +224,7 @@ class VideoStreamControl extends Control {
   #callback: any;
   #isRunning: boolean;
   #animationId: number | null;
-  #context: CanvasRenderingContext2D;
+  #context: CanvasRenderingContext2D | null;
 
   constructor(params: any) {
     super(params);
@@ -262,10 +262,12 @@ class VideoStreamControl extends Control {
  }
 
   #animate() {
-    this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-    this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
-    if (this.#isRunning) {
-      this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+    if (this.#context) {
+      this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+      this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
+      if (this.#isRunning) {
+        this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+      }
     }
   }
 
@@ -314,6 +316,11 @@ class VideoStreamControl extends Control {
   hide() {
     this.#wrapperEl.style.display = 'none';
   }
+
+  canvas() {
+    return this.#canvasEl;
+  }
+
 }
 
 class ImageUploadControl extends Control {

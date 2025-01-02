@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, VideoStreamControl, SvgSaveControl, updateUrl,  TextControl, $ } from './controls';
+import { NumberControl, VideoStreamControl, SvgSaveControl, TextControl, $, getParams } from './controls';
 import { Pixmap } from './pixmap';
 
 
@@ -14,11 +14,12 @@ class Excoffizer {
   #cutoff: number;
   #style: string;
 
-  constructor(params: any) {
+  constructor(params: any, inputCanvas: HTMLCanvasElement) {
     this.#params = params;
     this.#params.tx = 1;
     this.#params.ty = 1;
-    const imageData: ImageData = this.#params.context.getImageData(
+    const ctx = inputCanvas.getContext('2d') as CanvasRenderingContext2D;
+    const imageData: ImageData = ctx.getImageData(
       0, 0,
       params.canvasWidth, params.canvasHeight
     );
@@ -253,37 +254,16 @@ const defaultParams: Params = {
 };
 
 
-const paramsFromWidgets = () => {
-  const params: Params = {...defaultParams};
-  params.theta = controlTheta.val() as number;
-  params.margin = controlMargin.val() as number;
-  params.waviness = controlWaviness.val() as number;
-  params.lineHeight = controlLineHeight.val() as number;
-  params.density = controlDensity.val() as number;
-  params.thickness = controlThickness.val() as number;
-  params.sx = controlSx.val() as number;
-  params.sy = controlSy.val() as number;
-  params.blur = controlBlur.val() as number;
-  params.cutoff = controlCutoff.val() as number;
-  params.style = controlStyle.val() as string;
-  return params;
-};
-
-
-const render = (params?: any) => {
-  if (!params) {
-    params = paramsFromWidgets();
-  }
-  params.width ||= 800;
-  params.height ||= 800;
-  const excoffizator = new Excoffizer(params);
-  delete params.inputCanvas; // don't put the whole image in the URL
-  updateUrl(params);
+const render = () => {
+  const params = getParams(defaultParams);
+  params['width'] ||= 800;
+  params['height'] ||= 800;
+  const excoffizator = new Excoffizer(params, videoStream.canvas());
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
 
-const controlMargin = new NumberControl({
+new NumberControl({
   name: 'margin',
   label: 'Margin',
   value: defaultParams['margin'],
@@ -293,7 +273,7 @@ const controlMargin = new NumberControl({
 });
 
 
-const controlStyle = new TextControl({
+new TextControl({
   name: 'style',
   label: 'CSS Style',
   value: defaultParams['style'],
@@ -301,7 +281,7 @@ const controlStyle = new TextControl({
 });
 
 
-const controlTheta = new NumberControl({
+new NumberControl({
   name: 'theta',
   label: 'Angle',
   value: defaultParams['theta'],
@@ -312,7 +292,7 @@ const controlTheta = new NumberControl({
 });
 
 
-const controlWaviness = new NumberControl({
+new NumberControl({
   name: 'waviness',
   label: 'Waviness',
   value: defaultParams['waviness'],
@@ -323,7 +303,7 @@ const controlWaviness = new NumberControl({
 });
 
 
-const controlLineHeight = new NumberControl({
+new NumberControl({
   name: 'lineHeight',
   label: 'Line height',
   value: defaultParams['lineHeight'],
@@ -334,7 +314,7 @@ const controlLineHeight = new NumberControl({
 });
 
 
-const controlDensity = new NumberControl({
+new NumberControl({
   name: 'density',
   label: 'Density',
   value: defaultParams['density'],
@@ -345,7 +325,8 @@ const controlDensity = new NumberControl({
 });
 
 
-const controlThickness = new NumberControl({
+new NumberControl({
+  name: 'thickness',
   label: 'Thickness',
   value: defaultParams['thickness'],
   renderFn: render,
@@ -355,7 +336,7 @@ const controlThickness = new NumberControl({
 });
 
 
-const controlSx = new NumberControl({
+new NumberControl({
   name: 'sx',
   label: 'Stretch X',
   value: defaultParams['sx'],
@@ -366,7 +347,7 @@ const controlSx = new NumberControl({
 });
 
 
-const controlSy = new NumberControl({
+new NumberControl({
   name: 'sy',
   label: 'Stretch Y',
   value: defaultParams['sy'],
@@ -377,7 +358,7 @@ const controlSy = new NumberControl({
 });
 
 
-const controlBlur = new NumberControl({
+new NumberControl({
   name: 'blur',
   label: 'Blur',
   value: defaultParams['blur'],
@@ -387,7 +368,7 @@ const controlBlur = new NumberControl({
 });
 
 
-const controlCutoff = new NumberControl({
+new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
@@ -406,17 +387,8 @@ new SvgSaveControl({
 });
 
 
-new VideoStreamControl({
+const videoStream = new VideoStreamControl({
   name: 'inputStream',
   label: 'Stream',
-  callback: (context: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) => {
-    const params = paramsFromWidgets();
-    params.context = context;
-    params.canvasWidth = canvasWidth;
-    params.canvasHeight = canvasHeight;
-    const excoffizator = new Excoffizer(params);
-    $('canvas').innerHTML = excoffizator.excoffize();
-    delete params.context; // don't put the whole image in the URL
-    updateUrl(params);
-  }
+  callback: render
 });
