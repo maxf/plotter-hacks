@@ -297,10 +297,12 @@
       this.#animate();
     }
     #animate() {
-      this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-      this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
-      if (this.#isRunning) {
-        this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+      if (this.#context) {
+        this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
+        if (this.#isRunning) {
+          this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+        }
       }
     }
     async startStreaming() {
@@ -339,6 +341,9 @@
     }
     hide() {
       this.#wrapperEl.style.display = "none";
+    }
+    canvas() {
+      return this.#canvasEl;
     }
   };
   var ImageUploadControl = class extends Control {
