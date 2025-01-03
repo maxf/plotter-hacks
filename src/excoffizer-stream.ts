@@ -21,7 +21,7 @@ class Excoffizer {
     const ctx = inputCanvas.getContext('2d') as CanvasRenderingContext2D;
     const imageData: ImageData = ctx.getImageData(
       0, 0,
-      params.canvasWidth, params.canvasHeight
+      inputCanvas.width, inputCanvas.height
     );
     this.#inputPixmap = new Pixmap(imageData);
     this.#wiggleFrequency = this.#params.waviness/100.0;
