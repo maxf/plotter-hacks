@@ -111,7 +111,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -153,7 +153,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
         updateUrlParam(this.name(), this.val());
-        params.renderFn.call(this);
+        params.callback.call(this);
       };
     }
     #createHtmlControl(name, label, value, choices) {
@@ -192,7 +192,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.checked);
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value) {
@@ -442,7 +442,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value) {

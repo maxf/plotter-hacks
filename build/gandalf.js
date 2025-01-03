@@ -88,7 +88,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -295,7 +295,7 @@
     name: "seed",
     label: "seed",
     value: defaultParams["seed"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 500
   });
@@ -303,7 +303,7 @@
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 255
   });
@@ -311,7 +311,7 @@
     name: "nsamples",
     label: "Samples",
     value: defaultParams["nsamples"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 10,
     max: 2e4
   });

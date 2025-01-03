@@ -1538,7 +1538,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params2.renderFn();
+        params2.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -1580,7 +1580,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
         updateUrlParam(this.name(), this.val());
-        params2.renderFn.call(this);
+        params2.callback.call(this);
       };
     }
     #createHtmlControl(name, label, value, choices) {
@@ -1619,7 +1619,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.checked);
         updateUrlParam(this.name(), this.val());
-        params2.renderFn();
+        params2.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value) {
@@ -2185,7 +2185,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     label: "",
     value: defaultParams["graphType"],
     choices: ["Polar", "Grid", "Random"],
-    renderFn: function() {
+    callback: function() {
       Object.values(controls2).forEach((c) => c.hide());
       paramsPerType[this.val()].forEach((name) => controls2[name].show());
       render();
@@ -2195,7 +2195,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "margin",
     label: "Margin",
     value: defaultParams["margin"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 500
   });
@@ -2203,7 +2203,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "shape1",
     label: "Shape1",
     value: defaultParams["shape1"],
-    renderFn: render,
+    callback: render,
     min: -2,
     max: 2,
     step: 0.01
@@ -2212,7 +2212,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "shape2",
     label: "Shape2",
     value: defaultParams["shape2"],
-    renderFn: render,
+    callback: render,
     min: -2,
     max: 2,
     step: 0.01
@@ -2221,7 +2221,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "perturbation",
     label: "Perturbation",
     value: defaultParams["perturbation"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 300
   });
@@ -2229,13 +2229,13 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "showGraph",
     label: "Graph",
     value: defaultParams["showGraph"],
-    renderFn: render
+    callback: render
   });
   controls2.seed = new NumberControl({
     name: "seed",
     label: "seed",
     value: defaultParams["seed"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 500
   });
@@ -2243,7 +2243,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "nbNodes",
     label: "Nodes",
     value: defaultParams["nbNodes"],
-    renderFn: render,
+    callback: render,
     min: 3,
     max: 40
   });
@@ -2251,7 +2251,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "cells",
     label: "Cells",
     value: defaultParams["cells"],
-    renderFn: render,
+    callback: render,
     min: 2,
     max: 100
   });
@@ -2259,7 +2259,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "nbOrbits",
     label: "Orbits",
     value: defaultParams["nbOrbits"],
-    renderFn: render,
+    callback: render,
     min: 1,
     max: 20
   });
@@ -2267,7 +2267,7 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     name: "nbNodesPerOrbit",
     label: "Nodes per orbit",
     value: defaultParams["nbNodesPerOrbit"],
-    renderFn: render,
+    callback: render,
     min: 3,
     max: 20
   });

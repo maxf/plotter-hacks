@@ -88,7 +88,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -130,7 +130,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.checked);
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value) {
@@ -349,7 +349,7 @@
     name: "seed",
     label: "seed",
     value: defaultParams["seed"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 500
   });
@@ -357,7 +357,7 @@
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 255
   });
@@ -365,7 +365,7 @@
     name: "nsamples",
     label: "Samples",
     value: defaultParams["nsamples"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 10,
     max: 2e4
   });
@@ -373,7 +373,7 @@
     name: "optIter",
     label: "Optimisation",
     value: defaultParams["optIter"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 2e7
   });
@@ -381,7 +381,7 @@
     name: "curvature",
     label: "Curvature",
     value: defaultParams["curvature"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 50
   });
@@ -389,25 +389,25 @@
     name: "showStipple",
     label: "Stipple points",
     value: defaultParams["showStipple"],
-    renderFn: renderFromWidgets
+    callback: renderFromWidgets
   });
   var controlShowPoly = new CheckboxControl({
     name: "showPoly",
     label: "Polygons",
     value: defaultParams["showPoly"],
-    renderFn: renderFromWidgets
+    callback: renderFromWidgets
   });
   var controlShowDts = new CheckboxControl({
     name: "showSplines",
     label: "Splines",
     value: defaultParams["showDts"],
-    renderFn: renderFromWidgets
+    callback: renderFromWidgets
   });
   var controlShowVoronoi = new CheckboxControl({
     name: "showVoronoi",
     label: "Voronoi diagram",
     value: defaultParams["showVoronoi"],
-    renderFn: renderFromWidgets
+    callback: renderFromWidgets
   });
   new SvgSaveControl({
     name: "svgSave",

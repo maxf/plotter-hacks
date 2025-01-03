@@ -88,7 +88,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -296,7 +296,7 @@
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 0,
     max: 255
   });
@@ -304,7 +304,7 @@
     name: "nsamples",
     label: "Samples",
     value: defaultParams["nsamples"],
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 10,
     max: 500
   });
@@ -312,7 +312,7 @@
     name: "strokeLength",
     label: "Stroke length",
     value: 10,
-    renderFn: renderFromWidgets,
+    callback: renderFromWidgets,
     min: 1,
     max: 50
   });

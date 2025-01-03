@@ -64,7 +64,7 @@
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value, min, max, step) {
@@ -86,6 +86,45 @@
       this.setVal(newValue);
       this.#widgetEl.value = newValue.toString();
       this.#valueEl.innerText = newValue.toString();
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
+  var SelectControl = class extends Control {
+    #wrapperEl;
+    #widgetEl;
+    constructor(params) {
+      super(params);
+      this.setVal(params.value);
+      this.#createHtmlControl(params.name, params.label, params.value, params.choices);
+      this.#widgetEl = $(params.name);
+      this.#wrapperEl = $(`${params.name}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.setVal(event.target.value);
+        updateUrlParam(this.name(), this.val());
+        params.callback.call(this);
+      };
+    }
+    #createHtmlControl(name, label, value, choices) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(label);
+      html.push(`<select id="${this.name()}">`);
+      choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
+      html.push("</select>");
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.setVal(newValue);
+      this.#widgetEl.value = newValue;
     }
     show() {
       this.#wrapperEl.style.display = "block";
@@ -131,6 +170,97 @@
     }
     hide() {
       this.#wrapperEl.style.display = "none";
+    }
+  };
+  var VideoStreamControl = class extends Control {
+    #wrapperEl;
+    #videoEl;
+    #canvasEl;
+    #startButtonEl;
+    #callback;
+    #isRunning;
+    #animationId;
+    #context;
+    constructor(params) {
+      super(params);
+      this.#createHtmlControl(params.name, params.label);
+      this.#wrapperEl = document.getElementById(`${params.name}-control`);
+      this.#videoEl = document.getElementById(`${params.name}-video`);
+      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.#startButtonEl = document.getElementById(`${params.name}-start`);
+      this.#callback = params.callback;
+      this.#animationId = 0;
+      this.#isRunning = false;
+      this.#context = this.#canvasEl.getContext(
+        "2d",
+        { alpha: false, willReadFrequently: true }
+      );
+    }
+    async pauseStreaming() {
+      this.#videoEl.pause();
+      this.#startButtonEl.innerText = "Restart";
+      this.#startButtonEl.onclick = async () => this.restartStreaming();
+      this.#isRunning = false;
+      if (this.#animationId) {
+        cancelAnimationFrame(this.#animationId);
+        this.#animationId = null;
+      }
+    }
+    async restartStreaming() {
+      this.#videoEl.play();
+      this.#startButtonEl.innerText = "Pause";
+      this.#startButtonEl.onclick = async () => this.pauseStreaming();
+      this.#isRunning = true;
+      this.#animate();
+    }
+    #animate() {
+      if (this.#context) {
+        this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
+        if (this.#isRunning) {
+          this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+        }
+      }
+    }
+    async startStreaming() {
+      if (!this.#context) throw "Failed to get context";
+      navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { width: 1920, height: 1080 }
+      }).then((stream) => {
+        this.#videoEl.srcObject = stream;
+        this.#videoEl.play();
+      }).catch(function(e) {
+        console.log("An error with camera occured:", e.name);
+      });
+      this.#startButtonEl.innerText = "Pause";
+      this.#startButtonEl.onclick = async () => await this.pauseStreaming();
+      this.#isRunning = true;
+      this.#animate();
+    }
+    #createHtmlControl(name, label) {
+      const html = [];
+      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
+      html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`<button id="${name}-start">Start</button>`);
+      html.push(`</div>`);
+      const anchorElement = document.getElementById("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+        $(`${name}-start`).onclick = async () => {
+          await this.startStreaming();
+        };
+      }
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+    canvas() {
+      return this.#canvasEl;
     }
   };
   var ImageUploadControl = class extends Control {
@@ -221,7 +351,7 @@
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
         updateUrlParam(this.name(), this.val());
-        params.renderFn();
+        params.callback().bind(this);
       };
     }
     #createHtmlControl(name, label, value) {
@@ -582,14 +712,15 @@
     const params = getParams(defaultParams);
     params["width"] ||= 800;
     params["height"] ||= 800;
-    const excoffizator = new Excoffizer(params, imageUpload.canvas());
+    const inputCanvas = inputType.val() == "Image upload" ? imageUpload.canvas() : videoStream.canvas();
+    const excoffizator = new Excoffizer(params, inputCanvas);
     $("canvas").innerHTML = excoffizator.excoffize();
   };
   new NumberControl({
     name: "margin",
     label: "Margin",
     value: defaultParams["margin"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 500
   });
@@ -597,13 +728,13 @@
     name: "style",
     label: "CSS Style",
     value: defaultParams["style"],
-    renderFn: render
+    callback: render
   });
   new NumberControl({
     name: "theta",
     label: "Angle",
     value: defaultParams["theta"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 6.28,
     step: 0.01
@@ -612,7 +743,7 @@
     name: "waviness",
     label: "Waviness",
     value: defaultParams["waviness"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 10,
     step: 0.1
@@ -621,7 +752,7 @@
     name: "lineHeight",
     label: "Line height",
     value: defaultParams["lineHeight"],
-    renderFn: render,
+    callback: render,
     min: 1,
     max: 15,
     step: 0.1
@@ -630,7 +761,7 @@
     name: "density",
     label: "Density",
     value: defaultParams["density"],
-    renderFn: render,
+    callback: render,
     min: 1,
     max: 4,
     step: 0.1
@@ -639,7 +770,7 @@
     name: "thickness",
     label: "Thickness",
     value: defaultParams["thickness"],
-    renderFn: render,
+    callback: render,
     min: 1,
     max: 10,
     step: 0.1
@@ -648,7 +779,7 @@
     name: "sx",
     label: "Stretch X",
     value: defaultParams["sx"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 2,
     step: 0.01
@@ -657,7 +788,7 @@
     name: "sy",
     label: "Stretch Y",
     value: defaultParams["sy"],
-    renderFn: render,
+    callback: render,
     min: 0,
     max: 2,
     step: 0.01
@@ -666,7 +797,7 @@
     name: "blur",
     label: "Blur",
     value: defaultParams["blur"],
-    renderFn: render,
+    callback: render,
     min: 1,
     max: 10
   });
@@ -674,7 +805,7 @@
     name: "cutoff",
     label: "White cutoff",
     value: defaultParams["cutoff"],
-    renderFn: render,
+    callback: render,
     min: 0.1,
     max: 1,
     step: 0.01
@@ -685,10 +816,33 @@
     label: "Save SVG",
     saveFilename: "excoffizer.svg"
   });
+  var inputType = new SelectControl({
+    name: "inputType",
+    label: "",
+    value: "Image upload",
+    choices: ["Image upload", "Video stream"],
+    callback: function() {
+      if (this.val() == "Image upload") {
+        imageUpload.show();
+        videoStream.hide();
+      } else {
+        imageUpload.hide();
+        videoStream.show();
+      }
+      render();
+    }
+  });
   var imageUpload = new ImageUploadControl({
     name: "inputImage",
     label: "Image",
     value: defaultParams["inputImageUrl"],
     callback: render
   });
+  var videoStream = new VideoStreamControl({
+    name: "inputStream",
+    label: "Stream",
+    callback: render
+  });
+  imageUpload.show();
+  videoStream.hide();
 })();
