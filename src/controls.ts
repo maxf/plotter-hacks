@@ -38,7 +38,7 @@ class NumberControl extends Control {
       this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
       this.#valueEl.innerText = this.val().toString();
       updateUrlParam(this.name(), this.val());
-      params.renderFn();
+      params.callback().bind(this);
     };
   }
 
@@ -89,7 +89,7 @@ class SelectControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
       updateUrlParam(this.name(), this.val());
-      params.renderFn.call(this);
+      params.callback.call(this);
     };
   }
 
@@ -138,7 +138,7 @@ class CheckboxControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).checked);
       updateUrlParam(this.name(), this.val());
-      params.renderFn();
+      params.callback().bind(this);
     };
   }
 
@@ -435,7 +435,7 @@ class TextControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
       updateUrlParam(this.name(), this.val());
-      params.renderFn();
+      params.callback().bind(this);
     };
   }
 

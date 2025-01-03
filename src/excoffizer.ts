@@ -260,7 +260,7 @@ new NumberControl({
   name: 'margin',
   label: 'Margin',
   value: defaultParams['margin'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 500
 });
@@ -270,7 +270,7 @@ new TextControl({
   name: 'style',
   label: 'CSS Style',
   value: defaultParams['style'],
-  renderFn: render
+  callback: render
 });
 
 
@@ -278,7 +278,7 @@ new NumberControl({
   name: 'theta',
   label: 'Angle',
   value: defaultParams['theta'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 6.28,
   step: 0.01
@@ -289,7 +289,7 @@ new NumberControl({
   name: 'waviness',
   label: 'Waviness',
   value: defaultParams['waviness'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 10,
   step: 0.1
@@ -300,7 +300,7 @@ new NumberControl({
   name: 'lineHeight',
   label: 'Line height',
   value: defaultParams['lineHeight'],
-  renderFn: render,
+  callback: render,
   min: 1,
   max: 15,
   step: 0.1
@@ -311,7 +311,7 @@ new NumberControl({
   name: 'density',
   label: 'Density',
   value: defaultParams['density'],
-  renderFn: render,
+  callback: render,
   min: 1,
   max: 4,
   step: 0.1
@@ -322,7 +322,7 @@ new NumberControl({
   name: 'thickness',
   label: 'Thickness',
   value: defaultParams['thickness'],
-  renderFn: render,
+  callback: render,
   min: 1,
   max: 10,
   step: 0.1
@@ -333,7 +333,7 @@ new NumberControl({
   name: 'sx',
   label: 'Stretch X',
   value: defaultParams['sx'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 2,
   step: 0.01
@@ -344,7 +344,7 @@ new NumberControl({
   name: 'sy',
   label: 'Stretch Y',
   value: defaultParams['sy'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 2,
   step: 0.01
@@ -355,7 +355,7 @@ new NumberControl({
   name: 'blur',
   label: 'Blur',
   value: defaultParams['blur'],
-  renderFn: render,
+  callback: render,
   min: 1,
   max: 10
 });
@@ -365,7 +365,7 @@ new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  renderFn: render,
+  callback: render,
   min: 0.1,
   max: 1,
   step: 0.01

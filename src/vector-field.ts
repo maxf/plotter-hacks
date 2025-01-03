@@ -69,7 +69,7 @@ const controlCutoff = new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 255
 });
@@ -78,7 +78,7 @@ const controlNSamples = new NumberControl({
   name: 'nsamples',
   label: 'Samples',
   value: defaultParams['nsamples'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 10,
   max: 500,
 });
@@ -87,7 +87,7 @@ const controlStrokeLength = new NumberControl({
   name: 'strokeLength',
   label: 'Stroke length',
   value: 10,
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 1,
   max: 50
 });

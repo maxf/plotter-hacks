@@ -71,7 +71,7 @@ const controlSeed = new NumberControl({
   name: 'seed',
   label: 'seed',
   value: defaultParams['seed'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 500
 });
@@ -81,7 +81,7 @@ const controlCutoff = new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 255
 });
@@ -90,7 +90,7 @@ const controlNSamples = new NumberControl({
   name: 'nsamples',
   label: 'Samples',
   value: defaultParams['nsamples'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 10,
   max: 20_000,
 });

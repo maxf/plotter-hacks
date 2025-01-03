@@ -88,7 +88,7 @@ const controlSeed = new NumberControl({
   name: 'seed',
   label: 'seed',
   value: defaultParams['seed'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 500
 });
@@ -98,7 +98,7 @@ const controlCutoff = new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 255
 });
@@ -107,7 +107,7 @@ const controlNSamples = new NumberControl({
   name: 'nsamples',
   label: 'Samples',
   value: defaultParams['nsamples'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 10,
   max: 20_000,
 });
@@ -116,7 +116,7 @@ const controlOptIter = new NumberControl({
   name: 'optIter',
   label: 'Optimisation',
   value: defaultParams['optIter'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 20_000_000,
 });
@@ -125,7 +125,7 @@ const controlCurvature = new NumberControl({
   name: 'curvature',
   label: 'Curvature',
   value: defaultParams['curvature'],
-  renderFn: renderFromWidgets,
+  callback: renderFromWidgets,
   min: 0,
   max: 50,
 });
@@ -135,28 +135,28 @@ const controlShowStipple = new CheckboxControl({
   name: 'showStipple',
   label: 'Stipple points',
   value: defaultParams['showStipple'],
-  renderFn: renderFromWidgets
+  callback: renderFromWidgets
 });
 
 const controlShowPoly = new CheckboxControl({
   name: 'showPoly',
   label: 'Polygons',
   value: defaultParams['showPoly'],
-  renderFn: renderFromWidgets
+  callback: renderFromWidgets
 });
 
 const controlShowDts = new CheckboxControl({
   name: 'showSplines',
   label: 'Splines',
   value: defaultParams['showDts'],
-  renderFn: renderFromWidgets
+  callback: renderFromWidgets
 });
 
 const controlShowVoronoi = new CheckboxControl({
   name: 'showVoronoi',
   label: 'Voronoi diagram',
   value: defaultParams['showVoronoi'],
-  renderFn: renderFromWidgets
+  callback: renderFromWidgets
 });
 
 

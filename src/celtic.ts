@@ -726,7 +726,7 @@ controls.graphType = new SelectControl({
   label:'',
   value: defaultParams['graphType'],
   choices: ['Polar', 'Grid', 'Random'],
-  renderFn: function() {
+  callback: function() {
     Object.values(controls).forEach((c: any) => c.hide());
     paramsPerType[(this.val() as GraphType)].forEach(name => controls[name].show());
     render();
@@ -737,7 +737,7 @@ controls.margin = new NumberControl({
   name: 'margin',
   label: 'Margin',
   value: defaultParams['margin'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 500
 });
@@ -746,7 +746,7 @@ controls.shape1 = new NumberControl({
   name: 'shape1',
   label: 'Shape1',
   value: defaultParams['shape1'],
-  renderFn: render,
+  callback: render,
   min: -2,
   max: 2,
   step: 0.01
@@ -756,7 +756,7 @@ controls.shape2 = new NumberControl({
   name: 'shape2',
   label: 'Shape2',
   value: defaultParams['shape2'],
-  renderFn: render,
+  callback: render,
   min: -2,
   max: 2,
   step: 0.01
@@ -766,7 +766,7 @@ controls.perturbation = new NumberControl({
   name: 'perturbation',
   label: 'Perturbation',
   value: defaultParams['perturbation'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 300
 });
@@ -775,14 +775,14 @@ controls.showGraph = new CheckboxControl({
   name: 'showGraph',
   label: 'Graph',
   value: defaultParams['showGraph'],
-  renderFn: render
+  callback: render
 });
 
 controls.seed = new NumberControl({
   name: 'seed',
   label: 'seed',
   value: defaultParams['seed'],
-  renderFn: render,
+  callback: render,
   min: 0,
   max: 500
 });
@@ -791,7 +791,7 @@ controls.nbNodes = new NumberControl({
   name: 'nbNodes',
   label: 'Nodes',
   value: defaultParams['nbNodes'],
-  renderFn: render,
+  callback: render,
   min: 3,
   max: 40
 });
@@ -800,7 +800,7 @@ controls.cells = new NumberControl({
   name: 'cells',
   label: 'Cells',
   value: defaultParams['cells'],
-  renderFn: render,
+  callback: render,
   min: 2,
   max: 100
 });
@@ -809,7 +809,7 @@ controls.nbOrbits = new NumberControl({
   name: 'nbOrbits',
   label: 'Orbits',
   value: defaultParams['nbOrbits'],
-  renderFn: render,
+  callback: render,
   min: 1,
   max: 20
 });
@@ -818,7 +818,7 @@ controls.nbNodesPerOrbit = new NumberControl({
   name: 'nbNodesPerOrbit',
   label: 'Nodes per orbit',
   value: defaultParams['nbNodesPerOrbit'],
-  renderFn: render,
+  callback: render,
   min: 3,
   max: 20
 });
