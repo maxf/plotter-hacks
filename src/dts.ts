@@ -73,9 +73,8 @@ const renderFromWidgets = function() {
   doRender(paramsFromWidgets());
 };
 
-const imageUpload = new ImageUploadControl({
-  name: 'inputImage',
-  label: 'Image',
+const imageUpload = new ImageUploadControl('inputImage', {
+  name: 'Image',
   value: defaultParams['inputImageUrl'],
   firstCallback: renderFromQsp,
   callback: renderFromWidgets
@@ -84,9 +83,8 @@ const imageUpload = new ImageUploadControl({
 canvas = imageUpload.canvas();
 ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-const controlSeed = new NumberControl({
+const controlSeed = new NumberControl('seed', {
   name: 'seed',
-  label: 'seed',
   value: defaultParams['seed'],
   callback: renderFromWidgets,
   min: 0,
@@ -94,36 +92,32 @@ const controlSeed = new NumberControl({
 });
 
 
-const controlCutoff = new NumberControl({
-  name: 'cutoff',
-  label: 'White cutoff',
+const controlCutoff = new NumberControl('cutoff', {
+  name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: renderFromWidgets,
   min: 0,
   max: 255
 });
 
-const controlNSamples = new NumberControl({
-  name: 'nsamples',
-  label: 'Samples',
+const controlNSamples = new NumberControl('nsamples', {
+  name: 'Samples',
   value: defaultParams['nsamples'],
   callback: renderFromWidgets,
   min: 10,
   max: 20_000,
 });
 
-const controlOptIter = new NumberControl({
-  name: 'optIter',
-  label: 'Optimisation',
+const controlOptIter = new NumberControl('optIter', {
+  name: 'Optimisation',
   value: defaultParams['optIter'],
   callback: renderFromWidgets,
   min: 0,
   max: 20_000_000,
 });
 
-const controlCurvature = new NumberControl({
-  name: 'curvature',
-  label: 'Curvature',
+const controlCurvature = new NumberControl('curvature', {
+  name: 'Curvature',
   value: defaultParams['curvature'],
   callback: renderFromWidgets,
   min: 0,
@@ -131,39 +125,34 @@ const controlCurvature = new NumberControl({
 });
 
 
-const controlShowStipple = new CheckboxControl({
-  name: 'showStipple',
-  label: 'Stipple points',
+const controlShowStipple = new CheckboxControl('showStipple', {
+  name: 'Stipple points',
   value: defaultParams['showStipple'],
   callback: renderFromWidgets
 });
 
-const controlShowPoly = new CheckboxControl({
-  name: 'showPoly',
-  label: 'Polygons',
+const controlShowPoly = new CheckboxControl('showPoly', {
+  name: 'Polygons',
   value: defaultParams['showPoly'],
   callback: renderFromWidgets
 });
 
-const controlShowDts = new CheckboxControl({
-  name: 'showSplines',
-  label: 'Splines',
+const controlShowDts = new CheckboxControl('showSplines', {
+  name: 'Splines',
   value: defaultParams['showDts'],
   callback: renderFromWidgets
 });
 
-const controlShowVoronoi = new CheckboxControl({
-  name: 'showVoronoi',
-  label: 'Voronoi diagram',
+const controlShowVoronoi = new CheckboxControl('showVoronoi', {
+  name: 'Voronoi diagram',
   value: defaultParams['showVoronoi'],
   callback: renderFromWidgets
 });
 
 
-new SvgSaveControl({
-  name: 'svgSave',
+new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
-  label: 'Save SVG',
+  name: 'Save SVG',
   saveFilename: 'dts.svg'
 });
 

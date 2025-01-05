@@ -345,25 +345,23 @@ const render = (params?: any) => {
 
 
 const controls = {
-  zoom: new NumberControl({
-    name: 'zoom',
+  zoom: new NumberControl('zoom', {
     label: 'Zoom',
     value: defaultParams['zoom'],
     callback: render,
     min: -20,
     max: 20
   }),
-  seed: new NumberControl({name: 'seed', label: 'RNG seed', value: defaultParams['seed'], callback: render, min: 0, max: 500}),
-  nboids: new NumberControl({name: 'nboids', label: 'Boids', value: defaultParams['nboids'], callback: render, min: 1, max: 100 }),
-  iterations: new NumberControl({name: 'iterations', label: 'Iterations', value: defaultParams['iterations'], callback: render, min: 1, max: 1000}),
-  startIteration: new NumberControl({name: 'startIteration', label: 'Start iteration', value: defaultParams['startIteration'], callback: render, min: 1, max: 1000}),
-  speedLimit: new NumberControl({name: 'speedLimit', label: 'Max speed', value: defaultParams['speedLimit'], callback: render, min: 0 , max: 20, step: 0.1}),
-  cohesionForce: new NumberControl({name: 'cohesionForce', label: 'Cohesion', value: defaultParams['cohesionForce'], callback: render, min: 0, max: 1, step: 0.01}),
-  cohesionDistance: new NumberControl({name: 'cohesionDistance', label: 'Cohesion distance', value: defaultParams['cohesionDistance'], callback: render, min: 10, max: 300 }),
-  nbAttractors: new NumberControl({name: 'nbAttractors', label: 'Attractors', value: defaultParams['nbAttractors'], callback: render, min: 0, max: 10 }),
-  cssStyle: new TextControl({name: 'cssStyle', label: 'CSS style', value: 'stroke: black; stroke-width: 0.5', callback: render}),
-  svgSave: new SvgSaveControl({
-    name: 'svgSave',
+  seed: new NumberControl('seed', {label: 'RNG seed', value: defaultParams['seed'], callback: render, min: 0, max: 500}),
+  nboids: new NumberControl('nboids', {label: 'Boids', value: defaultParams['nboids'], callback: render, min: 1, max: 100 }),
+  iterations: new NumberControl('iterations', {label: 'Iterations', value: defaultParams['iterations'], callback: render, min: 1, max: 1000}),
+  startIteration: new NumberControl('startIteration', {label: 'Start iteration', value: defaultParams['startIteration'], callback: render, min: 1, max: 1000}),
+  speedLimit: new NumberControl('speedLimit', {label: 'Max speed', value: defaultParams['speedLimit'], callback: render, min: 0 , max: 20, step: 0.1}),
+  cohesionForce: new NumberControl('cohesionForce', {label: 'Cohesion', value: defaultParams['cohesionForce'], callback: render, min: 0, max: 1, step: 0.01}),
+  cohesionDistance: new NumberControl('cohesionDistance', {label: 'Cohesion distance', value: defaultParams['cohesionDistance'], callback: render, min: 10, max: 300 }),
+  nbAttractors: new NumberControl('nbAttractors', {label: 'Attractors', value: defaultParams['nbAttractors'], callback: render, min: 0, max: 10 }),
+  cssStyle: new TextControl('cssStyle', {label: 'CSS style', value: 'stroke: black; stroke-width: 0.5', callback: render}),
+  svgSave: new SvgSaveControl('svgSave', {
     canvasId: 'svg-canvas',
     label: 'Save SVG',
     saveFilename: 'boids.svg'

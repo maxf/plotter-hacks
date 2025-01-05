@@ -721,9 +721,8 @@ const render = (params?: any) => {
 
 const controls: any = {};
 
-controls.graphType = new SelectControl({
-  name:'graphType',
-  label:'',
+controls.graphType = new SelectControl('graphType', {
+  name:'',
   value: defaultParams['graphType'],
   choices: ['Polar', 'Grid', 'Random'],
   callback: function() {
@@ -733,18 +732,16 @@ controls.graphType = new SelectControl({
   }
 });
 
-controls.margin = new NumberControl({
-  name: 'margin',
-  label: 'Margin',
+controls.margin = new NumberControl('margin', {
+  name: 'Margin',
   value: defaultParams['margin'],
   callback: render,
   min: 0,
   max: 500
 });
 
-controls.shape1 = new NumberControl({
-  name: 'shape1',
-  label: 'Shape1',
+controls.shape1 = new NumberControl('shape1', {
+  name: 'Shape1',
   value: defaultParams['shape1'],
   callback: render,
   min: -2,
@@ -752,9 +749,8 @@ controls.shape1 = new NumberControl({
   step: 0.01
 });
 
-controls.shape2 = new NumberControl({
-  name: 'shape2',
-  label: 'Shape2',
+controls.shape2 = new NumberControl('shape2', {
+  name: 'Shape2',
   value: defaultParams['shape2'],
   callback: render,
   min: -2,
@@ -762,71 +758,63 @@ controls.shape2 = new NumberControl({
   step: 0.01
 });
 
-controls.perturbation = new NumberControl({
-  name: 'perturbation',
-  label: 'Perturbation',
+controls.perturbation = new NumberControl('perturbation', {
+  name: 'Perturbation',
   value: defaultParams['perturbation'],
   callback: render,
   min: 0,
   max: 300
 });
 
-controls.showGraph = new CheckboxControl({
-  name: 'showGraph',
-  label: 'Graph',
+controls.showGraph = new CheckboxControl('showGraph', {
+  name: 'Graph',
   value: defaultParams['showGraph'],
   callback: render
 });
 
-controls.seed = new NumberControl({
+controls.seed = new NumberControl('seed', {
   name: 'seed',
-  label: 'seed',
   value: defaultParams['seed'],
   callback: render,
   min: 0,
   max: 500
 });
 
-controls.nbNodes = new NumberControl({
-  name: 'nbNodes',
-  label: 'Nodes',
+controls.nbNodes = new NumberControl('nbNodes', {
+  name: 'Nodes',
   value: defaultParams['nbNodes'],
   callback: render,
   min: 3,
   max: 40
 });
 
-controls.cells = new NumberControl({
-  name: 'cells',
-  label: 'Cells',
+controls.cells = new NumberControl('cells', {
+  name: 'Cells',
   value: defaultParams['cells'],
   callback: render,
   min: 2,
   max: 100
 });
 
-controls.nbOrbits = new NumberControl({
-  name: 'nbOrbits',
-  label: 'Orbits',
+controls.nbOrbits = new NumberControl('nbOrbits', {
+  name: 'Orbits',
   value: defaultParams['nbOrbits'],
   callback: render,
   min: 1,
   max: 20
 });
 
-controls.nbNodesPerOrbit = new NumberControl({
-  name: 'nbNodesPerOrbit',
-  label: 'Nodes per orbit',
+controls.nbNodesPerOrbit = new NumberControl('nbNodesPerOrbit', {
+  name: 'Nodes per orbit',
   value: defaultParams['nbNodesPerOrbit'],
   callback: render,
   min: 3,
   max: 20
 });
 
-controls.svgSave = new SvgSaveControl({
-  name: 'svgSave',
+controls.svgSave = new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
-  label: "Save SVG",
+  name: "Save SVG",
   saveFilename: 'celtic.svg'
 });
 

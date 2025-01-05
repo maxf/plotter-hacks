@@ -8,8 +8,8 @@ class Control {
   #id: string; // like a name but should be a valid query string param name
   #value: any;
 
-  constructor(params: any) {
-    this.#id = params.id;
+  constructor(id: string, params: any) {
+    this.#id = id;
     this.#value = params.value;
     controls.push(this);
   }
@@ -31,12 +31,12 @@ class NumberControl extends Control {
   #widgetEl: HTMLInputElement;
   #valueEl: HTMLSpanElement;
 
-  constructor(params: any) {
-    super(params);
-    this.#createHtmlControl(params.id, params.name, params.value, params.min, params.max, params.step);
-    this.#widgetEl = $(params.id) as HTMLInputElement;
-    this.#valueEl = $(`${params.id}-value`) as HTMLSpanElement;
-    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
+  constructor(id: string, params: any) {
+    super(id, params);
+    this.#createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+    this.#widgetEl = $(id) as HTMLInputElement;
+    this.#valueEl = $(`${id}-value`) as HTMLSpanElement;
+    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
@@ -84,12 +84,12 @@ class SelectControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
 
-  constructor(params: any) {
-    super(params);
+  constructor(id: string, params: any) {
+    super(id, params);
     this.setVal(params.value);
-    this.#createHtmlControl(params.id, params.name, params.value, params.choices);
-    this.#widgetEl = $(params.id) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
+    this.#createHtmlControl(id, params.name, params.value, params.choices);
+    this.#widgetEl = $(id) as HTMLInputElement;
+    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
@@ -134,12 +134,12 @@ class CheckboxControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
 
-  constructor(params: any) {
-    super(params)
+  constructor(id: string, params: any) {
+    super(id, params)
     this.setVal(params.value);
-    this.#createHtmlControl(params.id, params.name, params.value);
-    this.#widgetEl = $(params.id) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
+    this.#createHtmlControl(id, params.name, params.value);
+    this.#widgetEl = $(id) as HTMLInputElement;
+    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).checked);
@@ -192,12 +192,12 @@ class SvgSaveControl extends Control {
     }
   }
 
-  constructor(params: any) {
-    super(params)
-    this.#createHtmlControl(params.id, params.name);
-    this.#wrapperEl = $(`${params.id}-control`) as HTMLSpanElement;
+  constructor(id: string, params: any) {
+    super(id, params)
+    this.#createHtmlControl(id, params.name);
+    this.#wrapperEl = $(`${id}-control`) as HTMLSpanElement;
 
-    $(params.id).onclick = () => {
+    $(id).onclick = () => {
       const svgEl = $(params.canvasId);
       svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       var svgData = svgEl.outerHTML;
@@ -229,22 +229,19 @@ class ImageInputControl extends Control {
   #imageControl: ImageUploadControl;
   #toggle: SelectControl;
 
-  constructor(params: any) {
-    super(params);
-    this.#videoControl = new VideoStreamControl({
-      id: `${params.id}-video`,
+  constructor(id: string, params: any) {
+    super(id, params);
+    this.#videoControl = new VideoStreamControl(`${id}-video`, {
       name: 'Video',
       callback: params.callback
     });
     this.#videoControl.hide();
-    this.#imageControl = new ImageUploadControl({
-      id: `${params.id}-image`,
+    this.#imageControl = new ImageUploadControl(`${id}-image`, {
       name: 'Image',
       callback: params.callback,
       value: params.initialImage
     });
-    this.#toggle = new SelectControl({
-      id: `${params.id}-toggle`,
+    this.#toggle = new SelectControl(`${id}-toggle`, {
       name: 'Mode',
       choices: ['Video', 'Image upload'],
       value: 'Image upload',
@@ -280,13 +277,13 @@ class VideoStreamControl extends Control {
   #animationId: number | null;
   #context: CanvasRenderingContext2D | null;
 
-  constructor(params: any) {
-    super(params);
-    this.#createHtmlControl(params.id, params.name);
-    this.#wrapperEl = document.getElementById(`${params.id}-control`) as HTMLDivElement;
-    this.#videoEl = document.getElementById(`${params.id}-video`) as HTMLVideoElement;
-    this.#canvasEl = document.getElementById(`${params.id}-canvas`) as HTMLCanvasElement;
-    this.#startButtonEl = document.getElementById(`${params.id}-start`) as HTMLButtonElement;
+  constructor(id: string, params: any) {
+    super(id, params);
+    this.#createHtmlControl(id, params.name);
+    this.#wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.#videoEl = document.getElementById(`${id}-video`) as HTMLVideoElement;
+    this.#canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
+    this.#startButtonEl = document.getElementById(`${id}-start`) as HTMLButtonElement;
     this.#callback = params.callback;
     this.#animationId = 0;
     this.#isRunning = false;
@@ -384,14 +381,14 @@ class ImageUploadControl extends Control {
   #canvasEl: HTMLCanvasElement;
   #imageUrl: string;
 
-  constructor(params: any) {
-    super(params);
+  constructor(id: string, params: any) {
+    super(id, params);
     this.#imageUrl = params.value;
-    this.#createHtmlControl(params.id, params.name);
+    this.#createHtmlControl(id, params.name);
 
-    this.#wrapperEl = document.getElementById(`${params.id}-control`) as HTMLDivElement;
-    this.#uploadEl = document.getElementById(`${params.id}-upload`) as HTMLInputElement;
-    this.#canvasEl = document.getElementById(`${params.id}-canvas`) as HTMLCanvasElement;
+    this.#wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.#uploadEl = document.getElementById(`${id}-upload`) as HTMLInputElement;
+    this.#canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
     this.loadImage(this.#imageUrl, () => {
       params.callback(this);
     });
@@ -482,12 +479,12 @@ class TextControl extends Control {
   #wrapperEl: HTMLDivElement;
   #widgetEl: HTMLInputElement;
 
-  constructor(params: any) {
-    super(params);
+  constructor(id: string, params: any) {
+    super(id, params);
     this.setVal(params.value);
-    this.#createHtmlControl(params.id, params.name, params.value);
-    this.#widgetEl = $(params.id) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
+    this.#createHtmlControl(id, params.name, params.value);
+    this.#widgetEl = $(id) as HTMLInputElement;
+    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
       updateUrlParam(this.id(), this.val());

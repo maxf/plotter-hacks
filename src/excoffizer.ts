@@ -258,8 +258,7 @@ const render = () => {
 };
 
 
-new NumberControl({
-  id: 'margin',
+new NumberControl('margin',{
   name: 'Margin',
   value: defaultParams['margin'],
   callback: render,
@@ -268,16 +267,14 @@ new NumberControl({
 });
 
 
-new TextControl({
-  id: 'style',
+new TextControl('style', {
   name: 'CSS Style',
   value: defaultParams['style'],
   callback: render
 });
 
 
-new NumberControl({
-  id: 'theta',
+new NumberControl('theta', {
   name: 'Angle',
   value: defaultParams['theta'],
   callback: render,
@@ -287,8 +284,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'waviness',
+new NumberControl('waviness', {
   name: 'Waviness',
   value: defaultParams['waviness'],
   callback: render,
@@ -298,8 +294,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'lineHeight',
+new NumberControl('lineHeight', {
   name: 'Line height',
   value: defaultParams['lineHeight'],
   callback: render,
@@ -309,8 +304,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'density',
+new NumberControl('density', {
   name: 'Density',
   value: defaultParams['density'],
   callback: render,
@@ -320,8 +314,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'thickness',
+new NumberControl('thickness', {
   name: 'Thickness',
   value: defaultParams['thickness'],
   callback: render,
@@ -331,8 +324,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'sx',
+new NumberControl('sx', {
   name: 'Stretch X',
   value: defaultParams['sx'],
   callback: render,
@@ -342,8 +334,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'sy',
+new NumberControl('sy', {
   name: 'Stretch Y',
   value: defaultParams['sy'],
   callback: render,
@@ -353,8 +344,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'blur',
+new NumberControl('blur', {
   name: 'Blur',
   value: defaultParams['blur'],
   callback: render,
@@ -363,8 +353,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'cutoff',
+new NumberControl('cutoff', {
   name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: render,
@@ -374,16 +363,14 @@ new NumberControl({
 });
 
 
-new SvgSaveControl({
-  id: 'svgSave',
+new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
   saveFilename: 'excoffizer.svg'
 });
 
 
-const imageSourceControl = new ImageInputControl({
-  id: 'imageSource',
+const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: render,
   initialImage: 'tbl.png'

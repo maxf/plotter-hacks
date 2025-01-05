@@ -31,15 +31,13 @@ const doRender = function() {
 };
 
 
-const imageSourceControl = new ImageInputControl({
-  id: 'imageSource',
+const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: doRender,
   initialImage: 'tbl.png'
 });
 
-new NumberControl({
-  id: 'seed',
+new NumberControl('seed', {
   name: 'seed',
   value: defaultParams['seed'],
   callback: doRender,
@@ -48,8 +46,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'cutoff',
+new NumberControl('cutoff', {
   name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: doRender,
@@ -58,8 +55,7 @@ new NumberControl({
 });
 
 
-new NumberControl({
-  id: 'nsamples',
+new NumberControl('nsamples', {
   name: 'Samples',
   value: defaultParams['nsamples'],
   callback: doRender,
@@ -68,8 +64,7 @@ new NumberControl({
 });
 
 
-new SvgSaveControl({
-  id: 'svgSave',
+new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
   saveFilename: 'gandalf.svg'

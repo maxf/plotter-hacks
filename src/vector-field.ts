@@ -54,9 +54,8 @@ const renderFromWidgets = function() {
   doRender(paramsFromWidgets());
 };
 
-const imageUpload = new ImageUploadControl({
-  name: 'inputImage',
-  label: 'Image',
+const imageUpload = new ImageUploadControl('inputImage', {
+  name: 'Image',
   value: defaultParams['inputImageUrl'],
   firstCallback: renderFromQsp,
   callback: renderFromWidgets
@@ -65,37 +64,33 @@ const imageUpload = new ImageUploadControl({
 canvas = imageUpload.canvas();
 ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-const controlCutoff = new NumberControl({
-  name: 'cutoff',
-  label: 'White cutoff',
+const controlCutoff = new NumberControl('cutoff', {
+  name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: renderFromWidgets,
   min: 0,
   max: 255
 });
 
-const controlNSamples = new NumberControl({
-  name: 'nsamples',
-  label: 'Samples',
+const controlNSamples = new NumberControl('nsamples', {
+  name: 'Samples',
   value: defaultParams['nsamples'],
   callback: renderFromWidgets,
   min: 10,
   max: 500,
 });
 
-const controlStrokeLength = new NumberControl({
-  name: 'strokeLength',
-  label: 'Stroke length',
+const controlStrokeLength = new NumberControl('strokeLength', {
+  name: 'Stroke length',
   value: 10,
   callback: renderFromWidgets,
   min: 1,
   max: 50
 });
 
-new SvgSaveControl({
-  name: 'svgSave',
+new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
-  label: 'Save SVG',
+  name: 'Save SVG',
   saveFilename: 'vector-field.svg'
 });
 
