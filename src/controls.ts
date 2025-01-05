@@ -276,6 +276,7 @@ class VideoStreamControl extends Control {
   #isRunning: boolean;
   #animationId: number | null;
   #context: CanvasRenderingContext2D | null;
+  #stream: MediaStream | null = null;
 
   constructor(id: string, params: any) {
     super(id, params);
@@ -293,8 +294,17 @@ class VideoStreamControl extends Control {
     );
   }
 
+  async #stopStreaming() {
+    if (this.#stream) {
+      this.#stream.getTracks().forEach(track => track.stop());
+      this.#videoEl.srcObject = null;
+      this.#stream = null;
+      this.#videoEl.pause();
+    }
+  }
+
   async pauseStreaming() {
-    this.#videoEl.pause();
+    await this.#stopStreaming();
     this.#startButtonEl.innerText = 'Restart';
     this.#startButtonEl.onclick = async () => this.restartStreaming();
     this.#isRunning = false;
@@ -305,12 +315,26 @@ class VideoStreamControl extends Control {
   }
 
   async restartStreaming() {
-    this.#videoEl.play();
-    this.#startButtonEl.innerText = 'Pause';
-    this.#startButtonEl.onclick = async () => this.pauseStreaming();
-    this.#isRunning = true;
-    this.#animate();
- }
+    // First ensure previous stream is fully stopped
+    await this.#stopStreaming()
+
+    // Request a new stream
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { width: 1920, height: 1080 },
+      });
+      this.#stream = stream;
+      this.#videoEl.srcObject = stream;
+      this.#videoEl.play();
+      this.#startButtonEl.innerText = 'Pause';
+      this.#startButtonEl.onclick = async () => this.pauseStreaming();
+      this.#isRunning = true;
+      this.#animate();
+    } catch (e: any) {
+      console.log("Failed to restart camera:", e.name);
+    }
+  }
 
   #animate() {
     if (this.#context) {
@@ -331,6 +355,7 @@ class VideoStreamControl extends Control {
         video: { width: 1920, height: 1080 },
       })
       .then((stream: MediaStream) => {
+        this.#stream = stream;
         this.#videoEl.srcObject = stream;
         this.#videoEl.play();
       })
