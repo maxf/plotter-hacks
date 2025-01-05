@@ -240,7 +240,8 @@ class ImageInputControl extends Control {
     this.#imageControl = new ImageUploadControl({
       name: params.name,
       label: `${params.label}-image`,
-      callback: params.callback
+      callback: params.callback,
+      value: params.value
     });
     this.#toggle = new SelectControl({
       name: params.name,

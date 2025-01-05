@@ -1,9 +1,8 @@
 import {
   NumberControl,
-  ImageUploadControl,
+  ImageInputControl,
   SvgSaveControl,
-  paramsFromUrl,
-  updateUrl,
+  getParams,
   $
 } from './controls';
 
@@ -17,16 +16,6 @@ const defaultParams = {
   seed: 72
 };
 
-
-const paramsFromWidgets = (): any => {
-  const params = {...defaultParams};
-  params.inputImageUrl = imageUpload.imageUrl() as string;
-  params.cutoff = controlCutoff.val() as number;
-  params.nsamples = controlNSamples.val() as number;
-  params.seed = controlSeed.val() as number;
-  return params;
-};
-
 let canvas: HTMLCanvasElement;
 
 let ctx: CanvasRenderingContext2D;
@@ -36,61 +25,47 @@ gandalfWorker.onmessage = function(e) {
   $('canvas').innerHTML = e.data;
 }
 
-const doRender = function(params: any) {
-  $('canvas').innerHTML = "<h1>Rendering. Please wait</h1>";
+const doRender = function() {
+  const params = getParams(defaultParams);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   gandalfWorker.postMessage({ params, imageData });
-  updateUrl(params);
 };
 
-const renderFromQsp = function() {
-  const params = paramsFromUrl(defaultParams);
-  doRender(params);
-  controlCutoff.set(params.cutoff);
-  controlNSamples.set(params.nsamples);
-  controlSeed.set(params.seed);
-};
-
-const renderFromWidgets = function() {
-  doRender(paramsFromWidgets());
-};
-
-const imageUpload = new ImageUploadControl({
-  name: 'inputImage',
-  label: 'Image',
-  value: defaultParams['inputImageUrl'],
-  firstCallback: renderFromQsp,
-  callback: renderFromWidgets
+const imageSourceControl = new ImageInputControl({
+  name: 'imageSource',
+  label: 'Source',
+  callback: doRender,
+  value: 'tbl.png'
 });
 
-canvas = imageUpload.canvas();
+canvas = imageSourceControl.canvas();
 ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 
-const controlSeed = new NumberControl({
+new NumberControl({
   name: 'seed',
   label: 'seed',
   value: defaultParams['seed'],
-  callback: renderFromWidgets,
+  callback: doRender,
   min: 0,
   max: 500
 });
 
 
-const controlCutoff = new NumberControl({
+new NumberControl({
   name: 'cutoff',
   label: 'White cutoff',
   value: defaultParams['cutoff'],
-  callback: renderFromWidgets,
+  callback: doRender,
   min: 0,
   max: 255
 });
 
-const controlNSamples = new NumberControl({
+new NumberControl({
   name: 'nsamples',
   label: 'Samples',
   value: defaultParams['nsamples'],
-  callback: renderFromWidgets,
+  callback: doRender,
   min: 10,
   max: 20_000,
 });
