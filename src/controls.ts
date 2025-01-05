@@ -2,6 +2,8 @@ import { objectToQueryString, queryStringToObject, paramFromQueryString, updateU
 
 const $ = (id: string) => document.getElementById(id)!;
 
+//============================================================================
+
 class Control {
   #name: string;
   #value: any;
@@ -21,6 +23,8 @@ class Control {
     return this.#value;
   }
 }
+
+//============================================================================
 
 class NumberControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -74,6 +78,7 @@ class NumberControl extends Control {
   }
 }
 
+//============================================================================
 
 class SelectControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -123,6 +128,7 @@ class SelectControl extends Control {
   }
 }
 
+//============================================================================
 
 class CheckboxControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -169,6 +175,7 @@ class CheckboxControl extends Control {
   }
 }
 
+//============================================================================
 
 class SvgSaveControl extends Control {
   #wrapperEl: HTMLSpanElement;
@@ -215,6 +222,52 @@ class SvgSaveControl extends Control {
   }
 }
 
+//============================================================================
+
+class ImageInputControl extends Control {
+  #videoControl: VideoStreamControl;
+  #imageControl: ImageUploadControl;
+  #toggle: SelectControl;
+
+  constructor(params: any) {
+    super(params);
+    this.#videoControl = new VideoStreamControl({
+      name: params.name,
+      label: `${params.label}-video`,
+      callback: params.callback
+    });
+    this.#videoControl.hide();
+    this.#imageControl = new ImageUploadControl({
+      name: params.name,
+      label: `${params.label}-image`,
+      callback: params.callback
+    });
+    this.#toggle = new SelectControl({
+      name: params.name,
+      label: params.label,
+      choices: ['Video', 'Image upload'],
+      value: 'Image upload',
+      callback: () => {
+        if (this.val() === 'Video') {
+          this.#imageControl.hide();
+          this.#videoControl.show();
+        } else {
+          this.#imageControl.show();
+          this.#videoControl.pauseStreaming();
+          this.#videoControl.hide();
+        }
+      }
+    });
+  }
+
+  canvas(): HTMLCanvasElement {
+    return this.#toggle.val() === 'Video'
+      ? this.#videoControl.canvas()
+      : this.#imageControl.canvas();
+  }
+}
+
+//============================================================================
 
 class VideoStreamControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -320,8 +373,9 @@ class VideoStreamControl extends Control {
   canvas() {
     return this.#canvasEl;
   }
-
 }
+
+//============================================================================
 
 class ImageUploadControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -421,6 +475,7 @@ const updateUrl = (params: any) => {
   history.pushState(null, '', url);
 };
 
+//============================================================================
 
 class TextControl extends Control {
   #wrapperEl: HTMLDivElement;
@@ -468,6 +523,8 @@ class TextControl extends Control {
   }
 }
 
+//============================================================================
+
 const controls: Control[] = [];
 
 const getParams = function(defaults: any) {
@@ -503,6 +560,7 @@ export {
   ImageUploadControl,
   SvgSaveControl,
   TextControl,
+  ImageInputControl,
   paramsFromUrl,
   updateUrl,
   getParams,

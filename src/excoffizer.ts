@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, ImageUploadControl, SvgSaveControl, TextControl, SelectControl, VideoStreamControl, $, getParams } from './controls';
+import { NumberControl, SvgSaveControl, TextControl, ImageInputControl, $, getParams } from './controls';
 import { Pixmap } from './pixmap';
 
 
@@ -252,8 +252,8 @@ const render = () => {
   params['width'] ||= 800;
   params['height'] ||= 800;
 
-  const inputCanvas = (inputType.val() == 'Image upload') ? imageUpload.canvas() : videoStream.canvas();
-  const excoffizator = new Excoffizer(params, inputCanvas);
+  const canvas: HTMLCanvasElement = imageSourceControl.canvas();
+  const excoffizator = new Excoffizer(params, canvas);
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
@@ -381,37 +381,9 @@ new SvgSaveControl({
   saveFilename: 'excoffizer.svg'
 });
 
-const inputType = new SelectControl({
-  name:'inputType',
-  label:'',
-  value: 'Image upload',
-  choices: ['Image upload', 'Video stream'],
-  callback: function() {
-    if (this.val() == 'Image upload') {
-      imageUpload.show();
-      videoStream.hide();
-    } else {
-      imageUpload.hide();
-      videoStream.show();
-    }
-    render();
-  }
-});
 
-
-const imageUpload = new ImageUploadControl({
-  name: 'inputImage',
-  label: 'Image',
-  value: defaultParams['inputImageUrl'],
+const imageSourceControl = new ImageInputControl({
+  name: 'imageSource',
+  label: 'Source',
   callback: render
 });
-
-
-const videoStream = new VideoStreamControl({
-  name: 'inputStream',
-  label: 'Stream',
-  callback: render
-});
-
-imageUpload.show();
-videoStream.hide();
