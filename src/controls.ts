@@ -301,13 +301,13 @@ class VideoStreamControl extends Control {
       this.#stream = null;
       this.#videoEl.pause();
     }
+    this.#isRunning = false;
   }
 
   async pauseStreaming() {
     await this.#stopStreaming();
     this.#startButtonEl.innerText = 'Restart';
     this.#startButtonEl.onclick = async () => this.restartStreaming();
-    this.#isRunning = false;
     if (this.#animationId) {
       cancelAnimationFrame(this.#animationId);
       this.#animationId = null;
@@ -387,9 +387,11 @@ class VideoStreamControl extends Control {
 
   show() {
     this.#wrapperEl.style.display = 'block';
+    this.#animate();
   }
 
   hide() {
+    this.#stopStreaming();
     this.#wrapperEl.style.display = 'none';
   }
 
@@ -405,10 +407,12 @@ class ImageUploadControl extends Control {
   #uploadEl: HTMLInputElement;
   #canvasEl: HTMLCanvasElement;
   #imageUrl: string;
+  #callback: any;
 
   constructor(id: string, params: any) {
     super(id, params);
     this.#imageUrl = params.value;
+    this.#callback = params.callback;
     this.#createHtmlControl(id, params.name);
 
     this.#wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
@@ -479,6 +483,9 @@ class ImageUploadControl extends Control {
   }
 
   show() {
+    this.loadImage(this.#imageUrl, () => {
+      this.#callback(this);
+    });
     this.#wrapperEl.style.display = 'block';
   }
 
