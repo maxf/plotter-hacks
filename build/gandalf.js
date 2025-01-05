@@ -1,52 +1,28 @@
 "use strict";
 (() => {
   // src/url-query-string.ts
-  function objectToQueryString(obj) {
-    const params = new URLSearchParams();
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const value = obj[key];
-        let paramValue;
-        if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
-          paramValue = String(value);
-        } else if (typeof value === "object") {
-          paramValue = JSON.stringify(value);
-        } else {
-          continue;
-        }
-        params.append(key, paramValue);
-      }
-    }
-    const queryString = params.toString();
-    return queryString ? `?${queryString}` : "";
-  }
-  function queryStringToObject(queryString) {
-    const obj = {};
+  function paramFromQueryString(name, queryString) {
     const query = queryString.startsWith("?") ? queryString.slice(1) : queryString;
     const params = new URLSearchParams(query);
-    params.forEach((value, key) => {
-      let parsedValue;
+    if (params.has(name)) {
+      const value = params.get(name);
+      if (value === null) return null;
       try {
-        parsedValue = JSON.parse(value);
-        obj[key] = parsedValue;
-        return;
+        return JSON.parse(value);
       } catch {
       }
       if (!isNaN(Number(value))) {
-        obj[key] = Number(value);
-        return;
+        return Number(value);
       }
       if (value.toLowerCase() === "true") {
-        obj[key] = true;
-        return;
+        return true;
       }
       if (value.toLowerCase() === "false") {
-        obj[key] = false;
-        return;
+        return false;
       }
-      obj[key] = value;
-    });
-    return obj;
+      return value.toString();
+    }
+    return void 0;
   }
   function updateUrlParam(key, value) {
     const url = new URL(window.location.href);
@@ -57,15 +33,16 @@
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var Control = class {
-    #name;
+    #id;
+    // like a name but should be a valid query string param name
     #value;
-    constructor(params) {
-      this.#name = params.name;
+    constructor(id, params) {
+      this.#id = id;
       this.#value = params.value;
       controls.push(this);
     }
-    name() {
-      return this.#name;
+    id() {
+      return this.#id;
     }
     setVal(val) {
       this.#value = val;
@@ -78,27 +55,27 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
-      this.#widgetEl = $(params.name);
-      this.#valueEl = $(`${params.name}-value`);
-      this.#wrapperEl = $(`${params.name}-control`);
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+      this.#widgetEl = $(id);
+      this.#valueEl = $(`${id}-value`);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
-        updateUrlParam(this.name(), this.val());
-        params.callback().bind(this);
+        updateUrlParam(this.id(), this.val());
+        params.callback();
       };
     }
-    #createHtmlControl(name, label, value, min, max, step) {
+    #createHtmlControl(id, name, value, min, max, step) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -118,12 +95,51 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var SelectControl = class extends Control {
+    #wrapperEl;
+    #widgetEl;
+    constructor(id, params) {
+      super(id, params);
+      this.setVal(params.value);
+      this.#createHtmlControl(id, params.name, params.value, params.choices);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
+      this.#widgetEl.onchange = (event) => {
+        this.setVal(event.target.value);
+        updateUrlParam(this.id(), this.val());
+        params.callback.call(this);
+      };
+    }
+    #createHtmlControl(id, name, value, choices) {
+      const html = [];
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(name);
+      html.push(`<select id="${this.id()}">`);
+      choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
+      html.push("</select>");
+      html.push("</div>");
+      const anchorElement = $("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+      }
+    }
+    set(newValue) {
+      this.setVal(newValue);
+      this.#widgetEl.value = newValue;
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+    }
+    hide() {
+      this.#wrapperEl.style.display = "none";
+    }
+  };
   var SvgSaveControl = class extends Control {
     #wrapperEl;
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
       const anchorElement = $("controls");
@@ -131,11 +147,11 @@
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
     }
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = $(`${params.name}-control`);
-      $(params.name).onclick = () => {
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = $(`${id}-control`);
+      $(id).onclick = () => {
         const svgEl = $(params.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         var svgData = svgEl.outerHTML;
@@ -144,7 +160,7 @@
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
-        downloadLink.download = params.saveFilename;
+        downloadLink.download = params.saveFileid;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -157,18 +173,170 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var ImageInputControl = class extends Control {
+    #videoControl;
+    #imageControl;
+    #toggle;
+    constructor(id, params) {
+      super(id, params);
+      this.#videoControl = new VideoStreamControl(`${id}-video`, {
+        name: "Video",
+        callback: params.callback
+      });
+      this.#videoControl.hide();
+      this.#imageControl = new ImageUploadControl(`${id}-image`, {
+        name: "Image",
+        callback: params.callback,
+        value: params.initialImage
+      });
+      this.#toggle = new SelectControl(`${id}-toggle`, {
+        name: "Mode",
+        choices: ["Video", "Image upload"],
+        value: "Image upload",
+        callback: () => {
+          if (this.#toggle.val() === "Video") {
+            this.#imageControl.hide();
+            this.#videoControl.show();
+          } else {
+            this.#imageControl.show();
+            this.#videoControl.pauseStreaming();
+            this.#videoControl.hide();
+          }
+        }
+      });
+    }
+    canvas() {
+      return this.#toggle.val() === "Video" ? this.#videoControl.canvas() : this.#imageControl.canvas();
+    }
+  };
+  var VideoStreamControl = class extends Control {
+    #wrapperEl;
+    #videoEl;
+    #canvasEl;
+    #startButtonEl;
+    #callback;
+    #isRunning;
+    #animationId;
+    #context;
+    #stream = null;
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = document.getElementById(`${id}-control`);
+      this.#videoEl = document.getElementById(`${id}-video`);
+      this.#canvasEl = document.getElementById(`${id}-canvas`);
+      this.#startButtonEl = document.getElementById(`${id}-start`);
+      this.#callback = params.callback;
+      this.#animationId = 0;
+      this.#isRunning = false;
+      this.#context = this.#canvasEl.getContext(
+        "2d",
+        { alpha: false, willReadFrequently: true }
+      );
+    }
+    async #stopStreaming() {
+      if (this.#stream) {
+        this.#stream.getTracks().forEach((track) => track.stop());
+        this.#videoEl.srcObject = null;
+        this.#stream = null;
+        this.#videoEl.pause();
+      }
+      this.#isRunning = false;
+    }
+    async pauseStreaming() {
+      await this.#stopStreaming();
+      this.#startButtonEl.innerText = "Restart";
+      this.#startButtonEl.onclick = async () => this.restartStreaming();
+      if (this.#animationId) {
+        cancelAnimationFrame(this.#animationId);
+        this.#animationId = null;
+      }
+    }
+    async restartStreaming() {
+      await this.#stopStreaming();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { width: 1920, height: 1080 }
+        });
+        this.#stream = stream;
+        this.#videoEl.srcObject = stream;
+        this.#videoEl.play();
+        this.#startButtonEl.innerText = "Pause";
+        this.#startButtonEl.onclick = async () => this.pauseStreaming();
+        this.#isRunning = true;
+        this.#animate();
+      } catch (e) {
+        console.log("Failed to restart camera:", e.name);
+      }
+    }
+    #animate() {
+      if (this.#context) {
+        this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
+        this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
+        if (this.#isRunning) {
+          this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+        }
+      }
+    }
+    async startStreaming() {
+      if (!this.#context) throw "Failed to get context";
+      navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { width: 1920, height: 1080 }
+      }).then((stream) => {
+        this.#stream = stream;
+        this.#videoEl.srcObject = stream;
+        this.#videoEl.play();
+      }).catch(function(e) {
+        console.log("An error with camera occured:", e.id);
+      });
+      this.#startButtonEl.innerText = "Pause";
+      this.#startButtonEl.onclick = async () => await this.pauseStreaming();
+      this.#isRunning = true;
+      this.#animate();
+    }
+    #createHtmlControl(id, name) {
+      const html = [];
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`${name} <video id="${id}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
+      html.push(`<canvas id="${id}-canvas"></canvas>`);
+      html.push(`<button id="${id}-start">Start</button>`);
+      html.push(`</div>`);
+      const anchorElement = document.getElementById("controls");
+      if (anchorElement) {
+        anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+        $(`${id}-start`).onclick = async () => {
+          await this.startStreaming();
+        };
+      }
+    }
+    show() {
+      this.#wrapperEl.style.display = "block";
+      this.#animate();
+    }
+    hide() {
+      this.#stopStreaming();
+      this.#wrapperEl.style.display = "none";
+    }
+    canvas() {
+      return this.#canvasEl;
+    }
+  };
   var ImageUploadControl = class extends Control {
     #wrapperEl;
     #uploadEl;
     #canvasEl;
     #imageUrl;
-    constructor(params) {
-      super(params);
+    #callback;
+    constructor(id, params) {
+      super(id, params);
       this.#imageUrl = params.value;
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = document.getElementById(`${params.name}-control`);
-      this.#uploadEl = document.getElementById(`${params.name}-upload`);
-      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.#callback = params.callback;
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = document.getElementById(`${id}-control`);
+      this.#uploadEl = document.getElementById(`${id}-upload`);
+      this.#canvasEl = document.getElementById(`${id}-canvas`);
       this.loadImage(this.#imageUrl, () => {
         params.callback(this);
       });
@@ -179,11 +347,11 @@
         }
       };
     }
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
-      html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
+      html.push(`<canvas id="${id}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
@@ -191,7 +359,7 @@
       }
     }
     loadImage(source, callback) {
-      const ctx2 = this.#canvasEl.getContext("2d", { willReadFrequently: true });
+      const ctx = this.#canvasEl.getContext("2d", { willReadFrequently: true });
       const img = new Image();
       img.onload = () => {
         const desiredWidth = 200;
@@ -199,8 +367,8 @@
         const desiredHeight = desiredWidth / aspectRatio;
         this.#canvasEl.width = desiredWidth;
         this.#canvasEl.height = desiredHeight;
-        if (ctx2) {
-          ctx2.drawImage(img, 0, 0, desiredWidth, desiredHeight);
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, desiredWidth, desiredHeight);
         }
         if (callback) {
           callback();
@@ -227,21 +395,39 @@
       return this.#canvasEl;
     }
     show() {
+      this.loadImage(this.#imageUrl, () => {
+        this.#callback(this);
+      });
       this.#wrapperEl.style.display = "block";
     }
     hide() {
       this.#wrapperEl.style.display = "none";
     }
   };
-  var paramsFromUrl = (defaults) => {
-    const params = queryStringToObject(window.location.search);
-    return { ...defaults, ...params };
-  };
-  var updateUrl = (params) => {
-    const url = objectToQueryString(params);
-    history.pushState(null, "", url);
-  };
   var controls = [];
+  var getParams = function(defaults) {
+    const params = {};
+    controls.forEach((control) => {
+      const key = control.id();
+      let value = paramFromQueryString(
+        control.id(),
+        window.location.search
+      );
+      if (value) {
+        params[key] = value;
+        control.setVal(value);
+      } else {
+        value = control.val();
+        if (value) {
+          params[key] = control.val();
+          updateUrlParam(key, params[key]);
+        } else {
+          params[key] = defaults[key];
+        }
+      }
+    });
+    return params;
+  };
 
   // src/gandalf.ts
   var defaultParams = {
@@ -252,73 +438,46 @@
     nsamples: 8296,
     seed: 72
   };
-  var paramsFromWidgets = () => {
-    const params = { ...defaultParams };
-    params.inputImageUrl = imageUpload.imageUrl();
-    params.cutoff = controlCutoff.val();
-    params.nsamples = controlNSamples.val();
-    params.seed = controlSeed.val();
-    return params;
-  };
-  var canvas;
-  var ctx;
   var gandalfWorker = new Worker("build/gandalf-ww.js");
   gandalfWorker.onmessage = function(e) {
     $("canvas").innerHTML = e.data;
   };
-  var doRender = function(params) {
-    $("canvas").innerHTML = "<h1>Rendering. Please wait</h1>";
+  var doRender = function() {
+    const params = getParams(defaultParams);
+    const canvas = imageSourceControl.canvas();
+    const ctx = canvas.getContext("2d");
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     gandalfWorker.postMessage({ params, imageData });
-    updateUrl(params);
   };
-  var renderFromQsp = function() {
-    const params = paramsFromUrl(defaultParams);
-    doRender(params);
-    controlCutoff.set(params.cutoff);
-    controlNSamples.set(params.nsamples);
-    controlSeed.set(params.seed);
-  };
-  var renderFromWidgets = function() {
-    doRender(paramsFromWidgets());
-  };
-  var imageUpload = new ImageUploadControl({
-    name: "inputImage",
-    label: "Image",
-    value: defaultParams["inputImageUrl"],
-    firstCallback: renderFromQsp,
-    callback: renderFromWidgets
+  var imageSourceControl = new ImageInputControl("imageSource", {
+    name: "Source",
+    callback: doRender,
+    initialImage: "tbl.png"
   });
-  canvas = imageUpload.canvas();
-  ctx = canvas.getContext("2d");
-  var controlSeed = new NumberControl({
+  new NumberControl("seed", {
     name: "seed",
-    label: "seed",
     value: defaultParams["seed"],
-    callback: renderFromWidgets,
+    callback: doRender,
     min: 0,
     max: 500
   });
-  var controlCutoff = new NumberControl({
-    name: "cutoff",
-    label: "White cutoff",
+  new NumberControl("cutoff", {
+    name: "White cutoff",
     value: defaultParams["cutoff"],
-    callback: renderFromWidgets,
+    callback: doRender,
     min: 0,
     max: 255
   });
-  var controlNSamples = new NumberControl({
-    name: "nsamples",
-    label: "Samples",
+  new NumberControl("nsamples", {
+    name: "Samples",
     value: defaultParams["nsamples"],
-    callback: renderFromWidgets,
+    callback: doRender,
     min: 10,
     max: 2e4
   });
-  new SvgSaveControl({
-    name: "svgSave",
+  new SvgSaveControl("svgSave", {
     canvasId: "svg-canvas",
-    label: "Save SVG",
+    name: "Save SVG",
     saveFilename: "gandalf.svg"
   });
 })();

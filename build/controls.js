@@ -80,15 +80,16 @@
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var Control = class {
-    #name;
+    #id;
+    // like a name but should be a valid query string param name
     #value;
-    constructor(params) {
-      this.#name = params.name;
+    constructor(id, params) {
+      this.#id = id;
       this.#value = params.value;
       controls.push(this);
     }
-    name() {
-      return this.#name;
+    id() {
+      return this.#id;
     }
     setVal(val) {
       this.#value = val;
@@ -101,27 +102,27 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
-      this.#widgetEl = $(params.name);
-      this.#valueEl = $(`${params.name}-value`);
-      this.#wrapperEl = $(`${params.name}-control`);
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+      this.#widgetEl = $(id);
+      this.#valueEl = $(`${id}-value`);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
-        updateUrlParam(this.name(), this.val());
-        params.callback().bind(this);
+        updateUrlParam(this.id(), this.val());
+        params.callback();
       };
     }
-    #createHtmlControl(name, label, value, min, max, step) {
+    #createHtmlControl(id, name, value, min, max, step) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -144,23 +145,23 @@
   var SelectControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params) {
-      super(params);
+    constructor(id, params) {
+      super(id, params);
       this.setVal(params.value);
-      this.#createHtmlControl(params.name, params.label, params.value, params.choices);
-      this.#widgetEl = $(params.name);
-      this.#wrapperEl = $(`${params.name}-control`);
+      this.#createHtmlControl(id, params.name, params.value, params.choices);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params.callback.call(this);
       };
     }
-    #createHtmlControl(name, label, value, choices) {
+    #createHtmlControl(id, name, value, choices) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(label);
-      html.push(`<select id="${this.name()}">`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(name);
+      html.push(`<select id="${this.id()}">`);
       choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
       html.push("</select>");
       html.push("</div>");
@@ -183,22 +184,22 @@
   var CheckboxControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params) {
-      super(params);
+    constructor(id, params) {
+      super(id, params);
       this.setVal(params.value);
-      this.#createHtmlControl(params.name, params.label, params.value);
-      this.#widgetEl = $(params.name);
-      this.#wrapperEl = $(`${params.name}-control`);
+      this.#createHtmlControl(id, params.name, params.value);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.checked);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params.callback().bind(this);
       };
     }
-    #createHtmlControl(name, label, value) {
+    #createHtmlControl(id, name, value) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`<input type="checkbox" id="${id}" ${value ? "selected" : ""}> ${name}`);
       html.push(`</div>`);
       const anchorElement = $("controls");
       if (anchorElement) {
@@ -218,10 +219,10 @@
   };
   var SvgSaveControl = class extends Control {
     #wrapperEl;
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
       const anchorElement = $("controls");
@@ -229,11 +230,11 @@
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
     }
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = $(`${params.name}-control`);
-      $(params.name).onclick = () => {
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = $(`${id}-control`);
+      $(id).onclick = () => {
         const svgEl = $(params.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         var svgData = svgEl.outerHTML;
@@ -242,7 +243,7 @@
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
-        downloadLink.download = params.saveFilename;
+        downloadLink.download = params.saveFileid;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -255,6 +256,42 @@
       this.#wrapperEl.style.display = "none";
     }
   };
+  var ImageInputControl = class extends Control {
+    #videoControl;
+    #imageControl;
+    #toggle;
+    constructor(id, params) {
+      super(id, params);
+      this.#videoControl = new VideoStreamControl(`${id}-video`, {
+        name: "Video",
+        callback: params.callback
+      });
+      this.#videoControl.hide();
+      this.#imageControl = new ImageUploadControl(`${id}-image`, {
+        name: "Image",
+        callback: params.callback,
+        value: params.initialImage
+      });
+      this.#toggle = new SelectControl(`${id}-toggle`, {
+        name: "Mode",
+        choices: ["Video", "Image upload"],
+        value: "Image upload",
+        callback: () => {
+          if (this.#toggle.val() === "Video") {
+            this.#imageControl.hide();
+            this.#videoControl.show();
+          } else {
+            this.#imageControl.show();
+            this.#videoControl.pauseStreaming();
+            this.#videoControl.hide();
+          }
+        }
+      });
+    }
+    canvas() {
+      return this.#toggle.val() === "Video" ? this.#videoControl.canvas() : this.#imageControl.canvas();
+    }
+  };
   var VideoStreamControl = class extends Control {
     #wrapperEl;
     #videoEl;
@@ -264,13 +301,14 @@
     #isRunning;
     #animationId;
     #context;
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = document.getElementById(`${params.name}-control`);
-      this.#videoEl = document.getElementById(`${params.name}-video`);
-      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
-      this.#startButtonEl = document.getElementById(`${params.name}-start`);
+    #stream = null;
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = document.getElementById(`${id}-control`);
+      this.#videoEl = document.getElementById(`${id}-video`);
+      this.#canvasEl = document.getElementById(`${id}-canvas`);
+      this.#startButtonEl = document.getElementById(`${id}-start`);
       this.#callback = params.callback;
       this.#animationId = 0;
       this.#isRunning = false;
@@ -279,22 +317,41 @@
         { alpha: false, willReadFrequently: true }
       );
     }
+    async #stopStreaming() {
+      if (this.#stream) {
+        this.#stream.getTracks().forEach((track) => track.stop());
+        this.#videoEl.srcObject = null;
+        this.#stream = null;
+        this.#videoEl.pause();
+      }
+      this.#isRunning = false;
+    }
     async pauseStreaming() {
-      this.#videoEl.pause();
+      await this.#stopStreaming();
       this.#startButtonEl.innerText = "Restart";
       this.#startButtonEl.onclick = async () => this.restartStreaming();
-      this.#isRunning = false;
       if (this.#animationId) {
         cancelAnimationFrame(this.#animationId);
         this.#animationId = null;
       }
     }
     async restartStreaming() {
-      this.#videoEl.play();
-      this.#startButtonEl.innerText = "Pause";
-      this.#startButtonEl.onclick = async () => this.pauseStreaming();
-      this.#isRunning = true;
-      this.#animate();
+      await this.#stopStreaming();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { width: 1920, height: 1080 }
+        });
+        this.#stream = stream;
+        this.#videoEl.srcObject = stream;
+        this.#videoEl.play();
+        this.#startButtonEl.innerText = "Pause";
+        this.#startButtonEl.onclick = async () => this.pauseStreaming();
+        this.#isRunning = true;
+        this.#animate();
+      } catch (e) {
+        console.log("Failed to restart camera:", e.name);
+      }
     }
     #animate() {
       if (this.#context) {
@@ -311,35 +368,38 @@
         audio: false,
         video: { width: 1920, height: 1080 }
       }).then((stream) => {
+        this.#stream = stream;
         this.#videoEl.srcObject = stream;
         this.#videoEl.play();
       }).catch(function(e) {
-        console.log("An error with camera occured:", e.name);
+        console.log("An error with camera occured:", e.id);
       });
       this.#startButtonEl.innerText = "Pause";
       this.#startButtonEl.onclick = async () => await this.pauseStreaming();
       this.#isRunning = true;
       this.#animate();
     }
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
-      html.push(`<canvas id="${name}-canvas"></canvas>`);
-      html.push(`<button id="${name}-start">Start</button>`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`${name} <video id="${id}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
+      html.push(`<canvas id="${id}-canvas"></canvas>`);
+      html.push(`<button id="${id}-start">Start</button>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
         anchorElement.insertAdjacentHTML("beforeend", html.join(""));
-        $(`${name}-start`).onclick = async () => {
+        $(`${id}-start`).onclick = async () => {
           await this.startStreaming();
         };
       }
     }
     show() {
       this.#wrapperEl.style.display = "block";
+      this.#animate();
     }
     hide() {
+      this.#stopStreaming();
       this.#wrapperEl.style.display = "none";
     }
     canvas() {
@@ -351,13 +411,15 @@
     #uploadEl;
     #canvasEl;
     #imageUrl;
-    constructor(params) {
-      super(params);
+    #callback;
+    constructor(id, params) {
+      super(id, params);
       this.#imageUrl = params.value;
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = document.getElementById(`${params.name}-control`);
-      this.#uploadEl = document.getElementById(`${params.name}-upload`);
-      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.#callback = params.callback;
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = document.getElementById(`${id}-control`);
+      this.#uploadEl = document.getElementById(`${id}-upload`);
+      this.#canvasEl = document.getElementById(`${id}-canvas`);
       this.loadImage(this.#imageUrl, () => {
         params.callback(this);
       });
@@ -368,11 +430,11 @@
         }
       };
     }
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
-      html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
+      html.push(`<canvas id="${id}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
@@ -416,6 +478,9 @@
       return this.#canvasEl;
     }
     show() {
+      this.loadImage(this.#imageUrl, () => {
+        this.#callback(this);
+      });
       this.#wrapperEl.style.display = "block";
     }
     hide() {
@@ -433,24 +498,24 @@
   var TextControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params) {
-      super(params);
+    constructor(id, params) {
+      super(id, params);
       this.setVal(params.value);
-      this.#createHtmlControl(params.name, params.label, params.value);
-      this.#widgetEl = $(params.name);
-      this.#wrapperEl = $(`${params.name}-control`);
+      this.#createHtmlControl(id, params.name, params.value);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params.callback().bind(this);
       };
     }
-    #createHtmlControl(name, label, value) {
+    #createHtmlControl(id, name, value) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       html.push(`
-      <input id="${name}" value="${value}"/>
-      ${label}
+      <input id="${id}" value="${value}"/>
+      ${name}
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -473,9 +538,9 @@
   var getParams = function(defaults) {
     const params = {};
     controls.forEach((control) => {
-      const key = control.name();
+      const key = control.id();
       let value = paramFromQueryString(
-        control.name(),
+        control.id(),
         window.location.search
       );
       if (value) {

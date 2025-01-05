@@ -57,15 +57,16 @@
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var Control = class {
-    #name;
+    #id;
+    // like a name but should be a valid query string param name
     #value;
-    constructor(params) {
-      this.#name = params.name;
+    constructor(id, params) {
+      this.#id = id;
       this.#value = params.value;
       controls.push(this);
     }
-    name() {
-      return this.#name;
+    id() {
+      return this.#id;
     }
     setVal(val) {
       this.#value = val;
@@ -78,27 +79,27 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
-      this.#widgetEl = $(params.name);
-      this.#valueEl = $(`${params.name}-value`);
-      this.#wrapperEl = $(`${params.name}-control`);
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+      this.#widgetEl = $(id);
+      this.#valueEl = $(`${id}-value`);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
-        updateUrlParam(this.name(), this.val());
-        params.callback().bind(this);
+        updateUrlParam(this.id(), this.val());
+        params.callback();
       };
     }
-    #createHtmlControl(name, label, value, min, max, step) {
+    #createHtmlControl(id, name, value, min, max, step) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -120,10 +121,10 @@
   };
   var SvgSaveControl = class extends Control {
     #wrapperEl;
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
       const anchorElement = $("controls");
@@ -131,11 +132,11 @@
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
     }
-    constructor(params) {
-      super(params);
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = $(`${params.name}-control`);
-      $(params.name).onclick = () => {
+    constructor(id, params) {
+      super(id, params);
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = $(`${id}-control`);
+      $(id).onclick = () => {
         const svgEl = $(params.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         var svgData = svgEl.outerHTML;
@@ -144,7 +145,7 @@
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
-        downloadLink.download = params.saveFilename;
+        downloadLink.download = params.saveFileid;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -162,13 +163,15 @@
     #uploadEl;
     #canvasEl;
     #imageUrl;
-    constructor(params) {
-      super(params);
+    #callback;
+    constructor(id, params) {
+      super(id, params);
       this.#imageUrl = params.value;
-      this.#createHtmlControl(params.name, params.label);
-      this.#wrapperEl = document.getElementById(`${params.name}-control`);
-      this.#uploadEl = document.getElementById(`${params.name}-upload`);
-      this.#canvasEl = document.getElementById(`${params.name}-canvas`);
+      this.#callback = params.callback;
+      this.#createHtmlControl(id, params.name);
+      this.#wrapperEl = document.getElementById(`${id}-control`);
+      this.#uploadEl = document.getElementById(`${id}-upload`);
+      this.#canvasEl = document.getElementById(`${id}-canvas`);
       this.loadImage(this.#imageUrl, () => {
         params.callback(this);
       });
@@ -179,11 +182,11 @@
         }
       };
     }
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
-      html.push(`<canvas id="${name}-canvas"></canvas>`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
+      html.push(`<canvas id="${id}-canvas"></canvas>`);
       html.push(`</div>`);
       const anchorElement = document.getElementById("controls");
       if (anchorElement) {
@@ -227,6 +230,9 @@
       return this.#canvasEl;
     }
     show() {
+      this.loadImage(this.#imageUrl, () => {
+        this.#callback(this);
+      });
       this.#wrapperEl.style.display = "block";
     }
     hide() {
@@ -283,43 +289,38 @@
   var renderFromWidgets = function() {
     doRender(paramsFromWidgets());
   };
-  var imageUpload = new ImageUploadControl({
-    name: "inputImage",
-    label: "Image",
+  var imageUpload = new ImageUploadControl("inputImage", {
+    name: "Image",
     value: defaultParams["inputImageUrl"],
     firstCallback: renderFromQsp,
     callback: renderFromWidgets
   });
   canvas = imageUpload.canvas();
   ctx = canvas.getContext("2d");
-  var controlCutoff = new NumberControl({
-    name: "cutoff",
-    label: "White cutoff",
+  var controlCutoff = new NumberControl("cutoff", {
+    name: "White cutoff",
     value: defaultParams["cutoff"],
     callback: renderFromWidgets,
     min: 0,
     max: 255
   });
-  var controlNSamples = new NumberControl({
-    name: "nsamples",
-    label: "Samples",
+  var controlNSamples = new NumberControl("nsamples", {
+    name: "Samples",
     value: defaultParams["nsamples"],
     callback: renderFromWidgets,
     min: 10,
     max: 500
   });
-  var controlStrokeLength = new NumberControl({
-    name: "strokeLength",
-    label: "Stroke length",
+  var controlStrokeLength = new NumberControl("strokeLength", {
+    name: "Stroke length",
     value: 10,
     callback: renderFromWidgets,
     min: 1,
     max: 50
   });
-  new SvgSaveControl({
-    name: "svgSave",
+  new SvgSaveControl("svgSave", {
     canvasId: "svg-canvas",
-    label: "Save SVG",
+    name: "Save SVG",
     saveFilename: "vector-field.svg"
   });
 })();

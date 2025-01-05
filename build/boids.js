@@ -783,15 +783,16 @@
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var Control = class {
-    #name;
+    #id;
+    // like a name but should be a valid query string param name
     #value;
-    constructor(params2) {
-      this.#name = params2.name;
+    constructor(id, params2) {
+      this.#id = id;
       this.#value = params2.value;
       controls.push(this);
     }
-    name() {
-      return this.#name;
+    id() {
+      return this.#id;
     }
     setVal(val) {
       this.#value = val;
@@ -804,27 +805,27 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params2) {
-      super(params2);
-      this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
-      this.#widgetEl = $(params2.name);
-      this.#valueEl = $(`${params2.name}-value`);
-      this.#wrapperEl = $(`${params2.name}-control`);
+    constructor(id, params2) {
+      super(id, params2);
+      this.#createHtmlControl(id, params2.name, params2.value, params2.min, params2.max, params2.step);
+      this.#widgetEl = $(id);
+      this.#valueEl = $(`${id}-value`);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
-        updateUrlParam(this.name(), this.val());
-        params2.callback().bind(this);
+        updateUrlParam(this.id(), this.val());
+        params2.callback();
       };
     }
-    #createHtmlControl(name, label, value, min, max, step) {
+    #createHtmlControl(id, name, value, min, max, step) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -846,10 +847,10 @@
   };
   var SvgSaveControl = class extends Control {
     #wrapperEl;
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
       const anchorElement = $("controls");
@@ -857,11 +858,11 @@
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
     }
-    constructor(params2) {
-      super(params2);
-      this.#createHtmlControl(params2.name, params2.label);
-      this.#wrapperEl = $(`${params2.name}-control`);
-      $(params2.name).onclick = () => {
+    constructor(id, params2) {
+      super(id, params2);
+      this.#createHtmlControl(id, params2.name);
+      this.#wrapperEl = $(`${id}-control`);
+      $(id).onclick = () => {
         const svgEl = $(params2.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         var svgData = svgEl.outerHTML;
@@ -870,7 +871,7 @@
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
-        downloadLink.download = params2.saveFilename;
+        downloadLink.download = params2.saveFileid;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -894,24 +895,24 @@
   var TextControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params2) {
-      super(params2);
+    constructor(id, params2) {
+      super(id, params2);
       this.setVal(params2.value);
-      this.#createHtmlControl(params2.name, params2.label, params2.value);
-      this.#widgetEl = $(params2.name);
-      this.#wrapperEl = $(`${params2.name}-control`);
+      this.#createHtmlControl(id, params2.name, params2.value);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params2.callback().bind(this);
       };
     }
-    #createHtmlControl(name, label, value) {
+    #createHtmlControl(id, name, value) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       html.push(`
-      <input id="${name}" value="${value}"/>
-      ${label}
+      <input id="${id}" value="${value}"/>
+      ${name}
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -1188,27 +1189,25 @@
     $("canvas").innerHTML = renderBoids(params2);
   };
   var controls2 = {
-    zoom: new NumberControl({
-      name: "zoom",
-      label: "Zoom",
+    zoom: new NumberControl("zoom", {
+      name: "Zoom",
       value: defaultParams["zoom"],
       callback: render,
       min: -20,
       max: 20
     }),
-    seed: new NumberControl({ name: "seed", label: "RNG seed", value: defaultParams["seed"], callback: render, min: 0, max: 500 }),
-    nboids: new NumberControl({ name: "nboids", label: "Boids", value: defaultParams["nboids"], callback: render, min: 1, max: 100 }),
-    iterations: new NumberControl({ name: "iterations", label: "Iterations", value: defaultParams["iterations"], callback: render, min: 1, max: 1e3 }),
-    startIteration: new NumberControl({ name: "startIteration", label: "Start iteration", value: defaultParams["startIteration"], callback: render, min: 1, max: 1e3 }),
-    speedLimit: new NumberControl({ name: "speedLimit", label: "Max speed", value: defaultParams["speedLimit"], callback: render, min: 0, max: 20, step: 0.1 }),
-    cohesionForce: new NumberControl({ name: "cohesionForce", label: "Cohesion", value: defaultParams["cohesionForce"], callback: render, min: 0, max: 1, step: 0.01 }),
-    cohesionDistance: new NumberControl({ name: "cohesionDistance", label: "Cohesion distance", value: defaultParams["cohesionDistance"], callback: render, min: 10, max: 300 }),
-    nbAttractors: new NumberControl({ name: "nbAttractors", label: "Attractors", value: defaultParams["nbAttractors"], callback: render, min: 0, max: 10 }),
-    cssStyle: new TextControl({ name: "cssStyle", label: "CSS style", value: "stroke: black; stroke-width: 0.5", callback: render }),
-    svgSave: new SvgSaveControl({
-      name: "svgSave",
+    seed: new NumberControl("seed", { name: "RNG seed", value: defaultParams["seed"], callback: render, min: 0, max: 500 }),
+    nboids: new NumberControl("nboids", { name: "Boids", value: defaultParams["nboids"], callback: render, min: 1, max: 100 }),
+    iterations: new NumberControl("iterations", { name: "Iterations", value: defaultParams["iterations"], callback: render, min: 1, max: 1e3 }),
+    startIteration: new NumberControl("startIteration", { name: "Start iteration", value: defaultParams["startIteration"], callback: render, min: 1, max: 1e3 }),
+    speedLimit: new NumberControl("speedLimit", { name: "Max speed", value: defaultParams["speedLimit"], callback: render, min: 0, max: 20, step: 0.1 }),
+    cohesionForce: new NumberControl("cohesionForce", { name: "Cohesion", value: defaultParams["cohesionForce"], callback: render, min: 0, max: 1, step: 0.01 }),
+    cohesionDistance: new NumberControl("cohesionDistance", { name: "Cohesion distance", value: defaultParams["cohesionDistance"], callback: render, min: 10, max: 300 }),
+    nbAttractors: new NumberControl("nbAttractors", { name: "Attractors", value: defaultParams["nbAttractors"], callback: render, min: 0, max: 10 }),
+    cssStyle: new TextControl("cssStyle", { name: "CSS style", value: "stroke: black; stroke-width: 0.5", callback: render }),
+    svgSave: new SvgSaveControl("svgSave", {
       canvasId: "svg-canvas",
-      label: "Save SVG",
+      name: "Save SVG",
       saveFilename: "boids.svg"
     })
   };

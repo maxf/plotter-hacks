@@ -1507,15 +1507,16 @@
   // src/controls.ts
   var $ = (id) => document.getElementById(id);
   var Control = class {
-    #name;
+    #id;
+    // like a name but should be a valid query string param name
     #value;
-    constructor(params2) {
-      this.#name = params2.name;
+    constructor(id, params2) {
+      this.#id = id;
       this.#value = params2.value;
       controls.push(this);
     }
-    name() {
-      return this.#name;
+    id() {
+      return this.#id;
     }
     setVal(val) {
       this.#value = val;
@@ -1528,27 +1529,27 @@
     #wrapperEl;
     #widgetEl;
     #valueEl;
-    constructor(params2) {
-      super(params2);
-      this.#createHtmlControl(params2.name, params2.label, params2.value, params2.min, params2.max, params2.step);
-      this.#widgetEl = $(params2.name);
-      this.#valueEl = $(`${params2.name}-value`);
-      this.#wrapperEl = $(`${params2.name}-control`);
+    constructor(id, params2) {
+      super(id, params2);
+      this.#createHtmlControl(id, params2.name, params2.value, params2.min, params2.max, params2.step);
+      this.#widgetEl = $(id);
+      this.#valueEl = $(`${id}-value`);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(parseFloat(event.target.value));
         this.#valueEl.innerText = this.val().toString();
-        updateUrlParam(this.name(), this.val());
-        params2.callback().bind(this);
+        updateUrlParam(this.id(), this.val());
+        params2.callback();
       };
     }
-    #createHtmlControl(name, label, value, min, max, step) {
+    #createHtmlControl(id, name, value, min, max, step) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
+      html.push(`<div class="control" id="${id}-control">`);
       const stepAttr = step ? `step="${step}"` : "";
       html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
       html.push("</div>");
       const anchorElement = $("controls");
@@ -1571,23 +1572,23 @@
   var SelectControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params2) {
-      super(params2);
+    constructor(id, params2) {
+      super(id, params2);
       this.setVal(params2.value);
-      this.#createHtmlControl(params2.name, params2.label, params2.value, params2.choices);
-      this.#widgetEl = $(params2.name);
-      this.#wrapperEl = $(`${params2.name}-control`);
+      this.#createHtmlControl(id, params2.name, params2.value, params2.choices);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.value);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params2.callback.call(this);
       };
     }
-    #createHtmlControl(name, label, value, choices) {
+    #createHtmlControl(id, name, value, choices) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(label);
-      html.push(`<select id="${this.name()}">`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(name);
+      html.push(`<select id="${this.id()}">`);
       choices.forEach((choice) => html.push(`<option ${choice === value ? "selected" : ""}>${choice}</option>`));
       html.push("</select>");
       html.push("</div>");
@@ -1610,22 +1611,22 @@
   var CheckboxControl = class extends Control {
     #wrapperEl;
     #widgetEl;
-    constructor(params2) {
-      super(params2);
+    constructor(id, params2) {
+      super(id, params2);
       this.setVal(params2.value);
-      this.#createHtmlControl(params2.name, params2.label, params2.value);
-      this.#widgetEl = $(params2.name);
-      this.#wrapperEl = $(`${params2.name}-control`);
+      this.#createHtmlControl(id, params2.name, params2.value);
+      this.#widgetEl = $(id);
+      this.#wrapperEl = $(`${id}-control`);
       this.#widgetEl.onchange = (event) => {
         this.setVal(event.target.checked);
-        updateUrlParam(this.name(), this.val());
+        updateUrlParam(this.id(), this.val());
         params2.callback().bind(this);
       };
     }
-    #createHtmlControl(name, label, value) {
+    #createHtmlControl(id, name, value) {
       const html = [];
-      html.push(`<div class="control" id="${name}-control">`);
-      html.push(`<input type="checkbox" id="${name}" ${value ? "selected" : ""}> ${label}`);
+      html.push(`<div class="control" id="${id}-control">`);
+      html.push(`<input type="checkbox" id="${id}" ${value ? "selected" : ""}> ${name}`);
       html.push(`</div>`);
       const anchorElement = $("controls");
       if (anchorElement) {
@@ -1645,10 +1646,10 @@
   };
   var SvgSaveControl = class extends Control {
     #wrapperEl;
-    #createHtmlControl(name, label) {
+    #createHtmlControl(id, name) {
       const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
       const anchorElement = $("controls");
@@ -1656,11 +1657,11 @@
         anchorElement.insertAdjacentHTML("beforeend", html);
       }
     }
-    constructor(params2) {
-      super(params2);
-      this.#createHtmlControl(params2.name, params2.label);
-      this.#wrapperEl = $(`${params2.name}-control`);
-      $(params2.name).onclick = () => {
+    constructor(id, params2) {
+      super(id, params2);
+      this.#createHtmlControl(id, params2.name);
+      this.#wrapperEl = $(`${id}-control`);
+      $(id).onclick = () => {
         const svgEl = $(params2.canvasId);
         svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         var svgData = svgEl.outerHTML;
@@ -1669,7 +1670,7 @@
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
-        downloadLink.download = params2.saveFilename;
+        downloadLink.download = params2.saveFileid;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -2180,9 +2181,8 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
     $("canvas").innerHTML = renderCeltic(params2);
   };
   var controls2 = {};
-  controls2.graphType = new SelectControl({
-    name: "graphType",
-    label: "",
+  controls2.graphType = new SelectControl("graphType", {
+    name: "",
     value: defaultParams["graphType"],
     choices: ["Polar", "Grid", "Random"],
     callback: function() {
@@ -2191,90 +2191,79 @@ ${this.edges.map((edge) => edge.asText()).join("\n")}
       render();
     }
   });
-  controls2.margin = new NumberControl({
-    name: "margin",
-    label: "Margin",
+  controls2.margin = new NumberControl("margin", {
+    name: "Margin",
     value: defaultParams["margin"],
     callback: render,
     min: 0,
     max: 500
   });
-  controls2.shape1 = new NumberControl({
-    name: "shape1",
-    label: "Shape1",
+  controls2.shape1 = new NumberControl("shape1", {
+    name: "Shape1",
     value: defaultParams["shape1"],
     callback: render,
     min: -2,
     max: 2,
     step: 0.01
   });
-  controls2.shape2 = new NumberControl({
-    name: "shape2",
-    label: "Shape2",
+  controls2.shape2 = new NumberControl("shape2", {
+    name: "Shape2",
     value: defaultParams["shape2"],
     callback: render,
     min: -2,
     max: 2,
     step: 0.01
   });
-  controls2.perturbation = new NumberControl({
-    name: "perturbation",
-    label: "Perturbation",
+  controls2.perturbation = new NumberControl("perturbation", {
+    name: "Perturbation",
     value: defaultParams["perturbation"],
     callback: render,
     min: 0,
     max: 300
   });
-  controls2.showGraph = new CheckboxControl({
-    name: "showGraph",
-    label: "Graph",
+  controls2.showGraph = new CheckboxControl("showGraph", {
+    name: "Graph",
     value: defaultParams["showGraph"],
     callback: render
   });
-  controls2.seed = new NumberControl({
+  controls2.seed = new NumberControl("seed", {
     name: "seed",
-    label: "seed",
     value: defaultParams["seed"],
     callback: render,
     min: 0,
     max: 500
   });
-  controls2.nbNodes = new NumberControl({
-    name: "nbNodes",
-    label: "Nodes",
+  controls2.nbNodes = new NumberControl("nbNodes", {
+    name: "Nodes",
     value: defaultParams["nbNodes"],
     callback: render,
     min: 3,
     max: 40
   });
-  controls2.cells = new NumberControl({
-    name: "cells",
-    label: "Cells",
+  controls2.cells = new NumberControl("cells", {
+    name: "Cells",
     value: defaultParams["cells"],
     callback: render,
     min: 2,
     max: 100
   });
-  controls2.nbOrbits = new NumberControl({
-    name: "nbOrbits",
-    label: "Orbits",
+  controls2.nbOrbits = new NumberControl("nbOrbits", {
+    name: "Orbits",
     value: defaultParams["nbOrbits"],
     callback: render,
     min: 1,
     max: 20
   });
-  controls2.nbNodesPerOrbit = new NumberControl({
-    name: "nbNodesPerOrbit",
-    label: "Nodes per orbit",
+  controls2.nbNodesPerOrbit = new NumberControl("nbNodesPerOrbit", {
+    name: "Nodes per orbit",
     value: defaultParams["nbNodesPerOrbit"],
     callback: render,
     min: 3,
     max: 20
   });
-  controls2.svgSave = new SvgSaveControl({
-    name: "svgSave",
+  controls2.svgSave = new SvgSaveControl("svgSave", {
     canvasId: "svg-canvas",
-    label: "Save SVG",
+    name: "Save SVG",
     saveFilename: "celtic.svg"
   });
   var paramsPerType = {
