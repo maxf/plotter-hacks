@@ -5,16 +5,16 @@ const $ = (id: string) => document.getElementById(id)!;
 //============================================================================
 
 class Control {
-  #name: string;
+  #id: string; // like a name but should be a valid query string param name
   #value: any;
 
   constructor(params: any) {
-    this.#name = params.name;
+    this.#id = params.id;
     this.#value = params.value;
     controls.push(this);
   }
-  name(): string {
-    return this.#name;
+  id(): string {
+    return this.#id;
   }
   setVal(val: any) {
     this.#value = val;
@@ -33,27 +33,27 @@ class NumberControl extends Control {
 
   constructor(params: any) {
     super(params);
-    this.#createHtmlControl(params.name, params.label, params.value, params.min, params.max, params.step);
-    this.#widgetEl = $(params.name) as HTMLInputElement;
-    this.#valueEl = $(`${params.name}-value`) as HTMLSpanElement;
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
+    this.#createHtmlControl(params.id, params.name, params.value, params.min, params.max, params.step);
+    this.#widgetEl = $(params.id) as HTMLInputElement;
+    this.#valueEl = $(`${params.id}-value`) as HTMLSpanElement;
+    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
       this.#valueEl.innerText = this.val().toString();
-      updateUrlParam(this.name(), this.val());
+      updateUrlParam(this.id(), this.val());
       params.callback().bind(this);
     };
   }
 
-  #createHtmlControl(name: string, label: string, value: number, min: number, max: number, step?: number) {
+  #createHtmlControl(id: string, name: string, value: number, min: number, max: number, step?: number) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${id}-control">`);
     const stepAttr = step ? `step="${step}"` : '';
     html.push(`
-      <input id="${name}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
-      ${label}
-      <span id="${name}-value">${value}</span>
+      <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
+      ${name}
+      <span id="${id}-value">${value}</span>
     `);
     html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
@@ -87,22 +87,22 @@ class SelectControl extends Control {
   constructor(params: any) {
     super(params);
     this.setVal(params.value);
-    this.#createHtmlControl(params.name, params.label, params.value, params.choices);
-    this.#widgetEl = $(params.name) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
+    this.#createHtmlControl(params.id, params.name, params.value, params.choices);
+    this.#widgetEl = $(params.id) as HTMLInputElement;
+    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
-      updateUrlParam(this.name(), this.val());
+      updateUrlParam(this.id(), this.val());
       params.callback.call(this);
     };
   }
 
-  #createHtmlControl(name: string, label: string, value: string, choices: string[]) {
+  #createHtmlControl(id: string, name: string, value: string, choices: string[]) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
-    html.push(label);
-    html.push(`<select id="${this.name()}">`);
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(name);
+    html.push(`<select id="${this.id()}">`);
     choices.forEach((choice: string) =>
       html.push(`<option ${choice===value ? 'selected' : ''}>${choice}</option>`));
     html.push('</select>');
@@ -137,21 +137,21 @@ class CheckboxControl extends Control {
   constructor(params: any) {
     super(params)
     this.setVal(params.value);
-    this.#createHtmlControl(params.name, params.label, params.value);
-    this.#widgetEl = $(params.name) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
+    this.#createHtmlControl(params.id, params.name, params.value);
+    this.#widgetEl = $(params.id) as HTMLInputElement;
+    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).checked);
-      updateUrlParam(this.name(), this.val());
+      updateUrlParam(this.id(), this.val());
       params.callback().bind(this);
     };
   }
 
-  #createHtmlControl(name: string, label: string, value: boolean) {
+  #createHtmlControl(id: string, name: string, value: boolean) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
-    html.push(`<input type="checkbox" id="${name}" ${value?'selected':''}> ${label}`);
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<input type="checkbox" id="${id}" ${value?'selected':''}> ${name}`);
     html.push(`</div>`);
 
     // Find the anchor element and insert the constructed HTML as the last child
@@ -180,10 +180,10 @@ class CheckboxControl extends Control {
 class SvgSaveControl extends Control {
   #wrapperEl: HTMLSpanElement;
 
-  #createHtmlControl(name: string, label: string) {
+  #createHtmlControl(id: string, name: string) {
     const html = `
-      <div class="control" id="${name}-control">
-        <button id="${name}">${label}</button>
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
       </div>
     `;
     const anchorElement = $('controls');
@@ -194,10 +194,10 @@ class SvgSaveControl extends Control {
 
   constructor(params: any) {
     super(params)
-    this.#createHtmlControl(params.name, params.label);
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLSpanElement;
+    this.#createHtmlControl(params.id, params.name);
+    this.#wrapperEl = $(`${params.id}-control`) as HTMLSpanElement;
 
-    $(params.name).onclick = () => {
+    $(params.id).onclick = () => {
       const svgEl = $(params.canvasId);
       svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       var svgData = svgEl.outerHTML;
@@ -206,7 +206,7 @@ class SvgSaveControl extends Control {
       var svgUrl = URL.createObjectURL(svgBlob);
       var downloadLink = document.createElement("a");
       downloadLink.href = svgUrl;
-      downloadLink.download = params.saveFilename;
+      downloadLink.download = params.saveFileid;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
@@ -232,24 +232,24 @@ class ImageInputControl extends Control {
   constructor(params: any) {
     super(params);
     this.#videoControl = new VideoStreamControl({
-      name: params.name,
-      label: `${params.label}-video`,
+      id: `${params.id}-video`,
+      name: 'Video',
       callback: params.callback
     });
     this.#videoControl.hide();
     this.#imageControl = new ImageUploadControl({
-      name: params.name,
-      label: `${params.label}-image`,
+      id: `${params.id}-image`,
+      name: 'Image',
       callback: params.callback,
-      value: params.value
+      value: params.initialImage
     });
     this.#toggle = new SelectControl({
-      name: params.name,
-      label: params.label,
+      id: `${params.id}-toggle`,
+      name: 'Mode',
       choices: ['Video', 'Image upload'],
       value: 'Image upload',
       callback: () => {
-        if (this.val() === 'Video') {
+        if (this.#toggle.val() === 'Video') {
           this.#imageControl.hide();
           this.#videoControl.show();
         } else {
@@ -282,11 +282,11 @@ class VideoStreamControl extends Control {
 
   constructor(params: any) {
     super(params);
-    this.#createHtmlControl(params.name, params.label);
-    this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
-    this.#videoEl = document.getElementById(`${params.name}-video`) as HTMLVideoElement;
-    this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
-    this.#startButtonEl = document.getElementById(`${params.name}-start`) as HTMLButtonElement;
+    this.#createHtmlControl(params.id, params.name);
+    this.#wrapperEl = document.getElementById(`${params.id}-control`) as HTMLDivElement;
+    this.#videoEl = document.getElementById(`${params.id}-video`) as HTMLVideoElement;
+    this.#canvasEl = document.getElementById(`${params.id}-canvas`) as HTMLCanvasElement;
+    this.#startButtonEl = document.getElementById(`${params.id}-start`) as HTMLButtonElement;
     this.#callback = params.callback;
     this.#animationId = 0;
     this.#isRunning = false;
@@ -338,7 +338,7 @@ class VideoStreamControl extends Control {
         this.#videoEl.play();
       })
       .catch(function (e) {
-        console.log("An error with camera occured:", e.name);
+        console.log("An error with camera occured:", e.id);
       })
     this.#startButtonEl.innerText = 'Pause';
     this.#startButtonEl.onclick = async () => await this.pauseStreaming();
@@ -347,17 +347,17 @@ class VideoStreamControl extends Control {
     this.#animate();
   }
 
-  #createHtmlControl(name: string, label: string) {
+  #createHtmlControl(id: string, name: string) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
-    html.push(`${label} <video id="${name}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
-    html.push(`<canvas id="${name}-canvas"></canvas>`);
-    html.push(`<button id="${name}-start">Start</button>`);
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`${name} <video id="${id}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
+    html.push(`<canvas id="${id}-canvas"></canvas>`);
+    html.push(`<button id="${id}-start">Start</button>`);
     html.push(`</div>`);
     const anchorElement = document.getElementById('controls');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
-      $(`${name}-start`).onclick = async () => {
+      $(`${id}-start`).onclick = async () => {
         await this.startStreaming();
       }
     }
@@ -387,11 +387,11 @@ class ImageUploadControl extends Control {
   constructor(params: any) {
     super(params);
     this.#imageUrl = params.value;
-    this.#createHtmlControl(params.name, params.label);
+    this.#createHtmlControl(params.id, params.name);
 
-    this.#wrapperEl = document.getElementById(`${params.name}-control`) as HTMLDivElement;
-    this.#uploadEl = document.getElementById(`${params.name}-upload`) as HTMLInputElement;
-    this.#canvasEl = document.getElementById(`${params.name}-canvas`) as HTMLCanvasElement;
+    this.#wrapperEl = document.getElementById(`${params.id}-control`) as HTMLDivElement;
+    this.#uploadEl = document.getElementById(`${params.id}-upload`) as HTMLInputElement;
+    this.#canvasEl = document.getElementById(`${params.id}-canvas`) as HTMLCanvasElement;
     this.loadImage(this.#imageUrl, () => {
       params.callback(this);
     });
@@ -404,11 +404,11 @@ class ImageUploadControl extends Control {
     };
   }
 
-  #createHtmlControl(name: string, label: string) {
+  #createHtmlControl(id: string, name: string) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
-    html.push(`${label} <input type="file" id="${name}-upload" accept="image/*"><br/>`);
-    html.push(`<canvas id="${name}-canvas"></canvas>`);
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
+    html.push(`<canvas id="${id}-canvas"></canvas>`);
     html.push(`</div>`);
     const anchorElement = document.getElementById('controls');
     if (anchorElement) {
@@ -485,22 +485,22 @@ class TextControl extends Control {
   constructor(params: any) {
     super(params);
     this.setVal(params.value);
-    this.#createHtmlControl(params.name, params.label, params.value);
-    this.#widgetEl = $(params.name) as HTMLInputElement;
-    this.#wrapperEl = $(`${params.name}-control`) as HTMLDivElement;
+    this.#createHtmlControl(params.id, params.name, params.value);
+    this.#widgetEl = $(params.id) as HTMLInputElement;
+    this.#wrapperEl = $(`${params.id}-control`) as HTMLDivElement;
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
-      updateUrlParam(this.name(), this.val());
+      updateUrlParam(this.id(), this.val());
       params.callback().bind(this);
     };
   }
 
-  #createHtmlControl(name: string, label: string, value: number) {
+  #createHtmlControl(id: string, name: string, value: number) {
     const html = [];
-    html.push(`<div class="control" id="${name}-control">`);
+    html.push(`<div class="control" id="${id}-control">`);
     html.push(`
-      <input id="${name}" value="${value}"/>
-      ${label}
+      <input id="${id}" value="${value}"/>
+      ${name}
     `);
     html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
@@ -531,9 +531,9 @@ const controls: Control[] = [];
 const getParams = function(defaults: any) {
   const params: Record<string, any> = {};
   controls.forEach((control: Control) => {
-    const key: string = control.name();
+    const key: string = control.id();
     let value = paramFromQueryString(
-      control.name(),
+      control.id(),
       window.location.search
     );
     if (value) {

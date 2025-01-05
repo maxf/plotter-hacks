@@ -259,8 +259,8 @@ const render = () => {
 
 
 new NumberControl({
-  name: 'margin',
-  label: 'Margin',
+  id: 'margin',
+  name: 'Margin',
   value: defaultParams['margin'],
   callback: render,
   min: 0,
@@ -269,16 +269,16 @@ new NumberControl({
 
 
 new TextControl({
-  name: 'style',
-  label: 'CSS Style',
+  id: 'style',
+  name: 'CSS Style',
   value: defaultParams['style'],
   callback: render
 });
 
 
 new NumberControl({
-  name: 'theta',
-  label: 'Angle',
+  id: 'theta',
+  name: 'Angle',
   value: defaultParams['theta'],
   callback: render,
   min: 0,
@@ -288,8 +288,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'waviness',
-  label: 'Waviness',
+  id: 'waviness',
+  name: 'Waviness',
   value: defaultParams['waviness'],
   callback: render,
   min: 0,
@@ -299,8 +299,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'lineHeight',
-  label: 'Line height',
+  id: 'lineHeight',
+  name: 'Line height',
   value: defaultParams['lineHeight'],
   callback: render,
   min: 1,
@@ -310,8 +310,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'density',
-  label: 'Density',
+  id: 'density',
+  name: 'Density',
   value: defaultParams['density'],
   callback: render,
   min: 1,
@@ -321,8 +321,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'thickness',
-  label: 'Thickness',
+  id: 'thickness',
+  name: 'Thickness',
   value: defaultParams['thickness'],
   callback: render,
   min: 1,
@@ -332,8 +332,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'sx',
-  label: 'Stretch X',
+  id: 'sx',
+  name: 'Stretch X',
   value: defaultParams['sx'],
   callback: render,
   min: 0,
@@ -343,8 +343,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'sy',
-  label: 'Stretch Y',
+  id: 'sy',
+  name: 'Stretch Y',
   value: defaultParams['sy'],
   callback: render,
   min: 0,
@@ -354,8 +354,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'blur',
-  label: 'Blur',
+  id: 'blur',
+  name: 'Blur',
   value: defaultParams['blur'],
   callback: render,
   min: 1,
@@ -364,8 +364,8 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'cutoff',
-  label: 'White cutoff',
+  id: 'cutoff',
+  name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: render,
   min: 0.1,
@@ -375,15 +375,16 @@ new NumberControl({
 
 
 new SvgSaveControl({
-  name: 'svgSave',
+  id: 'svgSave',
   canvasId: 'svg-canvas',
-  label: 'Save SVG',
+  name: 'Save SVG',
   saveFilename: 'excoffizer.svg'
 });
 
 
 const imageSourceControl = new ImageInputControl({
-  name: 'imageSource',
-  label: 'Source',
-  callback: render
+  id: 'imageSource',
+  name: 'Source',
+  callback: render,
+  initialImage: 'tbl.png'
 });

@@ -16,35 +16,31 @@ const defaultParams = {
   seed: 72
 };
 
-let canvas: HTMLCanvasElement;
-
-let ctx: CanvasRenderingContext2D;
-
 const gandalfWorker = new Worker('build/gandalf-ww.js');
 gandalfWorker.onmessage = function(e) {
   $('canvas').innerHTML = e.data;
 }
 
+
 const doRender = function() {
   const params = getParams(defaultParams);
+  const canvas = imageSourceControl.canvas();
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   gandalfWorker.postMessage({ params, imageData });
 };
 
+
 const imageSourceControl = new ImageInputControl({
-  name: 'imageSource',
-  label: 'Source',
+  id: 'imageSource',
+  name: 'Source',
   callback: doRender,
-  value: 'tbl.png'
+  initialImage: 'tbl.png'
 });
 
-canvas = imageSourceControl.canvas();
-ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-
-
 new NumberControl({
+  id: 'seed',
   name: 'seed',
-  label: 'seed',
   value: defaultParams['seed'],
   callback: doRender,
   min: 0,
@@ -53,27 +49,29 @@ new NumberControl({
 
 
 new NumberControl({
-  name: 'cutoff',
-  label: 'White cutoff',
+  id: 'cutoff',
+  name: 'White cutoff',
   value: defaultParams['cutoff'],
   callback: doRender,
   min: 0,
   max: 255
 });
 
+
 new NumberControl({
-  name: 'nsamples',
-  label: 'Samples',
+  id: 'nsamples',
+  name: 'Samples',
   value: defaultParams['nsamples'],
   callback: doRender,
   min: 10,
   max: 20_000,
 });
 
+
 new SvgSaveControl({
-  name: 'svgSave',
+  id: 'svgSave',
   canvasId: 'svg-canvas',
-  label: 'Save SVG',
+  name: 'Save SVG',
   saveFilename: 'gandalf.svg'
 });
 
