@@ -42,7 +42,7 @@ class NumberControl extends Control {
       this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
       this.#valueEl.innerText = this.val().toString();
       updateUrlParam(this.id(), this.val());
-      params.callback().bind(this);
+      params.callback();
     };
   }
 
