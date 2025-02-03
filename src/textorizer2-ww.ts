@@ -26,16 +26,29 @@ class Textorizer2 {
     const svg = [];
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
-    svg.push(`<g stroke="black" fill="none" stroke-width=".4px">`);
+    svg.push(`
+    <defs>
+    <style>
+    @font-face {
+    font-family: "hershey font";
+    //src: url(hershey_ttf/AVHersheySimplexHeavyItalic.ttf)
+    src: url("hershey_ttf/AVHersheyDuplexLight.ttf") format("truetype");
+    //src: url(hershey_ttf/AVHersheyComplexLight.ttf);
+    //src: url(hershey_ttf/AVHersheyComplexHeavy.ttf);
+    //src: url(hershey_ttf/AVHersheyComplexLight.ttf);
+    //src: url(hershey_ttf/AVHersheySimplexLight.ttf);
+    </style>
+    </defs>
+    <g stroke="black" fill="none" stroke-width=".4px">`);
+    const nw = 10; // approximate number of letter in the width of the canvas
     for (let row=1; row<h; row+=h/10) {
-      let x = 0;
-      let i = 0;
+      let x=0;
+      let textToDraw = this.#text.substring(0, nw);
       while (x < w) {
-        const letter = this.#text[i % this.#text.length];
-        svg.push(`<text style="font-family: sans; font-size: 5"  x="${x}" y="${row}">${letter}</text>`);
-        x += 3; // replace with letter width
-        i++;
+        textToDraw += " " + this.#text.substring(0, nw);
+        x += nw;
       }
+      svg.push(`<text style="font-family: hershey font; font-size: 10" x="0" y="${row}">${textToDraw}</text>`);
     }
     svg.push('</g></svg>');
     return svg.join('');
