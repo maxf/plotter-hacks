@@ -10,7 +10,7 @@ import {
 
 const defaultParams = {
   inputImageUrl: 'portrait.jpg',
-  text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ",
   width: 800,
   height: 800,
   cutoff: 85,
@@ -71,7 +71,8 @@ const glyphWidths = function(fontFamily: string, fontSize: number): Record<strin
   textElement.setAttribute('y', 50);
   textElement.setAttribute('font-size', fontSize);
   textElement.setAttribute('font-family', fontFamily);
-  textElement.setAttribute('stroke-width', .1);
+  textElement.setAttribute('stroke', 'none');
+  textElement.setAttribute('fill', 'black');
   playground.appendChild(textElement);
   const allAsciiChars = Array.from({ length: 95 }, (_, i) => String.fromCharCode(i+32)).join('');
   for (let glyph of allAsciiChars) {

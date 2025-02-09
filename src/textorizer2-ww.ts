@@ -11,7 +11,7 @@ type Params = {
 
 class Textorizer2 {
   #image: Pixmap;
-  // #cutoff: number;
+  #cutoff: number;
   #text: string;
   #widths: Record<string, number>;
 
@@ -19,7 +19,45 @@ class Textorizer2 {
     this.#image = new Pixmap(imageData);
     this.#text = params.text;
     this.#widths = widths;
-    //    this.#cutoff = params.cutoff;
+    this.#cutoff = params.cutoff;
+  }
+
+
+  #toSvgScanLine(angle: number, row: number): string {
+    const w = this.#image.width;
+    const h = this.#image.height;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const svg = [];
+    let row = 1;
+    let x = 0;
+    let textIndex = 0;
+    svg.push('<g class="scanLine")>');
+    while(row <=h && row >= 0 && x <= w && x >= 0) {
+      const imageLevel = this.#image.brightnessAt(x, row);
+      const glyph = this.#text[textIndex];
+      if (imageLevel < cutoff) {
+        svg.push(`<text x="${x}" y="${row}">${glyph}</text>`);
+      }
+      textIndex = (textIndex + 1) % this.#text.length;
+      const distStep = this.#widths[glyph] * fontSize / 10;
+      x += cos * distStep;
+      y += sin * distStep;
+    }
+    svg.push('</g>');
+    return svg.join('');
+  }
+
+  #toSvgScan(angle: number): string {
+    const w = this.#image.width;
+    const h = this.#image.height;
+    const svg = [];
+    svg.push('<g class="scan")>');
+    for (let row = 0; row<w; row += h/50) {
+      svg.push(this.#toSvgScanLine(angle, row);
+    }
+    svg.push('</g>');
+    return svg.join('');
   }
 
   toSvg(): string {
@@ -42,20 +80,9 @@ class Textorizer2 {
     //src: url(hershey_ttf/AVHersheySimplexLight.ttf);
     </style>
     </defs>
-    <g stroke="black" fill="none" stroke-width=".4px">`);
-
-    let textIndex = 0;
-    for (let row=1; row<h; row+=h/50) {
-      let x=0;
-      while(x < w) {
-        const imageLevel = this.#image.brightnessAt(x, row);
-        const glyph = this.#text[textIndex];
-        if (imageLevel < 128) {
-          svg.push(`<text style="font-family: hershey font; font-size: ${fontSize}; stroke-width: 0.1" x="${x}" y="${row}">${glyph}</text>`);
-        }
-        textIndex = (textIndex + 1) % this.#text.length;
-        x += this.#widths[glyph] * fontSize / 10;
-      }
+    <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: hershey font; font-size: ${fontSize};">`);
+    for (let cutoff = 10; cutoff < 255; cutoff += 50) {
+      svg.push(this.#toSvgScan(angle));
     }
     svg.push('</g></svg>');
     return svg.join('');
