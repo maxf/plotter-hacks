@@ -24,10 +24,11 @@ textorizer2Worker.onmessage = function(e) {
 
 const doRender = function() {
   const params = getParams(defaultParams);
+  const widths = glyphWidths('hershey font', 10);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  textorizer2Worker.postMessage({ params, imageData });
+  textorizer2Worker.postMessage({ params, widths, imageData });
 };
 
 
@@ -59,4 +60,28 @@ new SvgSaveControl('svgSave', {
   name: 'Save SVG',
   saveFilename: 'textorizer2.svg'
 });
+
+
+const glyphWidths = function(fontFamily: string, fontSize: number): Record<string, number> {
+  const widths = {};
+  const playground = document.querySelector('#playground');
+  playground.style.display = 'block';
+  const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  textElement.setAttribute('x', 10);
+  textElement.setAttribute('y', 50);
+  textElement.setAttribute('font-size', fontSize);
+  textElement.setAttribute('font-family', fontFamily);
+  textElement.setAttribute('stroke-width', .1);
+  playground.appendChild(textElement);
+  const allAsciiChars = Array.from({ length: 95 }, (_, i) => String.fromCharCode(i+32)).join('');
+  for (let glyph of allAsciiChars) {
+    textElement.textContent = glyph;
+    const bbox = textElement.getBBox();
+    widths[glyph] = bbox.width;
+  };
+  // whitespace is special as getBBox() returns 0 width since nothing is drawn
+  widths[' '] = widths['n']; // arbitrarily, let's use n-width
+  playground.style.display = 'none';
+  return widths;
+};
 

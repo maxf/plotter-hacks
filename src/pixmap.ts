@@ -32,7 +32,6 @@ class Pixmap {
   width: number;
   height: number;
   context: any;
-  _pixels: any;
 
   constructor(canvas: ImageData) {
     this.canvas = canvas;
