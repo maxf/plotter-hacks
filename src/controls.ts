@@ -144,7 +144,7 @@ class CheckboxControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).checked);
       updateUrlParam(this.id(), this.val());
-      params.callback().bind(this);
+      params.callback.bind(this)();
     };
   }
 
@@ -520,7 +520,7 @@ class TextControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
       updateUrlParam(this.id(), this.val());
-      params.callback().bind(this);
+      params.callback.bind(this)();
     };
   }
 

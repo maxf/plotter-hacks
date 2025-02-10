@@ -35,7 +35,7 @@ const doRender = function() {
 const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: doRender,
-  initialImage: 'tbl.png'
+  initialImage: 'joyce.jpg'
 });
 
 
@@ -63,26 +63,27 @@ new SvgSaveControl('svgSave', {
 
 
 const glyphWidths = function(fontFamily: string, fontSize: number): Record<string, number> {
-  const widths = {};
-  const playground = document.querySelector('#playground');
-  playground.style.display = 'block';
-  const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  textElement.setAttribute('x', 10);
-  textElement.setAttribute('y', 50);
-  textElement.setAttribute('font-size', fontSize);
-  textElement.setAttribute('font-family', fontFamily);
-  textElement.setAttribute('stroke', 'none');
-  textElement.setAttribute('fill', 'black');
-  playground.appendChild(textElement);
-  const allAsciiChars = Array.from({ length: 95 }, (_, i) => String.fromCharCode(i+32)).join('');
-  for (let glyph of allAsciiChars) {
-    textElement.textContent = glyph;
-    const bbox = textElement.getBBox();
-    widths[glyph] = bbox.width;
-  };
-  // whitespace is special as getBBox() returns 0 width since nothing is drawn
-  widths[' '] = widths['n']; // arbitrarily, let's use n-width
-  playground.style.display = 'none';
+  const widths: Record<string, number> = {};
+  const playground: HTMLElement | null = document.querySelector('#playground');
+  if (playground) {
+    playground.style.display = 'block';
+    const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    textElement.setAttribute('x', '10');
+    textElement.setAttribute('y', '50');
+    textElement.setAttribute('font-size', fontSize.toString());
+    textElement.setAttribute('font-family', fontFamily);
+    textElement.setAttribute('stroke', 'none');
+    textElement.setAttribute('fill', 'black');
+    playground.appendChild(textElement);
+    const allAsciiChars = Array.from({ length: 95 }, (_, i) => String.fromCharCode(i+32)).join('');
+    for (let glyph of allAsciiChars) {
+      textElement.textContent = glyph;
+      const bbox = textElement.getBBox();
+      widths[glyph] = bbox.width;
+    };
+    // whitespace is special as getBBox() returns 0 width since nothing is drawn
+    widths[' '] = widths['n']; // arbitrarily, let's use n-width
+    playground.style.display = 'none';
+  }
   return widths;
 };
-
