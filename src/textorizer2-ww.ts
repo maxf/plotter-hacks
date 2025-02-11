@@ -29,22 +29,18 @@ class Textorizer2 {
 
   #toSvgScanLine(row: number, cutoff: number, dx: number, dy: number): string {
     const w = this.#image.width;
-    const svg = [];
     let x = 0;
     this.#textIndex = Math.floor(Math.random() * this.#text.length);
-    svg.push('<g class="scanline">');
+    const lettersToPush = [];
     while(x <= w) {
       const imageLevel = this.#image.brightnessAt(x, row);
-      const glyph = this.#text[this.#textIndex];
-      if (imageLevel < cutoff) {
-        svg.push(`<text x="${x+dx}" y="${row+dy}">${glyph}</text>`);
-      }
+      const glyph = imageLevel < cutoff ? this.#text[this.#textIndex] : ' ';
+      lettersToPush.push(glyph);
       this.#textIndex = (this.#textIndex + 1) % this.#text.length;
       const distStep = this.#widths[glyph] * this.#fontSize / 10;
       x += distStep;
     }
-    svg.push('</g>');
-    return svg.join('');
+    return `<text x="${dx}" y="${row+dy}" style="white-space: pre">${lettersToPush.join('')}</text>`;
   }
 
   #toSvgScan(cutoff: number, dx: number, dy: number): string {

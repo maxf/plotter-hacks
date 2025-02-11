@@ -82,7 +82,7 @@ const glyphWidths = function(fontFamily: string, fontSize: number): Record<strin
       widths[glyph] = bbox.width;
     };
     // whitespace is special as getBBox() returns 0 width since nothing is drawn
-    widths[' '] = widths['n']; // arbitrarily, let's use n-width
+    widths[' '] = widths['i']; // arbitrarily, let's use n-width
     playground.style.display = 'none';
   }
   return widths;
