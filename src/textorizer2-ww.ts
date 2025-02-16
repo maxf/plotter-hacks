@@ -61,19 +61,7 @@ class Textorizer2 {
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
     svg.push(`
-    <defs>
-    <style>
-    @font-face {
-    font-family: "hershey font";
-    //src: url(hershey_ttf/AVHersheySimplexHeavyItalic.ttf)
-    src: url("hershey_ttf/AVHersheyDuplexLight.ttf") format("truetype");
-    //src: url(hershey_ttf/AVHersheyComplexLight.ttf);
-    //src: url(hershey_ttf/AVHersheyComplexHeavy.ttf);
-    //src: url(hershey_ttf/AVHersheyComplexLight.ttf);
-    //src: url(hershey_ttf/AVHersheySimplexLight.ttf);
-    </style>
-    </defs>
-    <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: hershey font; font-size: ${this.#fontSize};">`);
+    <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">`);
 
     const span = (this.#cutoff - 10);
     for (let cutoff = 10; cutoff < this.#cutoff; cutoff += span/4) {

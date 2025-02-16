@@ -24,7 +24,7 @@ textorizer2Worker.onmessage = function(e) {
 
 const doRender = function() {
   const params = getParams(defaultParams);
-  const widths = glyphWidths('hershey font', 10);
+  const widths = glyphWidths('AVHershey Simplex', 10);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
