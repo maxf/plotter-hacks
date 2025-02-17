@@ -7,6 +7,7 @@ type Params = {
   width: number,
   height: number,
   cutoff: number,
+  fontSize: number
 };
 
 class Textorizer2 {
@@ -22,12 +23,11 @@ class Textorizer2 {
     this.#text = params.text;
     this.#widths = widths;
     this.#cutoff = params.cutoff;
-    this.#fontSize = 2;
+    this.#fontSize = params.fontSize;
     this.#textIndex = 0;
   }
 
-
-  #toSvgScanLine(row: number, cutoff: number, dx: number, dy: number): string {
+  #toSvgScanLine(row: number, cutoff: number, dx: number = 0, dy: number = 0): string {
     const w = this.#image.width;
     let x = 0;
     this.#textIndex = Math.floor(Math.random() * this.#text.length);
@@ -37,8 +37,7 @@ class Textorizer2 {
       const glyph = imageLevel < cutoff ? this.#text[this.#textIndex] : ' ';
       lettersToPush.push(glyph);
       this.#textIndex = (this.#textIndex + 1) % this.#text.length;
-      const distStep = this.#widths[glyph] * this.#fontSize / 10;
-      x += distStep;
+      x += this.#widths[glyph];
     }
     return `<text x="${dx}" y="${row+dy}" style="white-space: pre">${lettersToPush.join('')}</text>`;
   }
@@ -61,7 +60,11 @@ class Textorizer2 {
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
     svg.push(`
-    <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">`);
+    <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">
+
+    <rect x="0" y="0" width="${w}" height="${h}"/>
+`);
+
 
     const span = (this.#cutoff - 10);
     for (let cutoff = 10; cutoff < this.#cutoff; cutoff += span/4) {

@@ -14,6 +14,7 @@ const defaultParams = {
   width: 800,
   height: 800,
   cutoff: 85,
+  fontSize: 10
 };
 
 const textorizer2Worker = new Worker('build/textorizer2-ww.js');
@@ -24,7 +25,7 @@ textorizer2Worker.onmessage = function(e) {
 
 const doRender = function() {
   const params = getParams(defaultParams);
-  const widths = glyphWidths('AVHershey Simplex', 10);
+  const widths = glyphWidths('AVHershey Simplex', params['fontSize']);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -55,6 +56,15 @@ new NumberControl('cutoff', {
 });
 
 
+new NumberControl('fontSize', {
+  name: 'Font size',
+  value: defaultParams['fontSize'],
+  callback: doRender,
+  min: 1,
+  max: 10
+});
+
+
 new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
@@ -78,11 +88,15 @@ const glyphWidths = function(fontFamily: string, fontSize: number): Record<strin
     const allAsciiChars = Array.from({ length: 95 }, (_, i) => String.fromCharCode(i+32)).join('');
     for (let glyph of allAsciiChars) {
       textElement.textContent = glyph;
-      const bbox = textElement.getBBox();
-      widths[glyph] = bbox.width;
+      widths[glyph] = textElement.getComputedTextLength();
     };
-    // whitespace is special as getBBox() returns 0 width since nothing is drawn
-    widths[' '] = widths['i']; // arbitrarily, let's use n-width
+
+    // whitespace
+    textElement.textContent = 'aa';
+    const wwithout = textElement.getComputedTextLength();
+    textElement.textContent = 'a a';
+    const wwith = textElement.getComputedTextLength();
+    widths[' '] = wwith - wwithout;
     playground.style.display = 'none';
   }
   return widths;
