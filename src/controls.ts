@@ -7,10 +7,12 @@ const $ = (id: string) => document.getElementById(id)!;
 class Control {
   #id: string; // like a name but should be a valid query string param name
   #value: any;
+  #updateUrl: any;
 
   constructor(id: string, params: any) {
     this.#id = id;
     this.#value = params.value;
+    this.#updateUrl = params.updateUrl === undefined ? true : false;
     controls.push(this);
   }
   id(): string {
@@ -21,6 +23,9 @@ class Control {
   }
   val(): any {
     return this.#value;
+  }
+  updateUrl(): boolean {
+    return this.#updateUrl;
   }
 }
 
@@ -41,7 +46,7 @@ class NumberControl extends Control {
     this.#widgetEl.onchange = event => {
       this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
       this.#valueEl.innerText = this.val().toString();
-      updateUrlParam(this.id(), this.val());
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback();
     };
   }
@@ -93,7 +98,7 @@ class SelectControl extends Control {
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
-      updateUrlParam(this.id(), this.val());
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback.call(this);
     };
   }
@@ -143,7 +148,7 @@ class CheckboxControl extends Control {
 
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).checked);
-      updateUrlParam(this.id(), this.val());
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback.bind(this)();
     };
   }
@@ -519,7 +524,7 @@ class TextControl extends Control {
     this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
     this.#widgetEl.onchange = event => {
       this.setVal((event.target as HTMLInputElement).value);
-      updateUrlParam(this.id(), this.val());
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback.bind(this)();
     };
   }
@@ -557,25 +562,30 @@ class TextControl extends Control {
 
 const controls: Control[] = [];
 
-const getParams = function(defaults: any) {
+const getParams = function(defaults: any, useUrl: boolean = true) {
   const params: Record<string, any> = {};
   controls.forEach((control: Control) => {
     const key: string = control.id();
-    let value = paramFromQueryString(
-      control.id(),
-      window.location.search
-    );
-    if (value) {
-      params[key] = value;
-      control.setVal(value);
-    } else {
-      value = control.val();
+
+    if (useUrl) {
+      let value = paramFromQueryString(
+        control.id(),
+        window.location.search
+      );
       if (value) {
-        params[key] = control.val();
-        updateUrlParam(key, params[key]);
+        params[key] = value;
+        control.setVal(value);
       } else {
-        params[key] = defaults[key];
+        value = control.val();
+        if (value) {
+          params[key] = control.val();
+          updateUrlParam(key, params[key]);
+        } else {
+          params[key] = defaults[key];
+        }
       }
+    } else {
+      params[key] = control.val() || defaults[key];
     }
   });
   return params;
