@@ -42,7 +42,7 @@ class Textorizer2 {
     return `<text x="${dx}" y="${row+dy}" style="white-space: pre">${lettersToPush.join('')}</text>`;
   }
 
-  #toSvgScan(cutoff: number, dx: number, dy: number): string {
+  #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
     svg.push(`<g id="scan">`);
@@ -62,13 +62,13 @@ class Textorizer2 {
     svg.push(`
     <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">
 
-    <rect x="0" y="0" width="${w}" height="${h}"/>
+    <!-- <rect x="0" y="0" width="${w}" height="${h}"/> -->
 `);
 
 
     const span = (this.#cutoff - 10);
     for (let cutoff = 10; cutoff < this.#cutoff; cutoff += span/4) {
-      svg.push(this.#toSvgScan(cutoff, cutoff/50, cutoff/50));
+      svg.push(this.#toSvgScan(cutoff, 0, 0));
     }
 
     svg.push('</g></svg>');

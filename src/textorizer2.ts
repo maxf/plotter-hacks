@@ -10,11 +10,13 @@ import {
 
 const defaultParams = {
   inputImageUrl: 'portrait.jpg',
-  text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ",
+  text: `
+00 00 00 04 CDR Roger. Clock. 00 00 00 13 CDR Roger. We got a roll program. 00 00 00 15 CMP. Roger. Roll. 00 00 00 34 CDR
+Roll's complete and the pitch is programed. 00 00 00 44 CDR`.replace('\n', ''),
   width: 800,
   height: 800,
-  cutoff: 85,
-  fontSize: 10
+  cutoff: 255,
+  fontSize: 3
 };
 
 const textorizer2Worker = new Worker('build/textorizer2-ww.js');
@@ -24,7 +26,7 @@ textorizer2Worker.onmessage = function(e) {
 
 
 const doRender = function() {
-  const params = getParams(defaultParams);
+  const params = getParams(defaultParams, false);
   const widths = glyphWidths('AVHershey Simplex', params['fontSize']);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -36,14 +38,16 @@ const doRender = function() {
 const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: doRender,
-  initialImage: 'joyce.jpg'
+  initialImage: 'moon-boot.png',
+  updateUrl: false
 });
 
 
 new TextControl('text', {
   name: 'text',
-  value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+  value: defaultParams['text'],
   callback: doRender,
+  updateUrl: false
 });
 
 
@@ -52,7 +56,8 @@ new NumberControl('cutoff', {
   value: defaultParams['cutoff'],
   callback: doRender,
   min: 0,
-  max: 255
+  max: 255,
+  updateUrl: false
 });
 
 
@@ -61,7 +66,9 @@ new NumberControl('fontSize', {
   value: defaultParams['fontSize'],
   callback: doRender,
   min: 1,
-  max: 10
+  max: 10,
+  step: 0.1,
+  updateUrl: false
 });
 
 
