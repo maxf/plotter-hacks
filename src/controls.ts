@@ -563,7 +563,7 @@ class TextControl extends Control {
 const controls: Control[] = [];
 
 const getParams = function(defaults: any, useUrl: boolean = true) {
-  const params: Record<string, any> = {};
+  const params: Record<string, any> = defaults;
   controls.forEach((control: Control) => {
     const key: string = control.id();
 

@@ -30,27 +30,40 @@ class Textorizer2 {
   #toSvgScanLine(row: number, cutoff: number, dx: number = 0, dy: number = 0): string {
     const w = this.#image.width;
     let x = 0;
-    this.#textIndex = Math.floor(Math.random() * this.#text.length);
+    //this.#textIndex = Math.floor(Math.random() * this.#text.length);
     const lettersToPush = [];
     while(x <= w) {
       const imageLevel = this.#image.brightnessAt(x, row);
-      const glyph = imageLevel < cutoff ? this.#text[this.#textIndex] : ' ';
+      let glyph;
+      if (imageLevel < cutoff) {
+        glyph = this.#text[this.#textIndex];
+        this.#textIndex = (this.#textIndex + 1) % this.#text.length;
+      } else {
+        glyph = ' ';
+      }
       lettersToPush.push(glyph);
-      this.#textIndex = (this.#textIndex + 1) % this.#text.length;
       x += this.#widths[glyph];
     }
-    return `<text x="${dx}" y="${row+dy}" style="white-space: pre">${lettersToPush.join('')}</text>`;
+    const str = lettersToPush.join('');
+    if (/^\s+$/.test(str)) {
+      return '';
+    } else {
+      return `<text x="${dx}" y="${row+dy}" style="white-space: pre">${str}</text>`;
+    }
   }
 
   #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
-    svg.push(`<g id="scan">`);
-    for (let row = 0; row < h; row += this.#fontSize) {
+    for (let row = this.#fontSize; row <= h; row += this.#fontSize) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
-    svg.push('</g>');
-    return svg.join('');
+    const scan = svg.join('');
+    if (scan === '') {
+      return '';
+    } else {
+      return `<g id="scan">${scan}</g>`;
+    }
   }
 
   toSvg(): string {
@@ -62,7 +75,7 @@ class Textorizer2 {
     svg.push(`
     <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">
 
-    <!-- <rect x="0" y="0" width="${w}" height="${h}"/> -->
+    <rect x="0" y="0" width="${w}" height="${h}"/>
 `);
 
 

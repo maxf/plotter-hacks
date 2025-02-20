@@ -2,17 +2,27 @@ import {
   NumberControl,
   ImageInputControl,
   SvgSaveControl,
-  TextControl,
   getParams,
   $
 } from './controls';
 
+async function getData() {
+  try {
+    const response: Response = await fetch('apoo.txt');
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+    const text = await response.text();
+    return text.replace(/\n+/g, ' - ');
+  } catch (error: any) {
+    console.error(error.message);
+    return 'error';
+  }
+}
 
 const defaultParams = {
-  inputImageUrl: 'portrait.jpg',
-  text: `
-00 00 00 04 CDR Roger. Clock. 00 00 00 13 CDR Roger. We got a roll program. 00 00 00 15 CMP. Roger. Roll. 00 00 00 34 CDR
-Roll's complete and the pitch is programed. 00 00 00 44 CDR`.replace('\n', ''),
+  inputImageUrl: 'grey.jpg',
+  text: await getData(),
   width: 800,
   height: 800,
   cutoff: 255,
@@ -27,6 +37,7 @@ textorizer2Worker.onmessage = function(e) {
 
 const doRender = function() {
   const params = getParams(defaultParams, false);
+  console.log('dorender', params);
   const widths = glyphWidths('AVHershey Simplex', params['fontSize']);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -38,15 +49,7 @@ const doRender = function() {
 const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: doRender,
-  initialImage: 'moon-boot.png',
-  updateUrl: false
-});
-
-
-new TextControl('text', {
-  name: 'text',
-  value: defaultParams['text'],
-  callback: doRender,
+  initialImage: defaultParams['inputImageUrl'],
   updateUrl: false
 });
 
