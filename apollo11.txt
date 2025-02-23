@@ -21975,14 +21975,6 @@ CDR (TRANQ)
 Well, we've got antennas down and *** not real good, is it? Okay. Yours is up. We'll put my antenna up.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (TRANQ)
 Okay.
 
@@ -22205,14 +22197,6 @@ LMP (TRANQ)
 I got another warning tone. Go.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 *** about now? Okay?
 
@@ -22281,14 +22265,6 @@ CC
 We're reading you loud and clear, Buzz. Out.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 *** and are you getting a signal on the TV? Over.
 
@@ -22343,14 +22319,6 @@ Say again, Neil.
 
 CDR (TRANQ)
 ***
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
  CC
@@ -22421,14 +22389,6 @@ LMP (TRANQ)
 Verify cabin fan number 1 circuit breaker open.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 *** Over, PLSS fan number 1 breaker,
 
@@ -22491,14 +22451,6 @@ Buzz, this is Houston. We would like you to pull the suit fan DELTA P circuit br
 
 LMP (TRANQ)
 Roger, I have it.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CDR (TRANQ)
@@ -22569,14 +22521,6 @@ LMP (TRANQ)
 Okay.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 Verify closed; locked pin installed.
 
@@ -22645,14 +22589,6 @@ LMP (TRANQ)
 Sure wished I had shaved last night.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 LMP (TRANQ)
 *** Got your mikes where you want them?
 
@@ -22715,14 +22651,6 @@ Yes. Locked and aligned.
 
 LMP (TRANQ)
 Now, if you'll pull the RCU down.
-
-
-*** Thre, asterisks denote clipping of word and phrases.
-
-
-
-
-
 
 
 LMP (TRANQ)
@@ -22866,14 +22794,6 @@ CMP (COLUMBIA)
 Columbia reads you loud and clear on 0MNI C - Charlie.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 CC
 Roger. Columbia, I have LOS and AOS times for you this pass with MSFN. LOS 109 plus 21 plus 12. A0S coming around on the corner 110 07 35. Over.
 
@@ -22942,14 +22862,6 @@ CDR (TRANQ)
 Pretty well, complete.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 LMP (TRANQ)
 Okay.
 
@@ -23012,14 +22924,6 @@ Houston, this is Neil. How do you read?
 
 CC
 Neil, this is Houston. Loud and clear.
-
-
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
 
 
 LMP (TRANQ)
@@ -23163,14 +23067,6 @@ LMP (TRANQ)
 Yes. Got mine.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 Okay. Cabin pressure going towards zero. Verify LM suit circuit 36 to 43. That's verified. FIPGA pressure above 4.5. Okay. 4.7, coming down. Ready to open the hatch when we get to zero.
 
@@ -23235,14 +23131,6 @@ CDR (TRANQ)
 It'll pop open.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 LMP (TRANQ)
 Get a steady tone in the background?
 
@@ -23305,14 +23193,6 @@ Okay.
 
 LMP (TRANQ)
 No. I'd better get up first.
-
-
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
 
 
 LMP (TRANQ)
@@ -23452,14 +23332,6 @@ LMP (TRANQ)
 Well, I'm looking head on at it. I'll get it.
 
 
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
-
-
 CDR (TRANQ)
 Okay. Let's get your antenna.
 
@@ -23591,14 +23463,6 @@ Okay.
 
 LMP (TRANQ)
 Okay. Everything's nice and straight in here.
-
-
-*** Three asterisks denote clipping of word and phrases.
-
-
-
-
-
 
 
 CDR (TRANQ)
@@ -23795,14 +23659,6 @@ LMP (EVA)
 Okay. Going to get the contingency sample there, Neil.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (EVA)
 Right.
 
@@ -23861,14 +23717,6 @@ That in the pocket?
 
 LMP (EVA)
 Yes. Push down.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CDR (EVA)
@@ -24008,14 +23856,6 @@ CDR (EVA)
 You've got three more steps and then a long one.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 Okay. I'm going to leave that one foot up there and both hands down to about the fourth rung up.
 
@@ -24085,14 +23925,6 @@ Yes. And it bounces and then -
 
 LMP (EVA)
 Reaching down is fairly easy. I got my suit dirty at this stage.
-
-
-*** Three asterisks denote clipping of words &amp;nd phrases.
-
-
-
-
-
 
 
 LMP (EVA)
@@ -24167,14 +23999,6 @@ LMP (EVA)
 Traction *** seems quite good. ***
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 *** About to lose my balance in one direction and recovery is a quite natural and very easy *** And, moving your arms around, Jack, doesn't *** off the surface *** not quite that light-footed.
 
@@ -24229,14 +24053,6 @@ Neil is now unveiling the plaque *** gear.
 
 CC
 Roger. We got you boresighted, but back under one track.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CDR (EVA)
@@ -24297,14 +24113,6 @@ Houston. Roger. Out.
 
 LMP (EVA)
 And, we'll probably need a little *** distance *** back location *** television camera.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 LMP (EVA)
@@ -24391,14 +24199,6 @@ CDR (EVA)
 - - sit like that and walk around it.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 Houston. How's that field of view going to pick up the MESA? *** far away?
 
@@ -24465,14 +24265,6 @@ We've got a beautiful picture, Neil.
 
 CDR (EVA)
 Okay. I'm going to move it.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CC
@@ -24620,14 +24412,6 @@ CMP (COLUMBIA)
 Yes. Reading you loud and clear. How's it going?
 
 
-*** Three asterisks denote clipping of words or phrases.
-
-
-
-
-
-
-
 CC
 Roger. The EVA is progressing beautifully. I believe they are setting up the flag now.
 
@@ -24700,14 +24484,6 @@ LMP (EVA)
 I'd like to evaluate the various paces that a person can *** traveling on the lunar surface. I believe I'm out of your field of view. Is that right, now, Houston?
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CC
 That's affirmative, Buzz.
 
@@ -24763,14 +24539,6 @@ PRESIDENT NIXON
 Neil and Buzz, I am talking to you by telephone from the Oval Room at the White House, and this certainly has to be the most historic telephone
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 call ever made. I just can't tell you how proud we all are of what you *** for every American. This has to be the proudest day of our lives. And for people all over the world, I am sure they, too, join with Americans in recognizing what an immense feat this is. Because of what you have done, the heavens have become a part of man's world. And as you talk to us from the Sea of Tranquility, it inspires us to redouble our efforts to bring peace and tranquility to Earth. For one priceless moment in the whole history of man, all the people on this Earth are truly one; one in their pride in what you have done, and one in our prayers that you will return safely to Earth.
 
 
@@ -24814,14 +24582,6 @@ CC
 Roger. Out.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 Houston, it's very interesting to note that when I kick my foot *** with no atmosphere here, and this gravity *** they seem to leave, and most of them have about the same angle of departure and velocity. From where I stand, a large portion of them will impact at a certain distance out. Several *** the percentage is, of course, that will impact *** different regions *** it's highly dependent upon *** the initial trajectory upward *** where most of the *** already the particles are found, ... terrain.
 
@@ -24852,14 +24612,6 @@ That one?
 
 LMP (EVA)
 Yes. It's still hooked in it. Wait a minute. Okay. You're clear now.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CDR (EVA)
@@ -24926,14 +24678,6 @@ CMP (COLUMBIA)
 Thank you.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 As I look around the area, the contrast, in general, is *** comes about completely by virtue of the shadow *** down Sun ... very light colored gray, light gray color, a halo around my own shadow, around the shadow of my helmet. Then, as I look off across *** the contrast becomes strongest in that the surrounding color is still fairly light. As you look down into the Sun *** a larger amount of *** shadowed area is looking toward us. The general color of the *** surrounding *** the contrast is not as great. Surveying all the dusty area that we've kicked up *** considerably darker in texture. Now, I've kicked up one, and I imagine that this is *** Surveyor. The same is true when I survey across on - along the area that we're walking. In general *** to the fact that there are footprints there. General terrain where I've been kicking up a lot of this surface material is generally of a darker contrast *** color.
 
@@ -24976,14 +24720,6 @@ Houston, Columbia.
 
 CC
 Columbia, this is Houston. Go ahead. Over.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CMP (COLUMBIA)
@@ -25036,14 +24772,6 @@ Roger. Out.
 
 LMP (EVA)
 We're going to get some particular photographs of the bulk sample area, Neil?
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CDR (EVA)
@@ -25110,14 +24838,6 @@ LMP (EVA)
 It's very surprising, the very surprising lack of penetration of all four of the foot pads. I'd say if we were to try and determine just how far below the surface they would have penetrated, you'd measure maybe 3 inches, wouldn't you say, Neil?
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CDR (EVA)
 At the most, yes. That Y strut there is probably even less than that.
 
@@ -25172,14 +24892,6 @@ I was saying that, Houston, *** stop and take a photograph or something and then
 
 CC
 Roger.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 LMP (EVA)
@@ -25319,14 +25031,6 @@ LMP (EVA)
 Houston. I have the seismic experiment flipped over now, and I'm aligning it, but I'm having a little bit of difficulty getting the B B in the center. It wants to move around and around on the outside. ***
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CC
 You're cutting out again, Buzz.
 
@@ -25399,14 +25103,6 @@ CC
 Buzz, this is Houston. I understand that you did successfully deploy both solar arrays. Over.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 LMP (EVA)
 Roger. That's affirmative. And there isn't any way of telling whether that's lined up. I'm getting in the way; maybe I can get down here.
 
@@ -25469,14 +25165,6 @@ Go ahead, Houston. Columbia.
 
 CC
 Roger. Like you to terminate charging battery Bravo at 111 plus 15. Over.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CMP (COLUMBIA)
@@ -26025,14 +25713,6 @@ LMP (TRANQ)
 ***
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CC
 You're cutting out, Neil. You're not readable. I understand you said something about contingency sample container on the ascent engine?
 
@@ -26090,14 +25770,6 @@ ICS, push to talk.
 
 CDR (TRANQ)
 Houston, this is Tranquility. How do you read?
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CC
@@ -29471,14 +29143,6 @@ LMP (EAGLE)
 Houston, Eagle. Did you copy our star angle difference and torquing angles.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CC
 Eagle, Houston. We didn't have them on the downlink but we copied them on the VOX.
 
@@ -29896,14 +29560,6 @@ LMP (EAGLE)
 Okay. And what was your CSI - CDH solution, Mike?
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CMP (COLUMBIA)
 ***
 
@@ -29970,14 +29626,6 @@ Ready to copy.
 
 LMP (EAGLE)
 Okay. I think you already got the burn time; minus 8.1, minus 1.8, minus 18.2.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CMP (COLUMBIA)
@@ -30196,14 +29844,6 @@ Thank you. Are you going to be revising that one?
 
 LMP (EAGLE)
 I think probably so. How late - How late can you take a revision?
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CMP (COLUMBIA)
@@ -31647,14 +31287,6 @@ CC
 And, 11, Houston. For your information, Eagle, we had an ISS fail light came on at about 3 19 due to a CDU overheating; and at about this time at AOS it looks like we're about to lose the platform.
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 CMP
 ...
 
@@ -32623,14 +32255,6 @@ Okay. At GET of 147 plus 00, RCS total minus 2.0 percent, which is about minus 1
 
 LMP
 Roger. I copy, and our onboard readouts: Alfa, *** 2 percent, Bravo 54 percent, Cocoa's 64 percent, Delta 61 percent. Over.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 CC
@@ -33897,14 +33521,6 @@ LMP
 Okay. The more mundane affairs, now that we've left the Moon, I'd like to trace through them a little bit for you *** developments that have taken place in the food department. I'm sure you've already *** type of a drink container. A little later, Mike will show you how the water gun operates with its new filter to take out the hydrogen. Essentially, this water gun is put in this end and fills up this bag with water, and the drink then dissolves in the water, and this end of the *** outfeeding. Likewise, we have other foods that are more solid nature. You can
 
 
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
 probably see this shrimp cocktail meal. *** this afternoon while the two of us had salmon salad. *** another early development was the use of bite size food ***
 
 
@@ -33934,14 +33550,6 @@ Apollo 11, Houston. We notice your roll rate increasing. Will you please see if 
 
 LMP
 You can also use zero gravity to demonstrate many things that we've all learned in school. I'd like to demonstrate briefly how easy it is to explain the action of the gyroscope. If I spin this can, we know that according to the equations of motion that we would expect that once this is given a spin, and has a spin axis in this direction, if we give it a particular torque, and I'll do this by pushing my hands against it in this fashion once it's spinning. By the equations we can predict that, as I put this torque on it, it will in fact rotate this direction. Let's see how well this works out.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
 
 
 LMP
@@ -35035,18 +34643,7 @@ Go ahead, Owen. I've got the book now. I'm ready to copy.
 
 
 CC
-Okay, Buzz. On your flight plan items, a few updates first of all. We've cancelled midcourse number 6. Just remain - remain in PTC. I'll give you a little more time this morning. Second item on the flight plan is we're ready for a BATT B charge anytime you want to put it on the line; and third item, we'd like a waste water dump a little differently this time. We'd like
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
-
-
-
-to do it on our marks from the ground. The PTC is a little bit ragged, and we would like to make the water dump at a time which we think will hold it in its proper configuration, so it looks like we'll have a desirable opportunity coming along in - between 15 and 20 minutes. And on our mark, we would like to have a waste water dunp down to about 40 percent. I'll give you a more accurate level for the water dump a little later. Over.
+Okay, Buzz. On your flight plan items, a few updates first of all. We've cancelled midcourse number 6. Just remain - remain in PTC. I'll give you a little more time this morning. Second item on the flight plan is we're ready for a BATT B charge anytime you want to put it on the line; and third item, we'd like a waste water dump a little differently this time. We'd like to do it on our marks from the ground. The PTC is a little bit ragged, and we would like to make the water dump at a time which we think will hold it in its proper configuration, so it looks like we'll have a desirable opportunity coming along in - between 15 and 20 minutes. And on our mark, we would like to have a waste water dunp down to about 40 percent. I'll give you a more accurate level for the water dump a little later. Over.
 
 
 LMP
@@ -37874,13 +37471,6 @@ Hello, Hornet. This is Apollo 11 reading you loud and clear. Our position 1330, 
 
 HORNET
 11, Hornet. Copy 1330, 1675. Any further data? Over.
-
-
-*** Three asterisks denote clipping of words and phrases.
-
-
-
-
 
 
 CDR

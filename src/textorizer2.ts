@@ -21,12 +21,13 @@ async function getData() {
 }
 
 const defaultParams = {
-  inputImageUrl: 'grey.jpg',
+  inputImageUrl: 'moon-boot.jpg',
   text: await getData(),
   width: 800,
   height: 800,
   cutoff: 255,
-  fontSize: 3
+  fontSize: 3,
+  nbLayers: 4
 };
 
 const textorizer2Worker = new Worker('build/textorizer2-ww.js');
@@ -71,6 +72,15 @@ new NumberControl('fontSize', {
   min: 1,
   max: 10,
   step: 0.1,
+  updateUrl: false
+});
+
+new NumberControl('nbLayers', {
+  name: 'Layers',
+  value: defaultParams['nbLayers'],
+  callback: doRender,
+  min: 1,
+  max: 10,
   updateUrl: false
 });
 

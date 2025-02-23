@@ -7,7 +7,8 @@ type Params = {
   width: number,
   height: number,
   cutoff: number,
-  fontSize: number
+  fontSize: number,
+  nbLayers: number
 };
 
 class Textorizer2 {
@@ -17,6 +18,7 @@ class Textorizer2 {
   #widths: Record<string, number>;
   #fontSize: number;
   #textIndex: number;
+  #nbLayers: number;
 
   constructor(params: Params, widths: Record<string, number>, imageData: ImageData) {
     this.#image = new Pixmap(imageData);
@@ -25,6 +27,7 @@ class Textorizer2 {
     this.#cutoff = params.cutoff;
     this.#fontSize = params.fontSize;
     this.#textIndex = 0;
+    this.#nbLayers = params.nbLayers;
   }
 
   #toSvgScanLine(row: number, cutoff: number, dx: number = 0, dy: number = 0): string {
@@ -76,12 +79,12 @@ class Textorizer2 {
     <g style="stroke: black; stroke-width: 0.1; fill: none; font-family: 'AVHershey Simplex'; font-size: ${this.#fontSize};">
 
     <rect x="0" y="0" width="${w}" height="${h}"/>
-`);
+    `);
 
-
-    const span = (this.#cutoff - 10);
-    for (let cutoff = 10; cutoff < this.#cutoff; cutoff += span/4) {
-      svg.push(this.#toSvgScan(cutoff, 0, 0));
+    const step = this.#cutoff / this.#nbLayers;
+    for (let c = 1; c <= this.#nbLayers; c++) {
+      const x = c*step;
+      svg.push(this.#toSvgScan(x, 0, Math.random()*2));
     }
 
     svg.push('</g></svg>');
