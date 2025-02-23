@@ -8,13 +8,13 @@
   "scripts": {
     "serve": "npx http-server",
     "check": "npx tsc --noEmit",
-    "build-watch": "npx esbuild src/* --bundle --outdir=build --watch",
-    "boids-watch": "npx esbuild src/boids.ts --bundle --outdir=build --watch",
-    "celtic-watch": "npx esbuild src/celtic.ts --bundle --outdir=build --watch",
-    "excoffizer-watch": "npx esbuild src/excoffizer.ts --bundle --outdir=build --watch",
-    "dts-watch": "npx esbuild src/dts.ts src/dts-ww.ts --bundle --outdir=build --watch",
-    "vector-field-watch": "npx esbuild src/vector-field.ts src/vector-field-ww.ts --bundle --outdir=build --watch",
-    "gandalf-watch": "npx esbuild src/gandalf.ts src/gandalf-ww.ts --bundle --outdir=build --watch",
+    "build-watch": "npx esbuild src/* --bundle --outdir=build --watch --format=esm",
+    "boids-watch": "npx esbuild src/boids.ts --bundle --outdir=build --watch --format=esm",
+    "celtic-watch": "npx esbuild src/celtic.ts --bundle --outdir=build --watch --format=esm",
+    "excoffizer-watch": "npx esbuild src/excoffizer.ts --bundle --outdir=build --watch --format=esm",
+    "dts-watch": "npx esbuild src/dts.ts src/dts-ww.ts --bundle --outdir=build --watch --format=esm",
+    "vector-field-watch": "npx esbuild src/vector-field.ts src/vector-field-ww.ts --bundle --outdir=build --watch --format=esm",
+    "gandalf-watch": "npx esbuild src/gandalf.ts src/gandalf-ww.ts --bundle --outdir=build --watch --format=esm",
     "textorizer2-watch": "npx esbuild src/textorizer2.ts src/textorizer2-ww.ts --bundle --outdir=build --watch"
   },
   "dependencies": {
