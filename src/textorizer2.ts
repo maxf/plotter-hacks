@@ -27,7 +27,8 @@ const defaultParams = {
   height: 800,
   cutoff: 255,
   fontSize: 3,
-  nbLayers: 4
+  nbLayers: 4,
+  lineHeight: 1
 };
 
 const textorizer2Worker = new Worker('build/textorizer2-ww.js');
@@ -75,6 +76,16 @@ new NumberControl('fontSize', {
   updateUrl: false
 });
 
+new NumberControl('lineHeight', {
+  name: 'Line Height',
+  value: defaultParams['lineHeight'],
+  callback: doRender,
+  min: 0.5,
+  max: 2,
+  step: 0.1,
+  updateUrl: false
+});
+
 new NumberControl('nbLayers', {
   name: 'Layers',
   value: defaultParams['nbLayers'],
@@ -84,13 +95,11 @@ new NumberControl('nbLayers', {
   updateUrl: false
 });
 
-
 new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
   saveFilename: 'textorizer2.svg'
 });
-
 
 const glyphWidths = function(fontFamily: string, fontSize: number): Record<string, number> {
   const widths: Record<string, number> = {};

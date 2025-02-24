@@ -8,7 +8,8 @@ type Params = {
   height: number,
   cutoff: number,
   fontSize: number,
-  nbLayers: number
+  nbLayers: number,
+  lineHeight: number
 };
 
 class Textorizer2 {
@@ -19,6 +20,7 @@ class Textorizer2 {
   #fontSize: number;
   #textIndex: number;
   #nbLayers: number;
+  #lineHeight: number;
 
   constructor(params: Params, widths: Record<string, number>, imageData: ImageData) {
     this.#image = new Pixmap(imageData);
@@ -28,6 +30,7 @@ class Textorizer2 {
     this.#fontSize = params.fontSize;
     this.#textIndex = 0;
     this.#nbLayers = params.nbLayers;
+    this.#lineHeight = params.lineHeight;
   }
 
   #toSvgScanLine(row: number, cutoff: number, dx: number = 0, dy: number = 0): string {
@@ -58,7 +61,7 @@ class Textorizer2 {
   #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
-    for (let row = this.#fontSize; row <= h; row += this.#fontSize) {
+    for (let row = this.#fontSize; row <= h; row += this.#fontSize*this.#lineHeight) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
     const scan = svg.join('');
@@ -84,7 +87,7 @@ class Textorizer2 {
     const step = this.#cutoff / this.#nbLayers;
     for (let c = 1; c <= this.#nbLayers; c++) {
       const x = c*step;
-      svg.push(this.#toSvgScan(x, 0, Math.random()*2));
+      svg.push(this.#toSvgScan(x, 0, Math.random()*this.#fontSize*this.#lineHeight));
     }
 
     svg.push('</g></svg>');
