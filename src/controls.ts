@@ -211,7 +211,7 @@ class SvgSaveControl extends Control {
       var svgUrl = URL.createObjectURL(svgBlob);
       var downloadLink = document.createElement("a");
       downloadLink.href = svgUrl;
-      downloadLink.download = params.saveFileid;
+      downloadLink.download = params.saveFilename;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
