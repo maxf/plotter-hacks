@@ -35,19 +35,24 @@ class Textorizer2 {
     const w = this.#image.width;
     let x = 0;
     const svg = [];
-    //this.#textIndex = Math.floor(Math.random() * this.#text.length);
+    const lettersToPush = [];
     while(x <= w) {
       const imageLevel = this.#image.brightnessAt(x, row);
       let glyph, glyphInfo;
       if (imageLevel < cutoff) {
         glyph = this.#text[this.#textIndex];
         glyphInfo = this.#glyphs[glyph];
+        if (glyph !== ' ') {
+          const scale = this.#fontSize * 0.001;
+          svg.push(`<path data-glyph="${glyph}" vector-effect="non-scaling-stroke" d="${glyphInfo[2]}" transform="translate(${x+dx}, ${row+dy}) scale(${scale},${-scale})" />`);
+        }
         this.#textIndex = (this.#textIndex + 1) % this.#text.length;
         svg.push(`<path data-glyph="${glyph}" vector-effect="non-scaling-stroke" d="${glyphInfo[2]}" transform="translate(${x+dx}, ${row+dy}) scale(0.01,-0.01)" />`);
       } else {
         glyph = ' ';
         glyphInfo = this.#glyphs[' '];
       }
+      x += glyphInfo[1]*this.#fontSize * 0.001;
       x += glyphInfo[1]*0.01;
     }
     return `<g class="scan-line" data-row="${row}">${svg.join('')}</g>`;
@@ -56,6 +61,7 @@ class Textorizer2 {
   #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
+    for (let row = this.#fontSize; row <= h; row += this.#fontSize) {
     for (let row = 0; row <= h; row += 10) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
@@ -304,15 +310,17 @@ class Textorizer2 {
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
     svg.push(`
+      <rect x="0" y="0" width="${w}" height="${h}" style="stroke: black; stroke-width: 1; fill: none"/>
+      <g style="stroke: black; stroke-width: 1; fill: none;">
+    `);
     <g style="stroke: black; stroke-width: 1; fill: none;>
 
     `); //     <rect x="0" y="0" width="${w}" height="${h}"/>
 
-
     const step = this.#cutoff / this.#nbLayers;
     for (let c = 1; c <= this.#nbLayers; c++) {
       const x = c*step;
-      svg.push(this.#toSvgScan(x, 0, Math.random()*this.#fontSize*this.#lineHeight));
+      svg.push(this.#toSvgScan(x, 0, Math.random()*5));
     }
 
     svg.push('</g></svg>');
