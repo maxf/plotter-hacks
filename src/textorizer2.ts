@@ -28,7 +28,6 @@ const defaultParams = {
   cutoff: 255,
   fontSize: 10,
   nbLayers: 2,
-  nbLayers: 1,
   lineHeight: 1
 };
 
