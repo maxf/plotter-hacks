@@ -58,7 +58,7 @@ class Textorizer2 {
   #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
-    for (let row = this.#fontSize/2; row <= h; row += this.#fontSize) {
+    for (let row = this.#fontSize*0.0045; row <= h; row += this.#fontSize) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
     const scan = svg.join('');

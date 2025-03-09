@@ -560,6 +560,53 @@ class TextControl extends Control {
 
 //============================================================================
 
+class TextAreaControl extends Control {
+  #wrapperEl: HTMLDivElement;
+  #widgetEl: HTMLInputElement;
+
+  constructor(id: string, params: any) {
+    super(id, params);
+    this.setVal(params.value);
+    this.#createHtmlControl(id, params.name, params.value);
+    this.#widgetEl = $(id) as HTMLInputElement;
+    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.#widgetEl.onchange = event => {
+      this.setVal((event.target as HTMLInputElement).value);
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+      params.callback.bind(this)();
+    };
+  }
+
+  #createHtmlControl(id: string, name: string, value: number) {
+    const html = [];
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`
+      <textarea id="${id}">${value}</textarea>
+      ${name}
+    </div>`);
+    // Find the anchor element and insert the constructed HTML as the last child
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html.join(''));
+    }
+  }
+
+  set(newValue: string) {
+    this.setVal(newValue);
+    this.#widgetEl.value = newValue.toString();
+  }
+
+  show() {
+    this.#wrapperEl.style.display = 'block';
+  }
+
+  hide() {
+    this.#wrapperEl.style.display = 'none';
+  }
+}
+
+//============================================================================
+
 const controls: Control[] = [];
 
 const getParams = function(defaults: any, useUrl: boolean = true) {
@@ -600,6 +647,7 @@ export {
   ImageUploadControl,
   SvgSaveControl,
   TextControl,
+  TextAreaControl,
   ImageInputControl,
   paramsFromUrl,
   updateUrl,

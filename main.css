@@ -11,3 +11,8 @@ body {
     border: 1px solid black;
     opacity: 0.8;
 }
+
+textarea {
+    width: 90%;
+    height: 100px;
+}

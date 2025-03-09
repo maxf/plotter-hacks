@@ -2,6 +2,7 @@ import {
   NumberControl,
   ImageInputControl,
   SvgSaveControl,
+  TextAreaControl,
   getParams,
   $
 } from './controls';
@@ -21,13 +22,13 @@ async function getData() {
 }
 
 const defaultParams = {
-  inputImageUrl: 'moon-boot.jpg',
+  inputImageUrl: 'moon-boot.png',
   text: await getData(),
   width: 800,
   height: 800,
   cutoff: 255,
-  fontSize: 10,
-  nbLayers: 2,
+  fontSize: 3.2,
+  nbLayers: 6,
   lineHeight: 1
 };
 
@@ -91,6 +92,13 @@ new NumberControl('nbLayers', {
   callback: doRender,
   min: 1,
   max: 10,
+  updateUrl: false
+});
+
+new TextAreaControl('text', {
+  name: 'Text',
+  value: defaultParams['text'],
+  callback: doRender,
   updateUrl: false
 });
 
