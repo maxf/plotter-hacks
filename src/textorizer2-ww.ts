@@ -52,21 +52,18 @@ class Textorizer2 {
       }
       x += glyphInfo[1]*this.#fontSize * 0.001;
     }
-    return `<g class="scan-line" data-row="${row}">${svg.join('')}</g>`;
+    const content = svg.join('');
+    return content === '' ? '' : `<g class="scan-line" data-row="${row}">${content}</g>`;
   }
 
   #toSvgScan(cutoff: number, dx: number = 0, dy: number = 0): string {
     const h = this.#image.height;
     const svg = [];
-    for (let row = this.#fontSize*0.0045; row <= h; row += this.#fontSize) {
+    for (let row = this.#fontSize; row <= h; row += this.#fontSize) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
     const scan = svg.join('');
-    if (scan === '') {
-      return '';
-    } else {
-      return `<g id="scan">${scan}</g>`;
-    }
+    return scan === '' ? '' : `<g id="scan">${scan}</g>`;
   }
 
   // <font id="HersheySans1" horiz-adv-x="378" >
@@ -311,9 +308,12 @@ class Textorizer2 {
     `);
 
     const step = this.#cutoff / this.#nbLayers;
-    for (let c = 1; c <= this.#nbLayers; c++) {
+      //for (let c = 1; c <= this.#nbLayers; c++) {
+    for (let c = this.#nbLayers; c >= 1; c--) {
       const x = c*step;
-        svg.push(this.#toSvgScan(x, 0, Math.random() *this.#lineHeight*5));
+      const dy = c === this.#nbLayers ? 0 : Math.random() *this.#lineHeight*5;
+        //svg.push(this.#toSvgScan(x, 0, 0));
+      svg.push(this.#toSvgScan(x, 0, dy));
     }
 
     svg.push('</g></svg>');
