@@ -23,7 +23,7 @@ class Textorizer2 {
 
   constructor(params: Params, imageData: ImageData) {
     this.#image = new Pixmap(imageData);
-    this.#text = params.text;
+    this.#text = params.text.replace(/\n+/g, ' - ');
     this.#cutoff = params.cutoff;
     this.#fontSize = params.fontSize;
     this.#textIndex = 0;

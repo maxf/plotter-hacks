@@ -504,7 +504,6 @@ textorizer2Worker.onmessage = function(e) {
 };
 var doRender = function() {
   const params = getParams(defaultParams, false);
-  console.log("dorender", params);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext("2d");
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
