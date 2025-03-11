@@ -537,6 +537,44 @@ var TextControl = class extends Control {
     this.#wrapperEl.style.display = "none";
   }
 };
+var TextAreaControl = class extends Control {
+  #wrapperEl;
+  #widgetEl;
+  constructor(id, params) {
+    super(id, params);
+    this.setVal(params.value);
+    this.#createHtmlControl(id, params.name, params.value);
+    this.#widgetEl = $(id);
+    this.#wrapperEl = $(`${id}-control`);
+    this.#widgetEl.onchange = (event) => {
+      this.setVal(event.target.value);
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+      params.callback.bind(this)();
+    };
+  }
+  #createHtmlControl(id, name, value) {
+    const html = [];
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`
+      <textarea id="${id}">${value}</textarea>
+      ${name}
+    </div>`);
+    const anchorElement = $("controls");
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+    }
+  }
+  set(newValue) {
+    this.setVal(newValue);
+    this.#widgetEl.value = newValue.toString();
+  }
+  show() {
+    this.#wrapperEl.style.display = "block";
+  }
+  hide() {
+    this.#wrapperEl.style.display = "none";
+  }
+};
 var controls = [];
 var getParams = function(defaults, useUrl = true) {
   const params = defaults;
@@ -573,6 +611,7 @@ export {
   NumberControl,
   SelectControl,
   SvgSaveControl,
+  TextAreaControl,
   TextControl,
   VideoStreamControl,
   getParams,

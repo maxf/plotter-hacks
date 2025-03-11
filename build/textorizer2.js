@@ -407,6 +407,44 @@ var ImageUploadControl = class extends Control {
     this.#wrapperEl.style.display = "none";
   }
 };
+var TextAreaControl = class extends Control {
+  #wrapperEl;
+  #widgetEl;
+  constructor(id, params) {
+    super(id, params);
+    this.setVal(params.value);
+    this.#createHtmlControl(id, params.name, params.value);
+    this.#widgetEl = $(id);
+    this.#wrapperEl = $(`${id}-control`);
+    this.#widgetEl.onchange = (event) => {
+      this.setVal(event.target.value);
+      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+      params.callback.bind(this)();
+    };
+  }
+  #createHtmlControl(id, name, value) {
+    const html = [];
+    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`
+      <textarea id="${id}">${value}</textarea>
+      ${name}
+    </div>`);
+    const anchorElement = $("controls");
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML("beforeend", html.join(""));
+    }
+  }
+  set(newValue) {
+    this.setVal(newValue);
+    this.#widgetEl.value = newValue.toString();
+  }
+  show() {
+    this.#wrapperEl.style.display = "block";
+  }
+  hide() {
+    this.#wrapperEl.style.display = "none";
+  }
+};
 var controls = [];
 var getParams = function(defaults, useUrl = true) {
   const params = defaults;
@@ -451,13 +489,13 @@ async function getData() {
   }
 }
 var defaultParams = {
-  inputImageUrl: "moon-boot.jpg",
+  inputImageUrl: "moon-boot.png",
   text: await getData(),
   width: 800,
   height: 800,
   cutoff: 255,
-  fontSize: 10,
-  nbLayers: 2,
+  fontSize: 3.2,
+  nbLayers: 6,
   lineHeight: 1
 };
 var textorizer2Worker = new Worker("build/textorizer2-ww.js");
@@ -510,6 +548,12 @@ new NumberControl("nbLayers", {
   callback: doRender,
   min: 1,
   max: 10,
+  updateUrl: false
+});
+new TextAreaControl("text", {
+  name: "Text",
+  value: defaultParams["text"],
+  callback: doRender,
   updateUrl: false
 });
 new SvgSaveControl("svgSave", {

@@ -159,7 +159,7 @@ var Textorizer2 = class {
   #toSvgScan(cutoff, dx = 0, dy = 0) {
     const h = this.#image.height;
     const svg = [];
-    for (let row = this.#fontSize / 2; row <= h; row += this.#fontSize) {
+    for (let row = this.#fontSize * 45e-4; row <= h; row += this.#fontSize) {
       svg.push(this.#toSvgScanLine(row, cutoff, dx, dy));
     }
     const scan = svg.join("");
