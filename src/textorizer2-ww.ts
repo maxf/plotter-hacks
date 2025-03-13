@@ -43,7 +43,7 @@ class Textorizer2 {
         glyphInfo = strokeGlyphs[glyph];
         if (glyph !== ' ') {
           const scale = this.#fontSize * 0.001;
-          svg.push(`<path data-glyph="${glyph}" vector-effect="non-scaling-stroke" d="${glyphInfo[2]}" transform="translate(${x+dx}, ${row+dy}) scale(${scale},${-scale})" />`);
+          svg.push(`<path vector-effect="non-scaling-stroke" d="${glyphInfo[2]}" transform="translate(${x+dx}, ${row+dy}) scale(${scale},${-scale})" />`);
         }
         this.#textIndex = (this.#textIndex + 1) % this.#text.length;
       } else {

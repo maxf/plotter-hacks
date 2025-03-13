@@ -570,8 +570,9 @@ class TextAreaControl extends Control {
     this.#createHtmlControl(id, params.name, params.value);
     this.#widgetEl = $(id) as HTMLInputElement;
     this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
-    this.#widgetEl.onchange = event => {
-      this.setVal((event.target as HTMLInputElement).value);
+
+    $(`${id}-button`).onclick = () => {
+      this.setVal(this.#widgetEl.value);
       if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback.bind(this)();
     };
@@ -581,8 +582,9 @@ class TextAreaControl extends Control {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
-      <textarea id="${id}">${value}</textarea>
       ${name}
+      <textarea id="${id}">${value}</textarea>
+      <button id="${id}-button">Update</button>
     </div>`);
     // Find the anchor element and insert the constructed HTML as the last child
     const anchorElement = $('controls');
