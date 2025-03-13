@@ -416,8 +416,8 @@ var TextAreaControl = class extends Control {
     this.#createHtmlControl(id, params.name, params.value);
     this.#widgetEl = $(id);
     this.#wrapperEl = $(`${id}-control`);
-    this.#widgetEl.onchange = (event) => {
-      this.setVal(event.target.value);
+    $(`${id}-button`).onclick = () => {
+      this.setVal(this.#widgetEl.value);
       if (this.updateUrl()) updateUrlParam(this.id(), this.val());
       params.callback.bind(this)();
     };
@@ -426,8 +426,9 @@ var TextAreaControl = class extends Control {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
-      <textarea id="${id}">${value}</textarea>
       ${name}
+      <textarea id="${id}">${value}</textarea>
+      <button id="${id}-button">Update</button>
     </div>`);
     const anchorElement = $("controls");
     if (anchorElement) {
