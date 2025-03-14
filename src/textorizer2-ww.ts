@@ -71,10 +71,10 @@ class Textorizer2 {
     const h = this.#image.height;
     const svg = [];
 
-    svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
+    svg.push(`<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
     svg.push(`
-      <rect x="0" y="0" width="${w}" height="${h}" style="stroke: black; stroke-width: 1; fill: none"/>
-      <g style="stroke: black; stroke-width: 1; fill: none;">
+    <!-- <rect x="0" y="0" width="${w}" height="${h}" style="stroke: black; stroke-width: 1; fill: none"/> -->
+    <!-- <g style="stroke: black; stroke-width: 1; fill: none;"> -->
     `);
 
     const step = this.#cutoff / this.#nbLayers;
@@ -82,11 +82,12 @@ class Textorizer2 {
     for (let c = this.#nbLayers; c >= 1; c--) {
       const x = c*step;
       const dy = c === this.#nbLayers ? 0 : Math.random() *this.#lineHeight*5;
-        //svg.push(this.#toSvgScan(x, 0, 0));
+      svg.push(`<g id="layer${c}" inkscape:groupmode="layer" inkscape:label="${c}" style="stroke: black; stroke-width: 1; fill: none;">`);
       svg.push(this.#toSvgScan(x, 0, dy));
+      svg.push(`</g>`);
     }
 
-    svg.push('</g></svg>');
+    svg.push('<!--</g>--></svg>');
     return svg.join('');
   }
 }
