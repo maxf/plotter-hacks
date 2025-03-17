@@ -4,54 +4,86 @@ const $ = (id: string) => document.getElementById(id)!;
 
 //============================================================================
 
-class Control {
-  #id: string; // like a name but should be a valid query string param name
-  #value: any;
-  #updateUrl: any;
+export interface ControlParams {
+  name: string;
+  updateUrl?: boolean;
+}
 
-  constructor(id: string, params: any) {
-    this.#id = id;
-    this.#value = params.value;
-    this.#updateUrl = params.updateUrl === undefined ? true : false;
+
+abstract class Control {
+  readonly id: string; // like a name but should be a valid query string param name
+  protected _updateUrl: boolean;
+  protected wrapperEl: HTMLDivElement;
+
+  constructor(id: string, params: ControlParams) {
+    this.id = id;
+    this._updateUrl = params.updateUrl || true;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
     controls.push(this);
   }
-  id(): string {
-    return this.#id;
-  }
-  setVal(val: any) {
-    this.#value = val;
-  }
-  val(): any {
-    return this.#value;
-  }
+
   updateUrl(): boolean {
-    return this.#updateUrl;
+    return this._updateUrl;
+  }
+
+  val(): any {
+    // most controls will override this if they hold a value. One exception is
+    // SvgSaveControl
+    return undefined;
+  }
+
+  set(value: any): any {
+    // most controls will override this if they hold a value. One exception is
+    // SvgSaveControl
+    return value;
+  }
+
+  show() {
+    this.wrapperEl.style.display = 'block';
+  }
+
+  hide() {
+    this.wrapperEl.style.display = 'none';
   }
 }
 
 //============================================================================
 
+interface NumberControlParams extends ControlParams {
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  callback: (...args: any[]) => void;
+}
+
 class NumberControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
-  #valueEl: HTMLSpanElement;
+  private widgetEl: HTMLInputElement;
+  private valueEl: HTMLSpanElement;
+  private value: number;
 
-  constructor(id: string, params: any) {
+  constructor(id: string, params: NumberControlParams) {
     super(id, params);
-    this.#createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
-    this.#widgetEl = $(id) as HTMLInputElement;
-    this.#valueEl = $(`${id}-value`) as HTMLSpanElement;
-    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.value = params.value;
+    this.createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+    this.widgetEl = $(id) as HTMLInputElement;
+    this.valueEl = $(`${id}-value`) as HTMLSpanElement;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
-    this.#widgetEl.onchange = event => {
-      this.setVal(parseFloat((event.target as HTMLInputElement).value) as number);
-      this.#valueEl.innerText = this.val().toString();
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+    this.widgetEl.onchange = event => {
+      this.set(parseFloat((event.target as HTMLInputElement).value) as number);
+      this.valueEl.innerText = this.value.toString();
+      console.log(this.id, this.value, this.updateUrl())
+      if (this.updateUrl()) updateUrlParam(this.id, this.value);
       params.callback();
     };
   }
 
-  #createHtmlControl(id: string, name: string, value: number, min: number, max: number, step?: number) {
+  override val(): number {
+    return this.value;
+  }
+
+  createHtmlControl(id: string, name: string, value: number, min: number, max: number, step?: number) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     const stepAttr = step ? `step="${step}"` : '';
@@ -68,46 +100,45 @@ class NumberControl extends Control {
     }
   }
 
-  set(newValue: number) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue.toString(); // TODO: clamp to min/max
-    this.#valueEl.innerText = newValue.toString();
-  }
-
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  override set(newValue: number) {
+    this.value = newValue;
+    this.widgetEl.value = newValue.toString(); // TODO: clamp to min/max
+    this.valueEl.innerText = newValue.toString();
+    return this.value;
   }
 }
 
 //============================================================================
 
+interface SelectControlParams extends ControlParams {
+  value: string,
+  choices: string[],
+  callback: (...args: any[]) => void
+}
+
 class SelectControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
+  private widgetEl: HTMLInputElement;
+  private value: string;
 
-  constructor(id: string, params: any) {
+  constructor(id: string, params: SelectControlParams) {
     super(id, params);
-    this.setVal(params.value);
-    this.#createHtmlControl(id, params.name, params.value, params.choices);
-    this.#widgetEl = $(id) as HTMLInputElement;
-    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.value = params.value;
+    this.createHtmlControl(id, params.name, params.value, params.choices);
+    this.widgetEl = $(id) as HTMLInputElement;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
-    this.#widgetEl.onchange = event => {
-      this.setVal((event.target as HTMLInputElement).value);
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
-      params.callback.call(this);
+    this.widgetEl.onchange = event => {
+      this.set((event.target as HTMLInputElement).value);
+      if (this.updateUrl()) updateUrlParam(this.id, this.value);
+      params.callback(this);
     };
   }
 
-  #createHtmlControl(id: string, name: string, value: string, choices: string[]) {
+  createHtmlControl(id: string, name: string, value: string, choices: string[]) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(name);
-    html.push(`<select id="${this.id()}">`);
+    html.push(`<select id="${this.id}">`);
     choices.forEach((choice: string) =>
       html.push(`<option ${choice===value ? 'selected' : ''}>${choice}</option>`));
     html.push('</select>');
@@ -119,41 +150,44 @@ class SelectControl extends Control {
     }
   }
 
-  set(newValue: string) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue;
+  override val() {
+    return this.value;
   }
 
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  override set(newValue: string) {
+    this.value = newValue;
+    this.widgetEl.value = newValue;
+    return this.value;
   }
 }
 
 //============================================================================
 
+interface CheckboxControlParams extends ControlParams {
+  value: boolean;
+  callback: (...args: any[]) => void;
+}
+
+
 class CheckboxControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
+  private widgetEl: HTMLInputElement;
+  private value: boolean;
 
-  constructor(id: string, params: any) {
+  constructor(id: string, params: CheckboxControlParams) {
     super(id, params)
-    this.setVal(params.value);
-    this.#createHtmlControl(id, params.name, params.value);
-    this.#widgetEl = $(id) as HTMLInputElement;
-    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.value = params.value;
+    this.createHtmlControl(id, params.name, params.value);
+    this.widgetEl = $(id) as HTMLInputElement;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
-    this.#widgetEl.onchange = event => {
-      this.setVal((event.target as HTMLInputElement).checked);
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+    this.widgetEl.onchange = event => {
+      this.set((event.target as HTMLInputElement).checked);
+      if (this.updateUrl()) updateUrlParam(this.id, this.value);
       params.callback.bind(this)();
     };
   }
 
-  #createHtmlControl(id: string, name: string, value: boolean) {
+  private createHtmlControl(id: string, name: string, value: boolean) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`<input type="checkbox" id="${id}" ${value?'selected':''}> ${name}`);
@@ -166,41 +200,27 @@ class CheckboxControl extends Control {
     }
   }
 
-  set(newValue: boolean) {
-    this.setVal(newValue);
-    this.#widgetEl.checked = newValue;
+  override val() {
+    return this.value;
   }
 
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  override set(newValue: boolean) {
+    this.value = newValue;
+    this.widgetEl.checked = newValue;
   }
 }
 
 //============================================================================
 
+interface SvgSaveControlParams extends ControlParams {
+  canvasId: string,
+  saveFilename: string
+}
+
 class SvgSaveControl extends Control {
-  #wrapperEl: HTMLSpanElement;
-
-  #createHtmlControl(id: string, name: string) {
-    const html = `
-      <div class="control" id="${id}-control">
-        <button id="${id}">${name}</button>
-      </div>
-    `;
-    const anchorElement = $('controls');
-    if (anchorElement) {
-      anchorElement.insertAdjacentHTML('beforeend', html);
-    }
-  }
-
-  constructor(id: string, params: any) {
+  constructor(id: string, params: SvgSaveControlParams) {
     super(id, params)
-    this.#createHtmlControl(id, params.name);
-    this.#wrapperEl = $(`${id}-control`) as HTMLSpanElement;
+    this.createHtmlControl(id, params.name);
 
     $(id).onclick = () => {
       const svgEl = $(params.canvasId);
@@ -217,111 +237,123 @@ class SvgSaveControl extends Control {
       document.body.removeChild(downloadLink);
     }
   }
-  
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
 
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  private createHtmlControl(id: string, name: string) {
+    const html = `
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
+      </div>
+    `;
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html);
+    }
   }
 }
 
 //============================================================================
 
-class ImageInputControl extends Control {
-  #videoControl: VideoStreamControl;
-  #imageControl: ImageUploadControl;
-  #toggle: SelectControl;
+interface ImageInputControlParams extends ControlParams {
+  callback: (...args: any[]) => void;
+  initialImage: string;
+}
 
-  constructor(id: string, params: any) {
+class ImageInputControl extends Control {
+  private videoControl: VideoStreamControl;
+  private imageControl: ImageUploadControl;
+  private toggle: SelectControl;
+
+  constructor(id: string, params: ImageInputControlParams) {
     super(id, params);
-    this.#videoControl = new VideoStreamControl(`${id}-video`, {
+    this.videoControl = new VideoStreamControl(`${id}-video`, {
       name: 'Video',
       callback: params.callback
     });
-    this.#videoControl.hide();
-    this.#imageControl = new ImageUploadControl(`${id}-image`, {
+    this.videoControl.hide();
+    this.imageControl = new ImageUploadControl(`${id}-image`, {
       name: 'Image',
       callback: params.callback,
-      value: params.initialImage
+      initialImage: params.initialImage
     });
-    this.#toggle = new SelectControl(`${id}-toggle`, {
+    this.toggle = new SelectControl(`${id}-toggle`, {
       name: 'Mode',
       choices: ['Video', 'Image upload'],
       value: 'Image upload',
       callback: () => {
-        if (this.#toggle.val() === 'Video') {
-          this.#imageControl.hide();
-          this.#videoControl.show();
+        if (this.toggle.val() === 'Video') {
+          this.imageControl.hide();
+          this.videoControl.show();
         } else {
-          this.#imageControl.show();
-          this.#videoControl.pauseStreaming();
-          this.#videoControl.hide();
+          this.imageControl.show();
+          this.videoControl.pauseStreaming();
+          this.videoControl.hide();
         }
       }
     });
   }
 
   canvas(): HTMLCanvasElement {
-    return this.#toggle.val() === 'Video'
-      ? this.#videoControl.canvas()
-      : this.#imageControl.canvas();
+    return this.toggle.val() === 'Video'
+      ? this.videoControl.canvas()
+      : this.imageControl.canvas();
   }
 }
 
 //============================================================================
 
-class VideoStreamControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #videoEl: HTMLVideoElement;
-  #canvasEl: HTMLCanvasElement;
-  #startButtonEl: HTMLButtonElement;
-  #callback: any;
-  #isRunning: boolean;
-  #animationId: number | null;
-  #context: CanvasRenderingContext2D | null;
-  #stream: MediaStream | null = null;
+interface VideoStreamControlParams extends ControlParams {
+  callback: (...args: any[]) => void;
+}
 
-  constructor(id: string, params: any) {
+class VideoStreamControl extends Control {
+  private videoEl: HTMLVideoElement;
+  private canvasEl: HTMLCanvasElement;
+  private startButtonEl: HTMLButtonElement;
+  private isRunning: boolean;
+  private animationId: number | null;
+  private context: CanvasRenderingContext2D | null;
+  private stream: MediaStream | null = null;
+  private callback: (...args: any[]) => void;
+
+  constructor(id: string, params: VideoStreamControlParams) {
     super(id, params);
-    this.#createHtmlControl(id, params.name);
-    this.#wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
-    this.#videoEl = document.getElementById(`${id}-video`) as HTMLVideoElement;
-    this.#canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
-    this.#startButtonEl = document.getElementById(`${id}-start`) as HTMLButtonElement;
-    this.#callback = params.callback;
-    this.#animationId = 0;
-    this.#isRunning = false;
-    this.#context = this.#canvasEl.getContext(
+    this.createHtmlControl(id, params.name);
+    this.wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.videoEl = document.getElementById(`${id}-video`) as HTMLVideoElement;
+    this.canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
+    this.startButtonEl = document.getElementById(`${id}-start`) as HTMLButtonElement;
+    this.callback = params.callback;
+    this.animationId = 0;
+    this.isRunning = false;
+    this.context = this.canvasEl.getContext(
       '2d',
       { alpha: false, willReadFrequently: true }
     );
   }
 
-  async #stopStreaming() {
-    if (this.#stream) {
-      this.#stream.getTracks().forEach(track => track.stop());
-      this.#videoEl.srcObject = null;
-      this.#stream = null;
-      this.#videoEl.pause();
+  private async stopStreaming() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.videoEl.srcObject = null;
+      this.stream = null;
+      this.videoEl.pause();
     }
-    this.#isRunning = false;
+    this.isRunning = false;
   }
 
   async pauseStreaming() {
-    await this.#stopStreaming();
-    this.#startButtonEl.innerText = 'Restart';
-    this.#startButtonEl.onclick = async () => this.restartStreaming();
-    if (this.#animationId) {
-      cancelAnimationFrame(this.#animationId);
-      this.#animationId = null;
+    await this.stopStreaming();
+    this.startButtonEl.innerText = 'Restart';
+    this.startButtonEl.onclick = async () => this.restartStreaming();
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
     }
   }
 
   async restartStreaming() {
     // First ensure previous stream is fully stopped
-    await this.#stopStreaming()
+    await this.stopStreaming()
 
     // Request a new stream
     try {
@@ -329,30 +361,34 @@ class VideoStreamControl extends Control {
         audio: false,
         video: { width: 1920, height: 1080 },
       });
-      this.#stream = stream;
-      this.#videoEl.srcObject = stream;
-      this.#videoEl.play();
-      this.#startButtonEl.innerText = 'Pause';
-      this.#startButtonEl.onclick = async () => this.pauseStreaming();
-      this.#isRunning = true;
-      this.#animate();
+      this.stream = stream;
+      this.videoEl.srcObject = stream;
+      this.videoEl.play();
+      this.startButtonEl.innerText = 'Pause';
+      this.startButtonEl.onclick = async () => this.pauseStreaming();
+      this.isRunning = true;
+      this.animate();
     } catch (e: any) {
       console.log("Failed to restart camera:", e.name);
     }
   }
 
-  #animate() {
-    if (this.#context) {
-      this.#context.drawImage(this.#videoEl, 0, 0, this.#canvasEl.width, this.#canvasEl.height);
-      this.#callback(this.#context, this.#canvasEl.width, this.#canvasEl.height);
-      if (this.#isRunning) {
-        this.#animationId = requestAnimationFrame(this.#animate.bind(this));
+  private animate() {
+    if (this.context) {
+      this.context.drawImage(
+        this.videoEl,
+        0, 0,
+        this.canvasEl.width, this.canvasEl.height
+      );
+      this.callback(this.context, this.canvasEl.width, this.canvasEl.height);
+      if (this.isRunning) {
+        this.animationId = requestAnimationFrame(this.animate.bind(this));
       }
     }
   }
 
   async startStreaming() {
-    if (!this.#context) throw 'Failed to get context';
+    if (!this.context) throw 'Failed to get context';
 
     navigator.mediaDevices
       .getUserMedia({
@@ -360,21 +396,21 @@ class VideoStreamControl extends Control {
         video: { width: 1920, height: 1080 },
       })
       .then((stream: MediaStream) => {
-        this.#stream = stream;
-        this.#videoEl.srcObject = stream;
-        this.#videoEl.play();
+        stream = stream;
+        this.videoEl.srcObject = stream;
+        this.videoEl.play();
       })
       .catch(function (e) {
         console.log("An error with camera occured:", e.id);
       })
-    this.#startButtonEl.innerText = 'Pause';
-    this.#startButtonEl.onclick = async () => await this.pauseStreaming();
+    this.startButtonEl.innerText = 'Pause';
+    this.startButtonEl.onclick = async () => await this.pauseStreaming();
 
-    this.#isRunning = true;
-    this.#animate();
+    this.isRunning = true;
+    this.animate();
   }
 
-  #createHtmlControl(id: string, name: string) {
+  private createHtmlControl(id: string, name: string) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`${name} <video id="${id}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
@@ -390,52 +426,57 @@ class VideoStreamControl extends Control {
     }
   }
 
-  show() {
-    this.#wrapperEl.style.display = 'block';
-    this.#animate();
+  override show() {
+    this.wrapperEl.style.display = 'block';
+    this.animate();
   }
 
-  hide() {
-    this.#stopStreaming();
-    this.#wrapperEl.style.display = 'none';
+  override hide() {
+    this.stopStreaming();
+    this.wrapperEl.style.display = 'none';
   }
 
   canvas() {
-    return this.#canvasEl;
+    return this.canvasEl;
   }
 }
 
 //============================================================================
 
+interface ImageUploadControlParams extends ControlParams {
+  callback: (...args: any[]) => void;
+  initialImage: string;
+}
+
 class ImageUploadControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #uploadEl: HTMLInputElement;
-  #canvasEl: HTMLCanvasElement;
-  #imageUrl: string;
-  #callback: any;
+  private uploadEl: HTMLInputElement;
+  private canvasEl: HTMLCanvasElement;
+  private _imageUrl: string;
+  private callback: (...args: any[]) => void;
 
-  constructor(id: string, params: any) {
+
+  constructor(id: string, params: ImageUploadControlParams) {
     super(id, params);
-    this.#imageUrl = params.value;
-    this.#callback = params.callback;
-    this.#createHtmlControl(id, params.name);
+    this._imageUrl = params.initialImage;
+    this.callback = params.callback;
+    this.createHtmlControl(id, params.name);
 
-    this.#wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
-    this.#uploadEl = document.getElementById(`${id}-upload`) as HTMLInputElement;
-    this.#canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
-    this.loadImage(this.#imageUrl, () => {
+    this.wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.uploadEl = document.getElementById(`${id}-upload`) as HTMLInputElement;
+    this.canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
+    this.loadImage(this._imageUrl, () => {
       params.callback(this);
     });
 
-    this.#uploadEl.onchange = () => {
-      const file: File = (this.#uploadEl.files as FileList)[0];
+    this.uploadEl.onchange = () => {
+      const file: File = (this.uploadEl.files as FileList)[0];
       if (file) {
         this.loadImage(file, () => params.callback(this));
       }
     };
   }
 
-  #createHtmlControl(id: string, name: string) {
+  private createHtmlControl(id: string, name: string) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
@@ -448,14 +489,14 @@ class ImageUploadControl extends Control {
   }
 
   loadImage(source: File | string, callback?: () => void) {
-    const ctx = this.#canvasEl.getContext('2d', { willReadFrequently: true });
+    const ctx = this.canvasEl.getContext('2d', { willReadFrequently: true });
     const img = new Image();
     img.onload = () => {
       const desiredWidth = 200;
       const aspectRatio = img.width / img.height;
       const desiredHeight = desiredWidth / aspectRatio;
-      this.#canvasEl.width = desiredWidth;
-      this.#canvasEl.height = desiredHeight;
+      this.canvasEl.width = desiredWidth;
+      this.canvasEl.height = desiredHeight;
       if (ctx) {
         ctx.drawImage(img, 0, 0, desiredWidth, desiredHeight);
       }
@@ -466,9 +507,9 @@ class ImageUploadControl extends Control {
 
     if (typeof source === 'string') {
       img.src = source;
-      this.#imageUrl = source;
+      this._imageUrl = source;
     } else {
-      this.#imageUrl = '';
+      this._imageUrl = '';
       const reader = new FileReader();
       reader.onload = event => {
         if (event.target && event.target.result) {
@@ -480,22 +521,18 @@ class ImageUploadControl extends Control {
   }
 
   imageUrl(): string {
-    return this.#imageUrl;
+    return this._imageUrl;
   }
 
   canvas(): HTMLCanvasElement {
-    return this.#canvasEl;
+    return this.canvasEl;
   }
 
-  show() {
-    this.loadImage(this.#imageUrl, () => {
-      this.#callback(this);
+  override show() {
+    this.loadImage(this._imageUrl, () => {
+      this.callback(this);
     });
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+    super.show();
   }
 }
 
@@ -512,24 +549,29 @@ const updateUrl = (params: any) => {
 
 //============================================================================
 
-class TextControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
+interface TextControlParams extends ControlParams {
+  value: string,
+  callback: (...args: any[]) => void
+}
 
-  constructor(id: string, params: any) {
+class TextControl extends Control {
+  private widgetEl: HTMLInputElement;
+  private value: string;
+
+  constructor(id: string, params: TextControlParams) {
     super(id, params);
-    this.setVal(params.value);
-    this.#createHtmlControl(id, params.name, params.value);
-    this.#widgetEl = $(id) as HTMLInputElement;
-    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
-    this.#widgetEl.onchange = event => {
-      this.setVal((event.target as HTMLInputElement).value);
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+    this.value = params.value;
+    this.createHtmlControl(id, params.name, params.value);
+    this.widgetEl = $(id) as HTMLInputElement;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.widgetEl.onchange = event => {
+      this.set((event.target as HTMLInputElement).value);
+      if (this.updateUrl()) updateUrlParam(this.id, this.val());
       params.callback.bind(this)();
     };
   }
 
-  #createHtmlControl(id: string, name: string, value: number) {
+  private createHtmlControl(id: string, name: string, value: string) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
@@ -544,41 +586,36 @@ class TextControl extends Control {
     }
   }
 
-  set(newValue: string) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue.toString();
+  override set(newValue: string) {
+    this.set(newValue);
+    this.widgetEl.value = newValue.toString();
+    return this.value;
   }
 
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  override val() {
+    return this.value;
   }
 }
 
-//============================================================================
-
 class TextAreaControl extends Control {
-  #wrapperEl: HTMLDivElement;
-  #widgetEl: HTMLInputElement;
+  private widgetEl: HTMLInputElement;
+  private value;
 
   constructor(id: string, params: any) {
     super(id, params);
-    this.setVal(params.value);
-    this.#createHtmlControl(id, params.name, params.value);
-    this.#widgetEl = $(id) as HTMLInputElement;
-    this.#wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.value = params.value;
+    this.createHtmlControl(id, params.name, params.value);
+    this.widgetEl = $(id) as HTMLInputElement;
+    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
 
     $(`${id}-button`).onclick = () => {
-      this.setVal(this.#widgetEl.value);
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+      this.set(this.widgetEl.value);
+      if (this.updateUrl()) updateUrlParam(this.id, this.val());
       params.callback.bind(this)();
     };
   }
 
-  #createHtmlControl(id: string, name: string, value: number) {
+  private createHtmlControl(id: string, name: string, value: number) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
@@ -593,17 +630,14 @@ class TextAreaControl extends Control {
     }
   }
 
-  set(newValue: string) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue.toString();
+  override val() {
+    return this.value;
   }
 
-  show() {
-    this.#wrapperEl.style.display = 'block';
-  }
-
-  hide() {
-    this.#wrapperEl.style.display = 'none';
+  override set(newValue: string) {
+    this.value = newValue;
+    this.widgetEl.value = newValue.toString();
+    return this.value;
   }
 }
 
@@ -613,28 +647,31 @@ const controls: Control[] = [];
 
 const getParams = function(defaults: any, useUrl: boolean = true) {
   const params: Record<string, any> = defaults;
-  controls.forEach((control: Control) => {
-    const key: string = control.id();
 
-    if (useUrl) {
-      let value = paramFromQueryString(
-        control.id(),
-        window.location.search
-      );
-      if (value) {
-        params[key] = value;
-        control.setVal(value);
-      } else {
-        value = control.val();
+  // iterate controls with a value (i.e. not SVG save, for instance)
+  controls.forEach((control: Control) => {
+    if (control.val() !== undefined) { // if undefined the control doesn't hold a value so skip
+      const key: string = control.id;
+      if (useUrl) {
+        let value = paramFromQueryString(
+          control.id,
+          window.location.search
+        );
         if (value) {
-          params[key] = control.val();
-          updateUrlParam(key, params[key]);
+          params[key] = value;
+          control.set(value);
         } else {
-          params[key] = defaults[key];
+          value = control.val();
+          if (value) {
+            params[key] = control.val();
+            updateUrlParam(key, params[key]);
+          } else {
+            params[key] = defaults[key];
+          }
         }
+      } else {
+        params[key] = control.val() || defaults[key];
       }
-    } else {
-      params[key] = control.val() || defaults[key];
     }
   });
   return params;
@@ -656,3 +693,4 @@ export {
   getParams,
   $
 };
+

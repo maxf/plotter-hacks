@@ -61,7 +61,7 @@ new NumberControl('cutoff', {
   callback: doRender,
   min: 0,
   max: 255,
-  updateUrl: false
+  updateUrl: true
 });
 
 
@@ -72,7 +72,7 @@ new NumberControl('fontSize', {
   min: 1,
   max: 10,
   step: 0.1,
-  updateUrl: false
+  updateUrl: true
 });
 
 new NumberControl('lineHeight', {
@@ -82,7 +82,7 @@ new NumberControl('lineHeight', {
   min: 0.5,
   max: 2,
   step: 0.1,
-  updateUrl: false
+  updateUrl: true
 });
 
 new NumberControl('nbLayers', {
@@ -91,7 +91,7 @@ new NumberControl('nbLayers', {
   callback: doRender,
   min: 1,
   max: 10,
-  updateUrl: false
+  updateUrl: true
 });
 
 new TextAreaControl('text', {

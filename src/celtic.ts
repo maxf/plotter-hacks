@@ -725,9 +725,9 @@ controls.graphType = new SelectControl('graphType', {
   name:'',
   value: defaultParams['graphType'],
   choices: ['Polar', 'Grid', 'Random'],
-  callback: function() {
+  callback: function(t) {
     Object.values(controls).forEach((c: any) => c.hide());
-    paramsPerType[(this.val() as GraphType)].forEach(name => controls[name].show());
+    paramsPerType[(t.val() as GraphType)].forEach(name => controls[name].show());
     render();
   }
 });
@@ -774,7 +774,7 @@ controls.showGraph = new CheckboxControl('showGraph', {
 
 controls.seed = new NumberControl('seed', {
   name: 'seed',
-  value: defaultParams['seed'],
+  value: defaultParams['seed'] || 0,
   callback: render,
   min: 0,
   max: 500
@@ -782,7 +782,7 @@ controls.seed = new NumberControl('seed', {
 
 controls.nbNodes = new NumberControl('nbNodes', {
   name: 'Nodes',
-  value: defaultParams['nbNodes'],
+  value: defaultParams['nbNodes'] || 3,
   callback: render,
   min: 3,
   max: 40
@@ -790,7 +790,7 @@ controls.nbNodes = new NumberControl('nbNodes', {
 
 controls.cells = new NumberControl('cells', {
   name: 'Cells',
-  value: defaultParams['cells'],
+  value: defaultParams['cells'] || 2,
   callback: render,
   min: 2,
   max: 100
@@ -798,7 +798,7 @@ controls.cells = new NumberControl('cells', {
 
 controls.nbOrbits = new NumberControl('nbOrbits', {
   name: 'Orbits',
-  value: defaultParams['nbOrbits'],
+  value: defaultParams['nbOrbits'] || 1,
   callback: render,
   min: 1,
   max: 20
@@ -806,7 +806,7 @@ controls.nbOrbits = new NumberControl('nbOrbits', {
 
 controls.nbNodesPerOrbit = new NumberControl('nbNodesPerOrbit', {
   name: 'Nodes per orbit',
-  value: defaultParams['nbNodesPerOrbit'],
+  value: defaultParams['nbNodesPerOrbit'] || 3,
   callback: render,
   min: 3,
   max: 20

@@ -3,7 +3,6 @@ import {
   ImageUploadControl,
   CheckboxControl,
   SvgSaveControl,
-  paramsFromUrl,
   updateUrl,
   $
 } from './controls';
@@ -55,28 +54,13 @@ const doRender = function(params: any) {
   updateUrl(params);
 };
 
-const renderFromQsp = function() {
-  const params = paramsFromUrl(defaultParams);
-  doRender(params);
-  controlCutoff.set(params.cutoff);
-  controlOptIter.set(params.optIter);
-  controlNSamples.set(params.nsamples);
-  controlShowStipple.set(params.showStipple);
-  controlShowPoly.set(params.showPoly);
-  controlShowDts.set(params.showDts);
-  controlShowVoronoi.set(params.showVoronoi);
-  controlSeed.set(params.seed);
-  controlCurvature.set(params.curvature);
-};
-
 const renderFromWidgets = function() {
   doRender(paramsFromWidgets());
 };
 
 const imageUpload = new ImageUploadControl('inputImage', {
   name: 'Image',
-  value: defaultParams['inputImageUrl'],
-  firstCallback: renderFromQsp,
+  initialImage: defaultParams['inputImageUrl'],
   callback: renderFromWidgets
 });
 

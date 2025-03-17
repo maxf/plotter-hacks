@@ -2,7 +2,6 @@ import {
   NumberControl,
   ImageUploadControl,
   SvgSaveControl,
-  paramsFromUrl,
   updateUrl,
   $
 } from './controls';
@@ -42,22 +41,13 @@ const doRender = function(params: any) {
   updateUrl(params);
 };
 
-const renderFromQsp = function() {
-  const params = paramsFromUrl(defaultParams);
-  doRender(params);
-  controlCutoff.set(params.cutoff);
-  controlNSamples.set(params.nsamples);
-  controlStrokeLength.set(params.strokeLength);
-};
-
 const renderFromWidgets = function() {
   doRender(paramsFromWidgets());
 };
 
 const imageUpload = new ImageUploadControl('inputImage', {
   name: 'Image',
-  value: defaultParams['inputImageUrl'],
-  firstCallback: renderFromQsp,
+  initialImage: defaultParams['inputImageUrl'],
   callback: renderFromWidgets
 });
 
