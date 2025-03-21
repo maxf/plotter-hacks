@@ -39,14 +39,14 @@ class Textorizer2 {
     const w = this.image.width;
     let x = 0;
     const svg = [];
+    const scale = this.fontSize * 0.001;
     while(x <= w) {
       const imageLevel = this.image.brightnessAt(x, row);
       let glyph, glyphInfo;
       if (imageLevel < cutoff) {
         glyph = this.text[this.textIndex];
-        glyphInfo = strokeGlyphs[glyph];
-        if (glyph !== ' ') {
-          const scale = this.fontSize * 0.001;
+        glyphInfo = strokeGlyphs[glyph] || strokeGlyphs['*'];
+        if (glyphInfo && glyph !== ' ') {
           svg.push(`<path vector-effect="non-scaling-stroke" d="${glyphInfo[2]}" transform="translate(${x+dx}, ${row+dy}) scale(${scale},${-scale})" />`);
         }
         this.textIndex = (this.textIndex + 1) % this.text.length;
@@ -54,7 +54,7 @@ class Textorizer2 {
         glyph = ' ';
         glyphInfo = strokeGlyphs[' '];
       }
-      x += glyphInfo[1]*this.fontSize * 0.001;
+      x += glyphInfo[1] * scale;
     }
     const content = svg.join('');
     return content === '' ? '' : `<g class="scan-line" data-row="${row}">${content}</g>`;
