@@ -781,47 +781,55 @@ function updateUrlParam(key, value) {
 // src/controls.ts
 var $ = (id) => document.getElementById(id);
 var Control = class {
-  #id;
+  id;
   // like a name but should be a valid query string param name
-  #value;
-  #updateUrl;
+  _updateUrl;
+  wrapperEl;
   constructor(id, params2) {
-    this.#id = id;
-    this.#value = params2.value;
-    this.#updateUrl = params2.updateUrl === void 0 ? true : false;
+    this.id = id;
+    this._updateUrl = params2.updateUrl || false;
+    this.wrapperEl = $(`${id}-control`);
     controls.push(this);
   }
-  id() {
-    return this.#id;
-  }
-  setVal(val) {
-    this.#value = val;
+  updateUrl() {
+    return this._updateUrl;
   }
   val() {
-    return this.#value;
+    return void 0;
   }
-  updateUrl() {
-    return this.#updateUrl;
+  set(value) {
+    return value;
+  }
+  show() {
+    this.wrapperEl.style.display = "block";
+  }
+  hide() {
+    this.wrapperEl.style.display = "none";
   }
 };
 var NumberControl = class extends Control {
-  #wrapperEl;
-  #widgetEl;
-  #valueEl;
+  widgetEl;
+  valueEl;
+  value;
   constructor(id, params2) {
     super(id, params2);
-    this.#createHtmlControl(id, params2.name, params2.value, params2.min, params2.max, params2.step);
-    this.#widgetEl = $(id);
-    this.#valueEl = $(`${id}-value`);
-    this.#wrapperEl = $(`${id}-control`);
-    this.#widgetEl.onchange = (event) => {
-      this.setVal(parseFloat(event.target.value));
-      this.#valueEl.innerText = this.val().toString();
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+    this._updateUrl = params2.updateUrl || true;
+    this.value = params2.value;
+    this.createHtmlControl(id, params2.name, params2.value, params2.min, params2.max, params2.step);
+    this.widgetEl = $(id);
+    this.valueEl = $(`${id}-value`);
+    this.wrapperEl = $(`${id}-control`);
+    this.widgetEl.onchange = (event) => {
+      this.set(parseFloat(event.target.value));
+      this.valueEl.innerText = this.value.toString();
+      if (this.updateUrl()) updateUrlParam(this.id, this.value);
       params2.callback();
     };
   }
-  #createHtmlControl(id, name, value, min, max, step) {
+  val() {
+    return this.value;
+  }
+  createHtmlControl(id, name, value, min, max, step) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     const stepAttr = step ? `step="${step}"` : "";
@@ -837,34 +845,16 @@ var NumberControl = class extends Control {
     }
   }
   set(newValue) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue.toString();
-    this.#valueEl.innerText = newValue.toString();
-  }
-  show() {
-    this.#wrapperEl.style.display = "block";
-  }
-  hide() {
-    this.#wrapperEl.style.display = "none";
+    this.value = newValue;
+    this.widgetEl.value = newValue.toString();
+    this.valueEl.innerText = newValue.toString();
+    return this.value;
   }
 };
 var SvgSaveControl = class extends Control {
-  #wrapperEl;
-  #createHtmlControl(id, name) {
-    const html = `
-      <div class="control" id="${id}-control">
-        <button id="${id}">${name}</button>
-      </div>
-    `;
-    const anchorElement = $("controls");
-    if (anchorElement) {
-      anchorElement.insertAdjacentHTML("beforeend", html);
-    }
-  }
   constructor(id, params2) {
     super(id, params2);
-    this.#createHtmlControl(id, params2.name);
-    this.#wrapperEl = $(`${id}-control`);
+    this.createHtmlControl(id, params2.name);
     $(id).onclick = () => {
       const svgEl = $(params2.canvasId);
       svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -880,11 +870,16 @@ var SvgSaveControl = class extends Control {
       document.body.removeChild(downloadLink);
     };
   }
-  show() {
-    this.#wrapperEl.style.display = "block";
-  }
-  hide() {
-    this.#wrapperEl.style.display = "none";
+  createHtmlControl(id, name) {
+    const html = `
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
+      </div>
+    `;
+    const anchorElement = $("controls");
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML("beforeend", html);
+    }
   }
 };
 var paramsFromUrl = (defaults) => {
@@ -896,25 +891,29 @@ var updateUrl = (params2) => {
   history.pushState(null, "", url);
 };
 var TextControl = class extends Control {
-  #wrapperEl;
-  #widgetEl;
+  widgetEl;
+  buttonEl;
+  value;
   constructor(id, params2) {
     super(id, params2);
-    this.setVal(params2.value);
-    this.#createHtmlControl(id, params2.name, params2.value);
-    this.#widgetEl = $(id);
-    this.#wrapperEl = $(`${id}-control`);
-    this.#widgetEl.onchange = (event) => {
-      this.setVal(event.target.value);
-      if (this.updateUrl()) updateUrlParam(this.id(), this.val());
+    this.value = params2.value;
+    this.createHtmlControl(id, params2.name, params2.value);
+    this.widgetEl = $(id);
+    this.wrapperEl = $(`${id}-control`);
+    this.buttonEl = $(`${id}-button`);
+    this._updateUrl = params2.updateUrl || true;
+    this.buttonEl.onclick = () => {
+      this.set(this.widgetEl.value);
+      if (this.updateUrl()) updateUrlParam(this.id, this.val());
       params2.callback.bind(this)();
     };
   }
-  #createHtmlControl(id, name, value) {
+  createHtmlControl(id, name, value) {
     const html = [];
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
       <input id="${id}" value="${value}"/>
+      <button id="${id}-button">Update</button>
       ${name}
     `);
     html.push("</div>");
@@ -924,14 +923,12 @@ var TextControl = class extends Control {
     }
   }
   set(newValue) {
-    this.setVal(newValue);
-    this.#widgetEl.value = newValue.toString();
+    this.value = newValue;
+    this.widgetEl.value = newValue.toString();
+    return this.value;
   }
-  show() {
-    this.#wrapperEl.style.display = "block";
-  }
-  hide() {
-    this.#wrapperEl.style.display = "none";
+  val() {
+    return this.value;
   }
 };
 var controls = [];
