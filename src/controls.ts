@@ -6,7 +6,7 @@ const $ = (id: string) => document.getElementById(id)!;
 
 export interface ControlParams {
   name: string;
-  updateUrl?: boolean;
+  updateUrl?: boolean; // default depends on type of control, but this lets user override
 }
 
 
@@ -17,7 +17,7 @@ abstract class Control {
 
   constructor(id: string, params: ControlParams) {
     this.id = id;
-    this._updateUrl = params.updateUrl || true;
+    this._updateUrl = params.updateUrl || false;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
     controls.push(this);
   }
@@ -64,6 +64,7 @@ class NumberControl extends Control {
 
   constructor(id: string, params: NumberControlParams) {
     super(id, params);
+    this._updateUrl = params.updateUrl || true;
     this.value = params.value;
     this.createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
     this.widgetEl = $(id) as HTMLInputElement;
@@ -73,7 +74,6 @@ class NumberControl extends Control {
     this.widgetEl.onchange = event => {
       this.set(parseFloat((event.target as HTMLInputElement).value) as number);
       this.valueEl.innerText = this.value.toString();
-      console.log(this.id, this.value, this.updateUrl())
       if (this.updateUrl()) updateUrlParam(this.id, this.value);
       params.callback();
     };
@@ -126,6 +126,7 @@ class SelectControl extends Control {
     this.createHtmlControl(id, params.name, params.value, params.choices);
     this.widgetEl = $(id) as HTMLInputElement;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this._updateUrl = params.updateUrl || true;
 
     this.widgetEl.onchange = event => {
       this.set((event.target as HTMLInputElement).value);
@@ -179,6 +180,7 @@ class CheckboxControl extends Control {
     this.createHtmlControl(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this._updateUrl = params.updateUrl || true;
 
     this.widgetEl.onchange = event => {
       this.set((event.target as HTMLInputElement).checked);
@@ -556,6 +558,7 @@ interface TextControlParams extends ControlParams {
 
 class TextControl extends Control {
   private widgetEl: HTMLInputElement;
+  private buttonEl: HTMLButtonElement;
   private value: string;
 
   constructor(id: string, params: TextControlParams) {
@@ -564,8 +567,11 @@ class TextControl extends Control {
     this.createHtmlControl(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
-    this.widgetEl.onchange = event => {
-      this.set((event.target as HTMLInputElement).value);
+    this.buttonEl = $(`${id}-button`) as HTMLButtonElement;
+    this._updateUrl = params.updateUrl || true;
+
+    this.buttonEl.onclick = () => {
+      this.set(this.widgetEl.value);
       if (this.updateUrl()) updateUrlParam(this.id, this.val());
       params.callback.bind(this)();
     };
@@ -576,6 +582,7 @@ class TextControl extends Control {
     html.push(`<div class="control" id="${id}-control">`);
     html.push(`
       <input id="${id}" value="${value}"/>
+      <button id="${id}-button">Update</button>
       ${name}
     `);
     html.push('</div>');
@@ -587,7 +594,7 @@ class TextControl extends Control {
   }
 
   override set(newValue: string) {
-    this.set(newValue);
+    this.value = newValue;
     this.widgetEl.value = newValue.toString();
     return this.value;
   }
@@ -607,6 +614,8 @@ class TextAreaControl extends Control {
     this.createHtmlControl(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this._updateUrl = params.updateUrl || false;
+    // text can be long so by default don't include it in the URL
 
     $(`${id}-button`).onclick = () => {
       this.set(this.widgetEl.value);
@@ -645,18 +654,21 @@ class TextAreaControl extends Control {
 
 const controls: Control[] = [];
 
-const getParams = function(defaults: any, useUrl: boolean = true) {
+const getParams = function(defaults: any) {
   const params: Record<string, any> = defaults;
-
+  console.log('getParams');
   // iterate controls with a value (i.e. not SVG save, for instance)
   controls.forEach((control: Control) => {
     if (control.val() !== undefined) { // if undefined the control doesn't hold a value so skip
+      //console.log(` ${control.id} has a value. UpdateUrl: ${control.updateUrl()}`)
       const key: string = control.id;
-      if (useUrl) {
+      if (control.updateUrl()) {
+        //console.log(`URL control ${control.id}`);// has value ${control.val().toString().substring(0,100)}`);
         let value = paramFromQueryString(
           control.id,
           window.location.search
         );
+        //        console.log(`found value in QS: ${value}`);
         if (value) {
           params[key] = value;
           control.set(value);

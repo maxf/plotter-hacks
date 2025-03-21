@@ -373,5 +373,6 @@ new SvgSaveControl('svgSave', {
 const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
   callback: render,
-  initialImage: 'tbl.png'
+  initialImage: 'tbl.png',
+  updateUrl: false
 });

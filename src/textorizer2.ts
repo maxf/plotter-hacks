@@ -39,7 +39,7 @@ textorizer2Worker.onmessage = function(e) {
 
 
 const doRender = function() {
-  const params = getParams(defaultParams, false);
+  const params = getParams(defaultParams);
   const canvas = imageSourceControl.canvas();
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
