@@ -115,8 +115,8 @@ var Pixmap = class {
   }
 };
 
-// src/vector-field-ww.ts
-var VectorField = class {
+// src/buffet-ww.ts
+var Buffet = class {
   #image;
   #cutoff;
   #nsamples;
@@ -154,6 +154,6 @@ var VectorField = class {
 };
 onmessage = function(e) {
   const { params, imageData } = e.data;
-  const dts = new VectorField(params, imageData);
+  const dts = new Buffet(params, imageData);
   postMessage(dts.toSvg());
 };

@@ -10,7 +10,7 @@ type Params = {
   strokeLength: number
 };
 
-class VectorField {
+class Buffet {
   #image: Pixmap;
   #cutoff: number;
   #nsamples: number;
@@ -56,6 +56,6 @@ class VectorField {
 
 onmessage = function(e) {
   const { params, imageData } = e.data;
-  const dts = new VectorField(params, imageData);
+  const dts = new Buffet(params, imageData);
   postMessage(dts.toSvg());
 };

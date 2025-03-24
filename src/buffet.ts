@@ -29,15 +29,15 @@ const paramsFromWidgets = (): any => {
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-const vectorFieldWorker = new Worker('build/vector-field-ww.js');
-vectorFieldWorker.onmessage = function(e) {
+const buffetWorker = new Worker('build/buffet-ww.js');
+buffetWorker.onmessage = function(e) {
   $('canvas').innerHTML = e.data;
 }
 
 const doRender = function(params: any) {
   $('canvas').innerHTML = "<h1>Rendering. Please wait</h1>";
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  vectorFieldWorker.postMessage({ params, imageData });
+  buffetWorker.postMessage({ params, imageData });
   updateUrl(params);
 };
 

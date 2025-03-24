@@ -211,7 +211,7 @@ var updateUrl = (params) => {
 };
 var controls = [];
 
-// src/vector-field.ts
+// src/buffet.ts
 var defaultParams = {
   inputImageUrl: "images/boat.jpg",
   width: 800,
@@ -231,14 +231,14 @@ var paramsFromWidgets = () => {
 };
 var canvas;
 var ctx;
-var vectorFieldWorker = new Worker("build/vector-field-ww.js");
-vectorFieldWorker.onmessage = function(e) {
+var buffetWorker = new Worker("build/buffet-ww.js");
+buffetWorker.onmessage = function(e) {
   $("canvas").innerHTML = e.data;
 };
 var doRender = function(params) {
   $("canvas").innerHTML = "<h1>Rendering. Please wait</h1>";
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  vectorFieldWorker.postMessage({ params, imageData });
+  buffetWorker.postMessage({ params, imageData });
   updateUrl(params);
 };
 var renderFromWidgets = function() {
