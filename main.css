@@ -3,6 +3,7 @@ body {
     font-family: sans;
 }
 #controls {
+    font-size: 160%;
     position: absolute;
     top: 0;
     right: 0;

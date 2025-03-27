@@ -7,7 +7,9 @@ import {
 
 
 const defaultParams = {
-  density: 50
+  nbSamples: 50,
+  fx: 100,
+  fy: 100
 };
 
 const worker = new Worker('build/field-ww.js');
@@ -22,12 +24,28 @@ const renderPlot = function() {
 };
 
 
-new NumberControl('density', {
-  name: 'Density',
-  value: defaultParams['density'],
+new NumberControl('nbSamples', {
+  name: 'NbSamples',
+  value: defaultParams['nbSamples'],
+  callback: renderPlot,
+  min: 100,
+  max: 10000
+});
+
+new NumberControl('fx', {
+  name: 'fx',
+  value: defaultParams['fx'],
   callback: renderPlot,
   min: 10,
-  max: 100
+  max: 1000
+});
+
+new NumberControl('fy', {
+  name: 'fy',
+  value: defaultParams['fy'],
+  callback: renderPlot,
+  min: 10,
+  max: 1000,
 });
 
 new SvgSaveControl('svgSave', {

@@ -1,24 +1,44 @@
 type Params = {
-  density: number;
+  nbSamples: number;
+  fx: number;
+  fy: number;
 };
 
 class Plot {
-  private density: number;
+  private nbSamples: number;
+  private fx: number;
+  private fy: number;
 
   constructor(params: Params) {
-    this.density = params.density;
+    this.nbSamples = params.nbSamples;
+    this.fx = params.fx;
+    this.fy = params.fy;
   }
 
+  private f(x: number, y: number): number {
+    return Math.sin(x/this.fx) + Math.sin(y/this.fy);
+  }
+
+  private gradient(x: number, y: number): number[] {
+    const d = 0.00001;
+    const fxy = this.f(x, y);
+    const mag = 10000;
+    return [
+      (this.f(x+d, y) - fxy) / d * mag,
+      (this.f(x, y+d) - fxy) / d * mag
+    ];
+  }
 
   private fieldToSvg(w: number, h: number): string {
     const svg = [];
     svg.push('<g stroke="red" stroke-width="1.0">');
-    for (let x = 0; x <= w; x += w/this.density) {
-      for (let y=0; y <= h; y += h/this.density) {
-        const x2: number = x + 10 * Math.sin(2*x);
-        const y2: number = y + 10 * Math.cos(2*y);
-        svg.push(`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}"/>`);
-      }
+    for (let i=0; i < this.nbSamples; i++) {
+      const [x, y] = [Math.random() * w, Math.random() * h];
+      const [dx, dy] = this.gradient(x, y);
+      svg.push(`
+      <line
+      x1="${x}" y1="${y}"
+      x2="${x+dx}" y2="${y+dy}"/>`);
     }
     svg.push('</g>');
     return svg.join('');
