@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, TextControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { NumberControl, SvgSaveControl, TextControl, getParams, $ } from './controls';
 
 type Params = {
   width: number,
@@ -21,27 +21,6 @@ type Params = {
   accelerationLimit: number,
   cohesionDistance: number,
   nbAttractors: number
-};
-
-const defaultParams: Params = {
-  width: 800,
-  height: 800,
-  cssStyle: 'stroke: black; stroke-width: 0.5',
-  zoom: 3,
-  seed: 188,
-  iterations: 23,
-  startIteration: 11,
-  nboids: 195,
-  speedLimit: 16.5,
-  cohesionForce: 0.23,
-  cohesionDistance: 259,
-  accelerationLimitRoot: 1,
-  separationDistance: 60,
-  separationForce: 0.15,
-  alignmentForce: 0.25,
-  alignmentDistance: 180,
-  accelerationLimit: 1,
-  nbAttractors: 0
 };
 
 
@@ -315,78 +294,28 @@ const renderBoids = (params: Params): string => {
   `;
 };
 
-const paramsFromWidgets = () => {
-  const params: Params = {...defaultParams};
-  params.zoom = controls.zoom.val() as number;
-  params.seed = controls.seed.val() as number;
-  params.nboids = controls.nboids.val() as number;
-  params.speedLimit = controls.speedLimit.val() as number;
-  params.cohesionForce = controls.cohesionForce.val() as number;
-  params.cohesionDistance = controls.cohesionDistance.val() as number;
-  params.iterations = controls.iterations.val() as number;
-  params.startIteration = controls.startIteration.val() as number;
-  params.nbAttractors = controls.nbAttractors.val() as number;
-  params.cssStyle = controls.cssStyle.val() as string;
-  return params;
+const render = () => {
+  const params = {
+    width: 800,
+    height: 800,
+    ...getParams()
+  };
+  $('canvas').innerHTML = renderBoids(params as Params);
 };
 
-const render = (params?: any) => {
-  if (!params) {
-    params = paramsFromWidgets();
-  }
-
-  params.width ||= defaultParams.width;
-  params.height ||= defaultParams.height;
-
-  updateUrl(params);
-
-  $('canvas').innerHTML = renderBoids(params);
-}
-
-
-const controls = {
-  zoom: new NumberControl('zoom', {
-    name: 'Zoom',
-    value: defaultParams['zoom'],
-    callback: render,
-    min: -20,
-    max: 20
-  }),
-  seed: new NumberControl('seed', {name: 'RNG seed', value: defaultParams['seed'], callback: render, min: 0, max: 500}),
-  nboids: new NumberControl('nboids', {name: 'Boids', value: defaultParams['nboids'], callback: render, min: 1, max: 100 }),
-  iterations: new NumberControl('iterations', {name: 'Iterations', value: defaultParams['iterations'], callback: render, min: 1, max: 1000}),
-  startIteration: new NumberControl('startIteration', {name: 'Start iteration', value: defaultParams['startIteration'], callback: render, min: 1, max: 1000}),
-  speedLimit: new NumberControl('speedLimit', {name: 'Max speed', value: defaultParams['speedLimit'], callback: render, min: 0 , max: 20, step: 0.1}),
-  cohesionForce: new NumberControl('cohesionForce', {name: 'Cohesion', value: defaultParams['cohesionForce'], callback: render, min: 0, max: 1, step: 0.01}),
-  cohesionDistance: new NumberControl('cohesionDistance', {name: 'Cohesion distance', value: defaultParams['cohesionDistance'], callback: render, min: 10, max: 300 }),
-  nbAttractors: new NumberControl('nbAttractors', {name: 'Attractors', value: defaultParams['nbAttractors'], callback: render, min: 0, max: 10 }),
-  cssStyle: new TextControl('cssStyle', {name: 'CSS style', value: 'stroke: black; stroke-width: 0.5', callback: render}),
-  svgSave: new SvgSaveControl('svgSave', {
-    canvasId: 'svg-canvas',
-    name: 'Save SVG',
-    saveFilename: 'boids.svg'
-  })
-};
-
-
+new NumberControl('zoom', { name: 'Zoom', value: 3, callback: render, min: -20, max: 20 });
+new NumberControl('seed', {name: 'RNG seed', value: 188, callback: render, min: 0, max: 500});
+new NumberControl('nboids', {name: 'Boids', value: 195, callback: render, min: 1, max: 100 });
+new NumberControl('iterations', {name: 'Iterations', value: 23, callback: render, min: 1, max: 1000});
+new NumberControl('startIteration', {name: 'Start iteration', value: 11, callback: render, min: 1, max: 1000});
+new NumberControl('speedLimit', {name: 'Max speed', value: 16.5, callback: render, min: 0 , max: 20, step: 0.1});
+new NumberControl('cohesionForce', {name: 'Cohesion', value: 0.23, callback: render, min: 0, max: 1, step: 0.01});
+new NumberControl('cohesionDistance', {name: 'Cohesion distance', value: 259, callback: render, min: 10, max: 300 });
+new NumberControl('nbAttractors', {name: 'Attractors', value: 0, callback: render, min: 0, max: 10 });
+new TextControl('cssStyle', {name: 'CSS style', value: 'stroke: black; stroke-width: 0.5', callback: render});
+new SvgSaveControl('svgSave', { canvasId: 'svg-canvas', name: 'Save SVG', saveFilename: 'boids.svg' });
 
 
 // =========== First render =============
 
-// Fetch plot parameters from the query string
-const params = paramsFromUrl(defaultParams);
-
-controls.zoom.set(params.zoom);
-controls.seed.set(params.seed);
-controls.cohesionForce.set(params.cohesionForce);
-controls.cohesionDistance.set(params.cohesionDistance);
-controls.iterations.set(params.iterations);
-controls.startIteration.set(params.startIteration);
-controls.speedLimit.set(params.speedLimit);
-controls.nboids.set(params.nboids);
-controls.nbAttractors.set(params.nbAttractors);
-controls.cssStyle.set(params.cssStyle);
-
-
-updateUrl(params);
-$('canvas').innerHTML = renderBoids(params);
+render();

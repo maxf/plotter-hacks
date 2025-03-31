@@ -654,21 +654,17 @@ class TextAreaControl extends Control {
 
 const controls: Control[] = [];
 
-const getParams = function(defaults: any) {
+const getParams = function(defaults: any = {}): Record<string, any> {
   const params: Record<string, any> = defaults;
-  console.log('getParams');
   // iterate controls with a value (i.e. not SVG save, for instance)
   controls.forEach((control: Control) => {
     if (control.val() !== undefined) { // if undefined the control doesn't hold a value so skip
-      //console.log(` ${control.id} has a value. UpdateUrl: ${control.updateUrl()}`)
       const key: string = control.id;
       if (control.updateUrl()) {
-        //console.log(`URL control ${control.id}`);// has value ${control.val().toString().substring(0,100)}`);
         let value = paramFromQueryString(
           control.id,
           window.location.search
         );
-        //        console.log(`found value in QS: ${value}`);
         if (value) {
           params[key] = value;
           control.set(value);

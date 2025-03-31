@@ -47,7 +47,6 @@ class Plot {
   toSvg(): string {
     const w = 800;
     const h = 800;
-
     const svg = [];
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
