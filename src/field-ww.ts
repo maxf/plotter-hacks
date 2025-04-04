@@ -6,28 +6,39 @@ type Params = {
 
 class Plot {
   private nbSamples: number;
-  private fx: number;
-  private fy: number;
+  //private fx: number;
+  //private fy: number;
 
   constructor(params: Params) {
     this.nbSamples = params.nbSamples;
-    this.fx = params.fx;
-    this.fy = params.fy;
+    //this.fx = params.fx;
+    //this.fy = params.fy;
   }
 
   private f(x: number, y: number): number {
-    return Math.sin(x/this.fx) + Math.sin(y/this.fy);
+    const d = (x: number, y: number, x1: number, y1: number) => {
+      const dist = (x-x1)*(x-x1) + (y-y1)*(y-y1);
+      const res = 10*Math.exp(-dist/100000);
+      return res;
+    }
+    const d1 = d(x,y, 100, 100);
+    const d2 = d(x,y, 700, 200);
+    const d3 = d(x,y, 400, 700);
+
+    return d1 + d2 + d3;
   }
 
   private gradient(x: number, y: number): number[] {
-    const d = 0.00001;
+    const d = 0.001;
     const fxy = this.f(x, y);
-    const mag = 10000;
+    const gx = (this.f(x+d, y) - fxy) / d;
+    const gy = (this.f(x, y+d) - fxy) / d;
+    const gmag = 3000; //* (gx*gx + gy*gy);
     return [
-      (this.f(x+d, y) - fxy) / d * mag,
-      (this.f(x, y+d) - fxy) / d * mag
+      gx*gmag, gy*gmag
     ];
   }
+
 
   private fieldToSvg(w: number, h: number): string {
     const svg = [];

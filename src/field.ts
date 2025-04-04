@@ -27,18 +27,18 @@ new NumberControl('nbSamples', {
 
 new NumberControl('fx', {
   name: 'fx',
-  value: 100,
+  value: 20,
   callback: renderPlot,
-  min: 10,
-  max: 1000
+  min: 1,
+  max: 500
 });
 
 new NumberControl('fy', {
   name: 'fy',
-  value: 100,
+  value: 20,
   callback: renderPlot,
-  min: 10,
-  max: 1000,
+  min: 1,
+  max: 500,
 });
 
 new SvgSaveControl('svgSave', {
