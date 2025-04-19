@@ -42,7 +42,6 @@ class Plot {
 
   private fieldToSvg(w: number, h: number): string {
     const svg = [];
-    svg.push('<g stroke="red" stroke-width="1.0">');
     for (let i=0; i < this.nbSamples; i++) {
       const [x, y] = [Math.random() * w, Math.random() * h];
       const [dx, dy] = this.gradient(x, y);
@@ -51,9 +50,28 @@ class Plot {
       x1="${x}" y1="${y}"
       x2="${x+dx}" y2="${y+dy}"/>`);
     }
-    svg.push('</g>');
     return svg.join('');
   }
+
+  private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
+    return `
+    Z0
+    G0 ${x1} ${y1}
+    Z5
+    G1 ${x2} ${y2}
+    Z0`
+  }
+
+  private fieldToGcode(w: number, h: number): string {
+    const gcode = [];
+    for (let i=0; i < this.nbSamples; i++) {
+      const [x, y] = [Math.random() * w, Math.random() * h];
+      const [dx, dy] = this.gradient(x, y);
+      gcode.push(this.gcodeStroke(x, y, x+dx, y+dy));
+    }
+    return gcode.join('');
+  }
+
 
   toSvg(): string {
     const w = 800;
@@ -61,7 +79,7 @@ class Plot {
     const svg = [];
 
     svg.push(`<svg id="svg-canvas" height="100vh" viewBox="0 0 ${w} ${h}">`);
-    svg.push(`  <g stroke="red" fill="none" stroke-width=".4px">`);
+    svg.push(`  <g stroke="red" fill="none" stroke-width="1.0">`);
     svg.push(this.fieldToSvg(w, h));
     svg.push(`  </g>`);
     svg.push(`</svg>`);
@@ -69,7 +87,11 @@ class Plot {
   }
 
   toGcode(): string {
-    return `
+    const gcode = [];
+    const w = 800;
+    const h = 800;
+
+    gcode.push(`; preamble
 G21 ; millimeters
 G90 ; absolute coordinates
 G17 ; XY plane
@@ -80,30 +102,15 @@ G0 Z0
 
 ; Go to page top-right
 G0 X50 Y0
+`);
 
-; Create rectangle
-G0 X-100 Y-100 F1000
-G0 Z5
-G1 X-120
-G1 Y-120
-G1 Z10
-G1 X-100
-G1 Y-100
-G0 Z0
+    gcode.push(this.fieldToGcode(w, h));
 
-
-G0 X-150 Y-150 F1000 ; F is feedrate (i.e. speed)
-G1 Z5
-G1 Y-170
-G1 Z7
-G1 Y-190
-G1 Z9
-G1 Y-210
-
-; Go to safety height
+    gcode.push(`; reset
 G0 Z0
 G0 X50 Y0
-    `;
+`);
+    return gcode.join('');
   }
 
 }
