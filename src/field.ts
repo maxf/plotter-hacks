@@ -1,13 +1,16 @@
 import {
   NumberControl,
   SvgSaveControl,
+  TextSaveControl,
   getParams,
   $
 } from './controls';
 
 const worker = new Worker('build/field-ww.js');
 worker.onmessage = function(e) {
-  $('canvas').innerHTML = e.data;
+  console.log(223, e)
+  $('canvas').innerHTML = e.data.svg;
+  ($('gcodeSave-text') as HTMLInputElement).value = e.data.gcode;
 }
 
 
@@ -46,5 +49,11 @@ new SvgSaveControl('svgSave', {
   name: 'Save SVG',
   saveFilename: 'field.svg'
 });
+
+new TextSaveControl('gcodeSave', {
+  name: 'Save G-code',
+  saveFilename: 'field.gcode',
+});
+
 
 renderPlot();
