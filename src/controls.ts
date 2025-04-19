@@ -214,6 +214,45 @@ class CheckboxControl extends Control {
 
 //============================================================================
 
+interface TextSaveControlParams extends ControlParams {
+  saveFilename: string,
+}
+
+class TextSaveControl extends Control {
+    constructor(id: string, params: TextSaveControlParams) {
+    super(id, params)
+    this.createHtmlControl(id, params.name);
+
+    $(id).onclick = () => {
+      const textArea = $(`${id}-text`) as HTMLInputElement;
+      const textToSave = textArea.value;
+      const blob = new Blob([textToSave], {type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = params.saveFilename;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  }
+
+  private createHtmlControl(id: string, name: string) {
+    const html = `
+      <div class="control" id="${id}-control">
+        <button id="${id}">${name}</button>
+        <textarea id="${id}-text"></textarea>
+      </div>
+    `;
+    const anchorElement = $('controls');
+    if (anchorElement) {
+      anchorElement.insertAdjacentHTML('beforeend', html);
+    }
+  }
+}
+
+//============================================================================
+
 interface SvgSaveControlParams extends ControlParams {
   canvasId: string,
   saveFilename: string
@@ -693,6 +732,7 @@ export {
   VideoStreamControl,
   ImageUploadControl,
   SvgSaveControl,
+  TextSaveControl,
   TextControl,
   TextAreaControl,
   ImageInputControl,
