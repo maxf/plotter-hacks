@@ -63,12 +63,22 @@ class Plot {
   }
 
   private fieldToGcode(w: number, h: number): string {
-    const gcode = [];
+    const gcode: string[] = [];
+
+    // To decrease plotter head travel, do a simple travelling salesman
+    const points: number[] = [];
     for (let i=0; i < this.nbSamples; i++) {
-      const [x, y] = [Math.random() * w, Math.random() * h];
+      points.push(Math.random() * w, Math.random() * h);
+    }
+
+    const orderedPointIndexes = computeTsp(points);
+
+    orderedPointIndexes.forEach(i => {
+      const x = points[2*i];
+      const y = points[2*i + 1];
       const [dx, dy] = this.gradient(x, y);
       gcode.push(this.gcodeStroke(x, y, x+dx, y+dy));
-    }
+    });
     return gcode.join('');
   }
 
@@ -123,3 +133,96 @@ onmessage = function(e) {
     gcode: plot.toGcode()
   });
 };
+
+
+// Compute a travelling salesman from the array of 2D points passed
+// - points: array of points: [x0, y0, x1, y1, etc.]
+// - returns an array of indices of the points
+const computeTsp = function(points: number[]): number[] {
+  const n = points.length / 2;
+  const dist2 = (p1: number[], p2: number[]) => (p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]);
+  const dist2i = (i1: number, i2: number) => dist2([points[2*i1], points[2*i1+1]], [points[2*i2], points[2*i2+1]]);
+  const visited = new Float64Array(n);
+  const path = [];
+
+  let current = 0;
+  path.push(0);
+  while(true) {
+    let nearest;
+    let dist = Infinity;
+    for (let next=1; next<n; next++) {
+      if (visited[next] === 0) {
+        const d = dist2i(current, next);
+        if (d<dist) {
+          nearest = next;
+          dist = d;
+        }
+      }
+    }
+    if (nearest) {
+      path.push(nearest);
+      visited[nearest] = 1;
+      current = nearest;
+    } else {
+      break;
+    }
+  }
+
+  // Optimise the path by swapping random edges if it reduces the path length
+  // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
+  for (let i = 0; i < 20_000; ++i) {
+    let indexA = Math.floor(Math.random()*(n - 1));
+    let indexB = Math.floor(Math.random()*(n - 1));
+
+    if (Math.abs(indexA - indexB) < 2) {
+      continue;
+    }
+
+    if (indexB < indexA) { // swap A, B.
+      [indexA, indexB] = [indexB, indexA];
+    }
+
+    const ai = path[indexA];
+    const a0 = [ points[2*ai], points[2*ai+1] ];
+    const ai2 = path[indexA + 1];
+    const a1 = [ points[2*ai2], points[2*ai2+1] ];
+
+    const bi = path[indexB];
+    const b0 = [ points[2*bi], points[2*bi+1] ];
+    const bi2 = path[indexB + 1];
+    const b1 = [ points[2*bi2], points[2*bi2+1] ];
+
+    // Original distance:
+    const dx1 = a0[0] - a1[0];
+    const dy1 = a0[1] - a1[1];
+    const dx2 = b0[0] - b1[0];
+    const dy2 = b0[1] - b1[1];
+    const distance = (dx1*dx1 + dy1*dy1) + (dx2*dx2 + dy2*dy2);
+
+    // Possible shorter distance?
+    const dx3 = a0[0] - b0[0];
+    const dy3 = a0[1] - b0[1];
+    const dx4 = a1[0] - b1[0];
+    const dy4 = a1[1] - b1[1];
+
+    const distance2 = (dx3*dx3 + dy3*dy3) + (dx4*dx4 + dy4*dy4);
+
+    if (distance2 < distance) {
+      // Reverse tour between a1 and b0.
+
+      let indexhigh = indexB;
+      let indexlow = indexA + 1;
+
+      while (indexhigh > indexlow) {
+        const temp: number = path[indexlow];
+        path[indexlow] = path[indexhigh];
+        path[indexhigh] = temp;
+
+        indexhigh--;
+        indexlow++;
+      }
+    }
+  }
+
+  return path;
+}
