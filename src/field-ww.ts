@@ -54,12 +54,12 @@ class Plot {
   }
 
   private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
-    return `
-    Z0
-    G0 ${x1} ${y1}
-    Z5
-    G1 ${x2} ${y2}
-    Z0`
+    return `Z0
+G0 X${x1} Y${y1}
+Z5
+G1 X${x2} Y${y2}
+Z0
+`
   }
 
   private fieldToGcode(w: number, h: number): string {
@@ -102,21 +102,20 @@ class Plot {
     const h = 800;
 
     gcode.push(`; preamble
-G21 ; millimeters
-G90 ; absolute coordinates
-G17 ; XY plane
-G94 ; units per minute feed rate mode
+G21 ; use millimeters
+G90 ; All distances and positions are Absolute values from the current origin.
+G17 ; Draw Arcs in the XY plane, default.
+G94 ; Units/min mode at the current F rate.
 
-; Go to safety height
-G0 Z0
+F 1000 ; Set Feed rate in mm/min
 
-; Go to page top-right
-G0 X50 Y0
+G0 Z0 ; Go to safety height
+G0 X50 Y0 ; Go to page top-right
 `);
 
     gcode.push(this.fieldToGcode(w, h));
 
-    gcode.push(`; reset
+    gcode.push(`; reset to origin position
 G0 Z0
 G0 X50 Y0
 `);
@@ -127,6 +126,7 @@ G0 X50 Y0
 
 onmessage = function(e) {
   const { params } = e.data;
+
   const plot = new Plot(params);
   postMessage({
     svg: plot.toSvg(),
@@ -170,7 +170,7 @@ const computeTsp = function(points: number[]): number[] {
 
   // Optimise the path by swapping random edges if it reduces the path length
   // From: https://github.com/evil-mad/stipplegen/blob/master/StippleGen/StippleGen.pde#L692
-  for (let i = 0; i < 20_000; ++i) {
+  for (let i = 0; i < 1_000_000; ++i) {
     let indexA = Math.floor(Math.random()*(n - 1));
     let indexB = Math.floor(Math.random()*(n - 1));
 
