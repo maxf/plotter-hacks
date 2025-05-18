@@ -53,13 +53,17 @@ class Plot {
     return svg.join('');
   }
 
+  private gcodeXY(x: number, y: number): string {
+    return `X${-1.4*x + 43} Y${-1.4*y + 78}`;
+  }
+
   private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
-    return `Z0
-G0 X${x1} Y${y1}
+    return `
+G0 ${this.gcodeXY(x1/4, y1/4)}
 Z5
-G1 X${x2} Y${y2}
+G1 ${this.gcodeXY(x2/4, y2/4)}
 Z0
-`
+`;
   }
 
   private fieldToGcode(w: number, h: number): string {
@@ -109,15 +113,13 @@ G94 ; Units/min mode at the current F rate.
 
 F 1000 ; Set Feed rate in mm/min
 
-G0 Z0 ; Go to safety height
-G0 X50 Y0 ; Go to page top-right
+G0 X43 Y80 Z0 ; Go to start point
 `);
 
     gcode.push(this.fieldToGcode(w, h));
 
     gcode.push(`; reset to origin position
-G0 Z0
-G0 X50 Y0
+G0 X43 Y80 Z0
 `);
     return gcode.join('');
   }
