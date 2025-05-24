@@ -54,15 +54,29 @@ class Plot {
   }
 
   private gcodeXY(x: number, y: number): string {
-    return `X${-1.4*x + 43} Y${-1.4*y + 78}`;
+    return `X${(-1.4*x + 43)/4} Y${(-1.4*y + 78)/4}`;
   }
 
-  private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
+//   private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
+//     return `
+// G0 ${this.gcodeXY(x1, y1)}
+// G0 Z5
+// G1 ${this.gcodeXY(x2, y2)}
+// G0 Z0
+// `;
+//   }
+
+  private gcodeGentleStroke(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
+    // stroke from x1,y1 to x2,y2 going from high to low then high again  \____/
+    const lerp1x = x1 + (x2 - x1)/3;
+    const lerp1y = y1 + (y2 - y1)/3;
+    const lerp2x = x1 + 2*(x2 - x1)/3;
+    const lerp2y = y1 + 2*(y2 - y1)/3;
     return `
-G0 ${this.gcodeXY(x1/4, y1/4)}
-Z5
-G1 ${this.gcodeXY(x2/4, y2/4)}
-Z0
+G0 ${this.gcodeXY(x1, y1)} Z${high}
+G1 ${this.gcodeXY(lerp1x, lerp1y)} Z${low}
+G1 ${this.gcodeXY(lerp2x, lerp2y)}
+G1 ${this.gcodeXY(x2, y2)} Z${high}
 `;
   }
 
@@ -81,7 +95,7 @@ Z0
       const x = points[2*i];
       const y = points[2*i + 1];
       const [dx, dy] = this.gradient(x, y);
-      gcode.push(this.gcodeStroke(x, y, x+dx, y+dy));
+      gcode.push(this.gcodeGentleStroke(x, y, x+dx, y+dy, 5, 0));
     });
     return gcode.join('');
   }

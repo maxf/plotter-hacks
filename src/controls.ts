@@ -223,6 +223,14 @@ class TextSaveControl extends Control {
     super(id, params)
     this.createHtmlControl(id, params.name);
 
+    $(`${id}-copy`).onclick = () => {
+      const text = ($(`${id}-text`) as HTMLInputElement).value;
+      navigator.clipboard.writeText(text)
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+        });
+    }
+
     $(id).onclick = () => {
       const textArea = $(`${id}-text`) as HTMLInputElement;
       const textToSave = textArea.value;
@@ -241,6 +249,7 @@ class TextSaveControl extends Control {
     const html = `
       <div class="control" id="${id}-control">
         <button id="${id}">${name}</button>
+        <button id="${id}-copy">Copy</button>
         <textarea id="${id}-text"></textarea>
       </div>
     `;

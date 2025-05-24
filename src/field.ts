@@ -24,7 +24,7 @@ new NumberControl('nbSamples', {
   name: 'NbSamples',
   value: 500,
   callback: renderPlot,
-  min: 100,
+  min: 1,
   max: 10000
 });
 
