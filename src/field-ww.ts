@@ -66,19 +66,57 @@ class Plot {
 // `;
 //   }
 
-  private gcodeGentleStroke(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
+  private gcodeGentleStroke = this.gcodeGentleStroke3;
+
+  private gcodeGentleStroke2(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
     // stroke from x1,y1 to x2,y2 going from high to low then high again  \____/
     const lerp1x = x1 + (x2 - x1)/3;
     const lerp1y = y1 + (y2 - y1)/3;
     const lerp2x = x1 + 2*(x2 - x1)/3;
     const lerp2y = y1 + 2*(y2 - y1)/3;
     return `
+    G0 ${this.gcodeXY(x1, y1)} Z${high}
+    G1 ${this.gcodeXY(lerp1x, lerp1y)} Z${low}
+    G1 ${this.gcodeXY(lerp2x, lerp2y)}
+    G1 ${this.gcodeXY(x2, y2)} Z${high}
+`;
+  }
+
+  private gcodeGentleStroke3(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
+    // stroke from x1,y1 to x2,y2 going from high to low then high again  \____/
+    const l1 = 1; //cm - maximum length of landing length
+    const l2 = 2; //cm - maximum length of takeoff length
+
+    const deltaX = x2 - x1;
+    const deltaY = y2 - y1;
+
+    const l = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    const M1x = x1 + deltaX/3;
+    const M1y = y1 + deltaY/3;
+    const M1minx = x1 + deltaX * l1 / l;
+    const M1miny = y1 + deltaY * l1 / l;
+    //const m1x = Math.min(M1x, M1minx);
+    //const m1y = Math.min(M1y, M1miny);
+    // m1x, m1y is the point closest to x1 among M1 and M1min
+
+    const M2x = x1 + 2*deltaX/3;
+    const M2y = y1 + 2*deltaY/3;
+    const M2maxx = x1 + deltaX * (l-l2) / l;
+    const M2maxy = y1 + deltaY * (l-l2) / l;
+    //const m2x = M2maxx; //Math.max(M2x, M2maxx);
+    //const m2y = M2maxy; //Math.max(M2y, M2maxy);
+    // m2x, m2y is the point closest to x2 among M2 and M2min
+
+
+    return `
 G0 ${this.gcodeXY(x1, y1)} Z${high}
-G1 ${this.gcodeXY(lerp1x, lerp1y)} Z${low}
-G1 ${this.gcodeXY(lerp2x, lerp2y)}
+G1 ${this.gcodeXY(m1x, m1y)} Z${low}
+G1 ${this.gcodeXY(m2x, m2y)}
 G1 ${this.gcodeXY(x2, y2)} Z${high}
 `;
   }
+
 
   private fieldToGcode(w: number, h: number): string {
     const gcode: string[] = [];
@@ -100,6 +138,11 @@ G1 ${this.gcodeXY(x2, y2)} Z${high}
     return gcode.join('');
   }
 
+  private testGcode(): string {
+    const gcode: string[] = [];
+    gcode.push(this.gcodeGentleStroke(3, 2, -10, 12, 5, 0));
+    return gcode.join('');
+  }
 
   toSvg(): string {
     const w = 800;
@@ -131,6 +174,7 @@ G0 X43 Y80 Z0 ; Go to start point
 `);
 
     gcode.push(this.fieldToGcode(w, h));
+    //gcode.push(this.testGcode());
 
     gcode.push(`; reset to origin position
 G0 X43 Y80 Z0
