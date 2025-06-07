@@ -8,7 +8,6 @@ import {
 
 const worker = new Worker('build/field-ww.js');
 worker.onmessage = function(e) {
-  console.log(223, e)
   $('canvas').innerHTML = e.data.svg;
   ($('gcodeSave-text') as HTMLInputElement).value = e.data.gcode;
 }
@@ -28,20 +27,20 @@ new NumberControl('nbSamples', {
   max: 10000
 });
 
-new NumberControl('fx', {
-  name: 'fx',
-  value: 20,
+new NumberControl('ls', {
+  name: 'Landing speed', // maximum length of stroke landing
+  value: 5,
   callback: renderPlot,
   min: 1,
-  max: 500
+  max: 20
 });
 
-new NumberControl('fy', {
-  name: 'fy',
-  value: 20,
+new NumberControl('ts', {
+  name: 'Takeoff speed', // maximum length of stroke takeoff
+  value: 10,
   callback: renderPlot,
   min: 1,
-  max: 500,
+  max: 20,
 });
 
 new SvgSaveControl('svgSave', {

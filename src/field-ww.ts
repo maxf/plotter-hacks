@@ -1,18 +1,18 @@
 type Params = {
   nbSamples: number;
-  fx: number;
-  fy: number;
+  landingSpeed: number;
+  takeoffSpeed: number;
 };
 
 class Plot {
   private nbSamples: number;
-  //private fx: number;
-  //private fy: number;
+  private landingSpeed: number;
+  private takeoffSpeed: number;
 
   constructor(params: Params) {
     this.nbSamples = params.nbSamples;
-    //this.fx = params.fx;
-    //this.fy = params.fy;
+    this.landingSpeed = params.landingSpeed;
+    this.takeoffSpeed = params.takeoffSpeed;
   }
 
   private f(x: number, y: number): number {
@@ -54,7 +54,8 @@ class Plot {
   }
 
   private gcodeXY(x: number, y: number): string {
-    return `X${(-1.4*x + 43)/4} Y${(-1.4*y + 78)/4}`;
+    return `X${x} Y${y}`;
+    //return `X${(-1.4*x + 43)/4} Y${(-1.4*y + 78)/4}`;
   }
 
 //   private gcodeStroke(x1: number, y1: number, x2: number, y2: number): string {
@@ -66,9 +67,8 @@ class Plot {
 // `;
 //   }
 
-  private gcodeGentleStroke = this.gcodeGentleStroke3;
-
-  private gcodeGentleStroke2(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
+  /*
+  private gcodeGentleStroke(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
     // stroke from x1,y1 to x2,y2 going from high to low then high again  \____/
     const lerp1x = x1 + (x2 - x1)/3;
     const lerp1y = y1 + (y2 - y1)/3;
@@ -81,12 +81,9 @@ class Plot {
     G1 ${this.gcodeXY(x2, y2)} Z${high}
 `;
   }
-
-  private gcodeGentleStroke3(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
+   */
+  private gcodeGentleStroke(x1: number, y1: number, x2: number, y2: number, high: number, low: number): string {
     // stroke from x1,y1 to x2,y2 going from high to low then high again  \____/
-    const l1 = 1; //cm - maximum length of landing length
-    const l2 = 2; //cm - maximum length of takeoff length
-
     const deltaX = x2 - x1;
     const deltaY = y2 - y1;
 
@@ -94,20 +91,30 @@ class Plot {
 
     const M1x = x1 + deltaX/3;
     const M1y = y1 + deltaY/3;
-    const M1minx = x1 + deltaX * l1 / l;
-    const M1miny = y1 + deltaY * l1 / l;
-    //const m1x = Math.min(M1x, M1minx);
-    //const m1y = Math.min(M1y, M1miny);
-    // m1x, m1y is the point closest to x1 among M1 and M1min
+    const M1minx = x1 + deltaX * this.landingSpeed / l;
+    const M1miny = y1 + deltaY * this.landingSpeed / l;
+
+    // m1x, m1y is the point closest to P1 (x1,y1) among M1 and M1min
+    const dP1M1 = (x1 - M1x) * (x1 - M1x) + (y1 - M1y) * (y1 - M1y);
+    const dP1M1min = (x1 - M1minx) * (x1 - M1minx) + (y1 - M1miny) * (y1 - M1miny);
+
+    console.log(dP1M1 > dP1M1min ? 'M1minx' : 'M1x');
+    const m1x = dP1M1 > dP1M1min ? M1minx : M1x;
+    const m1y = dP1M1 > dP1M1min ? M1miny : M1y;
 
     const M2x = x1 + 2*deltaX/3;
     const M2y = y1 + 2*deltaY/3;
-    const M2maxx = x1 + deltaX * (l-l2) / l;
-    const M2maxy = y1 + deltaY * (l-l2) / l;
-    //const m2x = M2maxx; //Math.max(M2x, M2maxx);
-    //const m2y = M2maxy; //Math.max(M2y, M2maxy);
-    // m2x, m2y is the point closest to x2 among M2 and M2min
+    const M2maxx = x1 + deltaX * (l - this.takeoffSpeed) / l;
+    const M2maxy = y1 + deltaY * (l - this.takeoffSpeed) / l;
 
+    // m2x, m2y is the point closest to x2 among M2 and M2max
+
+    const dP2M2 = (x2 - M2x) * (x2 - M2x) + (y2 - M2y) * (y2 - M2y);
+    const dP2M2max = (x2 - M2maxx) * (x2 - M2maxx) + (y2 - M2maxy) * (y2 - M2maxy);
+
+    console.log(dP2M2 > dP2M2max ? 'M2maxx' : 'M2x');
+    const m2x = dP2M2 > dP2M2max ? M2maxx : M2x;
+    const m2y = dP2M2 > dP2M2max ? M2maxy : M2y;
 
     return `
 G0 ${this.gcodeXY(x1, y1)} Z${high}
@@ -138,11 +145,19 @@ G1 ${this.gcodeXY(x2, y2)} Z${high}
     return gcode.join('');
   }
 
+    /*
   private testGcode(): string {
     const gcode: string[] = [];
-    gcode.push(this.gcodeGentleStroke(3, 2, -10, 12, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0,-40,  1,-40, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0,-30,  2,-30, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0,-20,  3,-20, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0,-10,  5,-10, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0,  0, 10,  0, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0, 10, 20, 10, 5, 0));
+    gcode.push(this.gcodeGentleStroke(0, 20, 30, 20, 5, 0));
     return gcode.join('');
   }
+     */
 
   toSvg(): string {
     const w = 800;
