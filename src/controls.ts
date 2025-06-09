@@ -19,7 +19,7 @@ abstract class Control {
     this.id = id;
     this._updateUrl = params.updateUrl || false;
     this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
-    controls.push(this);
+    // Control instances will now be added to a ControlGroup manually
   }
 
   updateUrl(): boolean {
@@ -700,8 +700,10 @@ class TextAreaControl extends Control {
 
 //============================================================================
 
+// DEPRECATED: Use ControlGroup instead.
 const controls: Control[] = [];
 
+// DEPRECATED: Use ControlGroup.initializeParams() and ControlGroup.getValues() instead.
 const getParams = function(defaults: any = {}): Record<string, any> {
   const params: Record<string, any> = defaults;
   // iterate controls with a value (i.e. not SVG save, for instance)
@@ -747,7 +749,99 @@ export {
   ImageInputControl,
   paramsFromUrl,
   updateUrl,
-  getParams,
-  $
+  getParams, // Maintained for backward compatibility, but deprecated
+  $,
+  ControlGroup // New class for managing groups of controls
 };
+
+//============================================================================
+
+class ControlGroup {
+  private controls: Map<string, Control> = new Map();
+
+  add(control: Control): void {
+    if (this.controls.has(control.id)) {
+      console.warn(`ControlGroup already has a control with id: ${control.id}`);
+    }
+    this.controls.set(control.id, control);
+  }
+
+  getValues(): Record<string, any> {
+    const values: Record<string, any> = {};
+    this.controls.forEach((control, id) => {
+      if (typeof control.val === 'function') {
+        const value = control.val();
+        if (value !== undefined) {
+          values[id] = value;
+        }
+      }
+    });
+    return values;
+  }
+
+  setValues(newValues: Record<string, any>): void {
+    this.controls.forEach((control, id) => {
+      if (newValues.hasOwnProperty(id) && typeof control.set === 'function') {
+        control.set(newValues[id]);
+      }
+    });
+  }
+
+  /**
+   * Initializes controls based on defaults and URL parameters.
+   * The order of precedence for a parameter's value is:
+   * 1. URL query string
+   * 2. Provided defaults
+   * 3. Control's own initial value (from its constructor)
+   *
+   * Also updates the URL for controls configured to do so.
+   * @param defaults A record of default values for controls.
+   * @param queryString The URL query string (e.g., window.location.search).
+   * @returns A record of the final effective parameters.
+   */
+  initializeParams(defaults: Record<string, any>, queryString: string): Record<string, any> {
+    const urlParams = queryStringToObject(queryString);
+    const effectiveParams: Record<string, any> = {};
+
+    this.controls.forEach((control, id) => {
+      let valueToSet: any;
+      let valueSource: 'url' | 'default' | 'controlInitial' = 'controlInitial';
+
+      if (urlParams.hasOwnProperty(id)) {
+        valueToSet = urlParams[id];
+        valueSource = 'url';
+      } else if (defaults.hasOwnProperty(id)) {
+        valueToSet = defaults[id];
+        valueSource = 'default';
+      } else {
+        // Use the control's current value if no URL or default is provided
+        // This assumes the control was initialized with a meaningful value in its constructor
+        valueToSet = control.val();
+      }
+
+      if (valueSource !== 'controlInitial' && typeof control.set === 'function') {
+        control.set(valueToSet);
+      }
+      
+      // Store the effective value
+      const finalValue = control.val(); // Get value after potential set
+      if (finalValue !== undefined) {
+        effectiveParams[id] = finalValue;
+      }
+
+
+      // Update URL if the control is configured to do so and has a value
+      if (control.updateUrl() && finalValue !== undefined) {
+        updateUrlParam(id, finalValue);
+      } else if (control.updateUrl() && defaults.hasOwnProperty(id) && !urlParams.hasOwnProperty(id)) {
+        // If control should update URL, had a default, but wasn't in URL, add its default value to URL
+        updateUrlParam(id, defaults[id]);
+        if (finalValue === undefined && defaults[id] !== undefined) {
+             effectiveParams[id] = defaults[id]; // Ensure default is in effectiveParams if control.val() was undefined
+        }
+      }
+    });
+    return effectiveParams;
+  }
+}
 
