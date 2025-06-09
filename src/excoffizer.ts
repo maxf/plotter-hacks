@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, TextControl, ImageInputControl, ControlGroup, $ } from './controls';
+import { NumberWidget, SvgSaveWidget, TextWidget, ImageInputWidget, WidgetGroup, $ } from './widgets';
 import { Pixmap } from './pixmap';
 
 type Params = {
@@ -241,20 +241,20 @@ const defaultParams: Params = {
   style: "stroke: black; stroke-width: 1; fill: none"
 };
 
-const controlGroup = new ControlGroup();
+const widgetGroup = new WidgetGroup();
 
 const render = () => {
   const params = {
     ...defaultParams, // Base defaults including width/height
-    ...controlGroup.getValues() // Overlay with current control values
+    ...widgetGroup.getValues() // Overlay with current widget values
   };
 
-  const canvas: HTMLCanvasElement = imageSourceControl.canvas(); // imageSourceControl is defined below
+  const canvas: HTMLCanvasElement = imageSourceWidget.canvas(); // imageSourceWidget is defined below
   const excoffizator = new Excoffizer(params as Params, canvas);
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
-controlGroup.add(new NumberControl('margin',{
+widgetGroup.add(new NumberWidget('margin',{
   name: 'Margin',
   value: defaultParams.margin,
   callback: render,
@@ -262,13 +262,13 @@ controlGroup.add(new NumberControl('margin',{
   max: 500
 }));
 
-controlGroup.add(new TextControl('style', {
+widgetGroup.add(new TextWidget('style', {
   name: 'CSS Style',
   value: defaultParams.style,
   callback: render
 }));
 
-controlGroup.add(new NumberControl('theta', {
+widgetGroup.add(new NumberWidget('theta', {
   name: 'Angle',
   value: defaultParams.theta,
   callback: render,
@@ -277,7 +277,7 @@ controlGroup.add(new NumberControl('theta', {
   step: 0.01
 }));
 
-controlGroup.add(new NumberControl('waviness', {
+widgetGroup.add(new NumberWidget('waviness', {
   name: 'Waviness',
   value: defaultParams.waviness,
   callback: render,
@@ -286,7 +286,7 @@ controlGroup.add(new NumberControl('waviness', {
   step: 0.1
 }));
 
-controlGroup.add(new NumberControl('lineHeight', {
+widgetGroup.add(new NumberWidget('lineHeight', {
   name: 'Line height',
   value: defaultParams.lineHeight,
   callback: render,
@@ -295,7 +295,7 @@ controlGroup.add(new NumberControl('lineHeight', {
   step: 0.1
 }));
 
-controlGroup.add(new NumberControl('density', {
+widgetGroup.add(new NumberWidget('density', {
   name: 'Density',
   value: defaultParams.density,
   callback: render,
@@ -304,7 +304,7 @@ controlGroup.add(new NumberControl('density', {
   step: 0.1
 }));
 
-controlGroup.add(new NumberControl('thickness', {
+widgetGroup.add(new NumberWidget('thickness', {
   name: 'Thickness',
   value: defaultParams.thickness,
   callback: render,
@@ -313,7 +313,7 @@ controlGroup.add(new NumberControl('thickness', {
   step: 0.1
 }));
 
-controlGroup.add(new NumberControl('sx', {
+widgetGroup.add(new NumberWidget('sx', {
   name: 'Stretch X',
   value: defaultParams.sx,
   callback: render,
@@ -322,7 +322,7 @@ controlGroup.add(new NumberControl('sx', {
   step: 0.01
 }));
 
-controlGroup.add(new NumberControl('sy', {
+widgetGroup.add(new NumberWidget('sy', {
   name: 'Stretch Y',
   value: defaultParams.sy,
   callback: render,
@@ -331,7 +331,7 @@ controlGroup.add(new NumberControl('sy', {
   step: 0.01
 }));
 
-controlGroup.add(new NumberControl('blur', {
+widgetGroup.add(new NumberWidget('blur', {
   name: 'Blur',
   value: defaultParams.blur,
   callback: render,
@@ -339,7 +339,7 @@ controlGroup.add(new NumberControl('blur', {
   max: 10
 }));
 
-controlGroup.add(new NumberControl('cutoff', {
+widgetGroup.add(new NumberWidget('cutoff', {
   name: 'White cutoff',
   value: defaultParams.cutoff,
   callback: render,
@@ -348,29 +348,29 @@ controlGroup.add(new NumberControl('cutoff', {
   step: 0.01
 }));
 
-controlGroup.add(new SvgSaveControl('svgSave', {
+widgetGroup.add(new SvgSaveWidget('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
   saveFilename: 'excoffizer.svg'
 }));
 
-// ImageInputControl itself is not added to ControlGroup for URL param management,
-// as its value isn't a simple URL param. Its sub-controls (like the mode toggle)
+// ImageInputWidget itself is not added to WidgetGroup for URL param management,
+// as its value isn't a simple URL param. Its sub-widgets (like the mode toggle)
 // will manage their own URL state if configured.
-const imageSourceControl = new ImageInputControl('imageSource', {
+const imageSourceWidget = new ImageInputWidget('imageSource', {
   name: 'Source',
   callback: render, // This will trigger the first render after image is loaded
   initialImage: defaultParams.inputImageUrl,
-  updateUrl: false // Explicitly false, as ControlGroup shouldn't manage this complex control's "value" in URL
+  updateUrl: false // Explicitly false, as WidgetGroup shouldn't manage this complex widget's "value" in URL
 });
-// We still need to add it if we want its sub-controls (like the toggle) to be part of the group,
-// but ImageInputControl itself doesn't have a .val() that's useful for the group's getValues().
-// However, its sub-controls (like the toggle) are created with their own URL update logic.
-// For now, let's assume ImageInputControl is not added to the group directly for parameter management.
-// If its sub-controls (e.g., the mode selector) need to be part of the main ControlGroup,
-// they would need to be created externally and passed in, or ImageInputControl would need to expose them.
+// We still need to add it if we want its sub-widgets (like the toggle) to be part of the group,
+// but ImageInputWidget itself doesn't have a .val() that's useful for the group's getValues().
+// However, its sub-widgets (like the toggle) are created with their own URL update logic.
+// For now, let's assume ImageInputWidget is not added to the group directly for parameter management.
+// If its sub-widgets (e.g., the mode selector) need to be part of the main WidgetGroup,
+// they would need to be created externally and passed in, or ImageInputWidget would need to expose them.
 // Given updateUrl: false, it's fine not to add it for param management.
 
-// Initialize parameters for all controls added to the group
-controlGroup.initializeParams(defaultParams, window.location.search);
-// The first render is triggered by the ImageInputControl's callback when the initial image loads.
+// Initialize parameters for all widgets added to the group
+widgetGroup.initializeParams(defaultParams, window.location.search);
+// The first render is triggered by the ImageInputWidget's callback when the initial image loads.

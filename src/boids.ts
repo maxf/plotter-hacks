@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, TextControl, ControlGroup, $ } from './controls';
+import { NumberWidget, SvgSaveWidget, TextWidget, WidgetGroup, $ } from './widgets';
 
 type Params = {
   width: number,
@@ -314,29 +314,29 @@ const renderBoids = (params: Params): string => {
   `;
 };
 
-const controlGroup = new ControlGroup();
+const widgetGroup = new WidgetGroup();
 
 const render = () => {
   const params = {
     ...defaultParams, // Ensure width/height are part of the base
-    ...controlGroup.getValues()
+    ...widgetGroup.getValues()
   };
   $('canvas').innerHTML = renderBoids(params as Params);
 };
 
-controlGroup.add(new NumberControl('zoom', { name: 'Zoom', value: defaultParams.zoom, callback: render, min: -20, max: 20 }));
-controlGroup.add(new NumberControl('seed', {name: 'RNG seed', value: defaultParams.seed, callback: render, min: 0, max: 500}));
-controlGroup.add(new NumberControl('nboids', {name: 'Boids', value: defaultParams.nboids, callback: render, min: 1, max: 100 }));
-controlGroup.add(new NumberControl('iterations', {name: 'Iterations', value: defaultParams.iterations, callback: render, min: 1, max: 1000}));
-controlGroup.add(new NumberControl('startIteration', {name: 'Start iteration', value: defaultParams.startIteration, callback: render, min: 1, max: 1000}));
-controlGroup.add(new NumberControl('speedLimit', {name: 'Max speed', value: defaultParams.speedLimit, callback: render, min: 0 , max: 20, step: 0.1}));
-controlGroup.add(new NumberControl('cohesionForce', {name: 'Cohesion', value: defaultParams.cohesionForce, callback: render, min: 0, max: 1, step: 0.01}));
-controlGroup.add(new NumberControl('cohesionDistance', {name: 'Cohesion distance', value: defaultParams.cohesionDistance, callback: render, min: 10, max: 300 }));
-controlGroup.add(new NumberControl('nbAttractors', {name: 'Attractors', value: defaultParams.nbAttractors, callback: render, min: 0, max: 10 }));
-controlGroup.add(new TextControl('cssStyle', {name: 'CSS style', value: defaultParams.cssStyle, callback: render}));
-controlGroup.add(new SvgSaveControl('svgSave', { canvasId: 'svg-canvas', name: 'Save SVG', saveFilename: 'boids.svg' }));
+widgetGroup.add(new NumberWidget('zoom', { name: 'Zoom', value: defaultParams.zoom, callback: render, min: -20, max: 20 }));
+widgetGroup.add(new NumberWidget('seed', {name: 'RNG seed', value: defaultParams.seed, callback: render, min: 0, max: 500}));
+widgetGroup.add(new NumberWidget('nboids', {name: 'Boids', value: defaultParams.nboids, callback: render, min: 1, max: 100 }));
+widgetGroup.add(new NumberWidget('iterations', {name: 'Iterations', value: defaultParams.iterations, callback: render, min: 1, max: 1000}));
+widgetGroup.add(new NumberWidget('startIteration', {name: 'Start iteration', value: defaultParams.startIteration, callback: render, min: 1, max: 1000}));
+widgetGroup.add(new NumberWidget('speedLimit', {name: 'Max speed', value: defaultParams.speedLimit, callback: render, min: 0 , max: 20, step: 0.1}));
+widgetGroup.add(new NumberWidget('cohesionForce', {name: 'Cohesion', value: defaultParams.cohesionForce, callback: render, min: 0, max: 1, step: 0.01}));
+widgetGroup.add(new NumberWidget('cohesionDistance', {name: 'Cohesion distance', value: defaultParams.cohesionDistance, callback: render, min: 10, max: 300 }));
+widgetGroup.add(new NumberWidget('nbAttractors', {name: 'Attractors', value: defaultParams.nbAttractors, callback: render, min: 0, max: 10 }));
+widgetGroup.add(new TextWidget('cssStyle', {name: 'CSS style', value: defaultParams.cssStyle, callback: render}));
+widgetGroup.add(new SvgSaveWidget('svgSave', { canvasId: 'svg-canvas', name: 'Save SVG', saveFilename: 'boids.svg' }));
 
 
 // =========== First render =============
-controlGroup.initializeParams(defaultParams, window.location.search);
+widgetGroup.initializeParams(defaultParams, window.location.search);
 render();

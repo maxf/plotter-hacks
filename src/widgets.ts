@@ -4,22 +4,22 @@ const $ = (id: string) => document.getElementById(id)!;
 
 //============================================================================
 
-export interface ControlParams {
+export interface WidgetParams {
   name: string;
-  updateUrl?: boolean; // default depends on type of control, but this lets user override
+  updateUrl?: boolean; // default depends on type of widget, but this lets user override
 }
 
 
-abstract class Control {
+abstract class Widget {
   readonly id: string; // like a name but should be a valid query string param name
   protected _updateUrl: boolean;
   protected wrapperEl: HTMLDivElement;
 
-  constructor(id: string, params: ControlParams) {
+  constructor(id: string, params: WidgetParams) {
     this.id = id;
     this._updateUrl = params.updateUrl || false;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
-    // Control instances will now be added to a ControlGroup manually
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
+    // Widget instances will now be added to a WidgetGroup manually
   }
 
   updateUrl(): boolean {
@@ -27,14 +27,14 @@ abstract class Control {
   }
 
   val(): any {
-    // most controls will override this if they hold a value. One exception is
-    // SvgSaveControl
+    // most widgets will override this if they hold a value. One exception is
+    // SvgSaveWidget
     return undefined;
   }
 
   set(value: any): any {
-    // most controls will override this if they hold a value. One exception is
-    // SvgSaveControl
+    // most widgets will override this if they hold a value. One exception is
+    // SvgSaveWidget
     return value;
   }
 
@@ -49,7 +49,7 @@ abstract class Control {
 
 //============================================================================
 
-interface NumberControlParams extends ControlParams {
+interface NumberWidgetParams extends WidgetParams {
   value: number;
   min: number;
   max: number;
@@ -57,19 +57,19 @@ interface NumberControlParams extends ControlParams {
   callback: (...args: any[]) => void;
 }
 
-class NumberControl extends Control {
+class NumberWidget extends Widget {
   private widgetEl: HTMLInputElement;
   private valueEl: HTMLSpanElement;
   private value: number;
 
-  constructor(id: string, params: NumberControlParams) {
+  constructor(id: string, params: NumberWidgetParams) {
     super(id, params);
     this._updateUrl = params.updateUrl || true;
     this.value = params.value;
-    this.createHtmlControl(id, params.name, params.value, params.min, params.max, params.step);
+    this.createHtmlWidget(id, params.name, params.value, params.min, params.max, params.step);
     this.widgetEl = $(id) as HTMLInputElement;
     this.valueEl = $(`${id}-value`) as HTMLSpanElement;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
 
     this.widgetEl.onchange = event => {
       this.set(parseFloat((event.target as HTMLInputElement).value) as number);
@@ -83,9 +83,9 @@ class NumberControl extends Control {
     return this.value;
   }
 
-  createHtmlControl(id: string, name: string, value: number, min: number, max: number, step?: number) {
+  createHtmlWidget(id: string, name: string, value: number, min: number, max: number, step?: number) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     const stepAttr = step ? `step="${step}"` : '';
     html.push(`
       <input id="${id}" type="range" min="${min}" max="${max}" value="${value}" ${stepAttr}"/>
@@ -94,7 +94,7 @@ class NumberControl extends Control {
     `);
     html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -110,22 +110,22 @@ class NumberControl extends Control {
 
 //============================================================================
 
-interface SelectControlParams extends ControlParams {
+interface SelectWidgetParams extends WidgetParams {
   value: string,
   choices: string[],
   callback: (...args: any[]) => void
 }
 
-class SelectControl extends Control {
+class SelectWidget extends Widget {
   private widgetEl: HTMLInputElement;
   private value: string;
 
-  constructor(id: string, params: SelectControlParams) {
+  constructor(id: string, params: SelectWidgetParams) {
     super(id, params);
     this.value = params.value;
-    this.createHtmlControl(id, params.name, params.value, params.choices);
+    this.createHtmlWidget(id, params.name, params.value, params.choices);
     this.widgetEl = $(id) as HTMLInputElement;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
     this._updateUrl = params.updateUrl || true;
 
     this.widgetEl.onchange = event => {
@@ -135,9 +135,9 @@ class SelectControl extends Control {
     };
   }
 
-  createHtmlControl(id: string, name: string, value: string, choices: string[]) {
+  createHtmlWidget(id: string, name: string, value: string, choices: string[]) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(name);
     html.push(`<select id="${this.id}">`);
     choices.forEach((choice: string) =>
@@ -145,7 +145,7 @@ class SelectControl extends Control {
     html.push('</select>');
     html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -164,22 +164,22 @@ class SelectControl extends Control {
 
 //============================================================================
 
-interface CheckboxControlParams extends ControlParams {
+interface CheckboxWidgetParams extends WidgetParams {
   value: boolean;
   callback: (...args: any[]) => void;
 }
 
 
-class CheckboxControl extends Control {
+class CheckboxWidget extends Widget {
   private widgetEl: HTMLInputElement;
   private value: boolean;
 
-  constructor(id: string, params: CheckboxControlParams) {
+  constructor(id: string, params: CheckboxWidgetParams) {
     super(id, params)
     this.value = params.value;
-    this.createHtmlControl(id, params.name, params.value);
+    this.createHtmlWidget(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
     this._updateUrl = params.updateUrl || true;
 
     this.widgetEl.onchange = event => {
@@ -189,14 +189,14 @@ class CheckboxControl extends Control {
     };
   }
 
-  private createHtmlControl(id: string, name: string, value: boolean) {
+  private createHtmlWidget(id: string, name: string, value: boolean) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(`<input type="checkbox" id="${id}" ${value?'selected':''}> ${name}`);
     html.push(`</div>`);
 
     // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -214,14 +214,14 @@ class CheckboxControl extends Control {
 
 //============================================================================
 
-interface TextSaveControlParams extends ControlParams {
+interface TextSaveWidgetParams extends WidgetParams {
   saveFilename: string,
 }
 
-class TextSaveControl extends Control {
-    constructor(id: string, params: TextSaveControlParams) {
+class TextSaveWidget extends Widget {
+    constructor(id: string, params: TextSaveWidgetParams) {
     super(id, params)
-    this.createHtmlControl(id, params.name);
+    this.createHtmlWidget(id, params.name);
 
     $(`${id}-copy`).onclick = () => {
       const text = ($(`${id}-text`) as HTMLInputElement).value;
@@ -245,15 +245,15 @@ class TextSaveControl extends Control {
     }
   }
 
-  private createHtmlControl(id: string, name: string) {
+  private createHtmlWidget(id: string, name: string) {
     const html = `
-      <div class="control" id="${id}-control">
+      <div class="widget" id="${id}-widget">
         <button id="${id}">${name}</button>
         <button id="${id}-copy">Copy</button>
         <textarea id="${id}-text"></textarea>
       </div>
     `;
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html);
     }
@@ -262,15 +262,15 @@ class TextSaveControl extends Control {
 
 //============================================================================
 
-interface SvgSaveControlParams extends ControlParams {
+interface SvgSaveWidgetParams extends WidgetParams {
   canvasId: string,
   saveFilename: string
 }
 
-class SvgSaveControl extends Control {
-  constructor(id: string, params: SvgSaveControlParams) {
+class SvgSaveWidget extends Widget {
+  constructor(id: string, params: SvgSaveWidgetParams) {
     super(id, params)
-    this.createHtmlControl(id, params.name);
+    this.createHtmlWidget(id, params.name);
 
     $(id).onclick = () => {
       const svgEl = $(params.canvasId);
@@ -288,13 +288,13 @@ class SvgSaveControl extends Control {
     }
   }
 
-  private createHtmlControl(id: string, name: string) {
+  private createHtmlWidget(id: string, name: string) {
     const html = `
-      <div class="control" id="${id}-control">
+      <div class="widget" id="${id}-widget">
         <button id="${id}">${name}</button>
       </div>
     `;
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html);
     }
@@ -303,40 +303,40 @@ class SvgSaveControl extends Control {
 
 //============================================================================
 
-interface ImageInputControlParams extends ControlParams {
+interface ImageInputWidgetParams extends WidgetParams {
   callback: (...args: any[]) => void;
   initialImage: string;
 }
 
-class ImageInputControl extends Control {
-  private videoControl: VideoStreamControl;
-  private imageControl: ImageUploadControl;
-  private toggle: SelectControl;
+class ImageInputWidget extends Widget {
+  private videoWidget: VideoStreamWidget;
+  private imageWidget: ImageUploadWidget;
+  private toggle: SelectWidget;
 
-  constructor(id: string, params: ImageInputControlParams) {
+  constructor(id: string, params: ImageInputWidgetParams) {
     super(id, params);
-    this.videoControl = new VideoStreamControl(`${id}-video`, {
+    this.videoWidget = new VideoStreamWidget(`${id}-video`, {
       name: 'Video',
       callback: params.callback
     });
-    this.videoControl.hide();
-    this.imageControl = new ImageUploadControl(`${id}-image`, {
+    this.videoWidget.hide();
+    this.imageWidget = new ImageUploadWidget(`${id}-image`, {
       name: 'Image',
       callback: params.callback,
       initialImage: params.initialImage
     });
-    this.toggle = new SelectControl(`${id}-toggle`, {
+    this.toggle = new SelectWidget(`${id}-toggle`, {
       name: 'Mode',
       choices: ['Video', 'Image upload'],
       value: 'Image upload',
       callback: () => {
         if (this.toggle.val() === 'Video') {
-          this.imageControl.hide();
-          this.videoControl.show();
+          this.imageWidget.hide();
+          this.videoWidget.show();
         } else {
-          this.imageControl.show();
-          this.videoControl.pauseStreaming();
-          this.videoControl.hide();
+          this.imageWidget.show();
+          this.videoWidget.pauseStreaming();
+          this.videoWidget.hide();
         }
       }
     });
@@ -344,18 +344,18 @@ class ImageInputControl extends Control {
 
   canvas(): HTMLCanvasElement {
     return this.toggle.val() === 'Video'
-      ? this.videoControl.canvas()
-      : this.imageControl.canvas();
+      ? this.videoWidget.canvas()
+      : this.imageWidget.canvas();
   }
 }
 
 //============================================================================
 
-interface VideoStreamControlParams extends ControlParams {
+interface VideoStreamWidgetParams extends WidgetParams {
   callback: (...args: any[]) => void;
 }
 
-class VideoStreamControl extends Control {
+class VideoStreamWidget extends Widget {
   private videoEl: HTMLVideoElement;
   private canvasEl: HTMLCanvasElement;
   private startButtonEl: HTMLButtonElement;
@@ -365,10 +365,10 @@ class VideoStreamControl extends Control {
   private stream: MediaStream | null = null;
   private callback: (...args: any[]) => void;
 
-  constructor(id: string, params: VideoStreamControlParams) {
+  constructor(id: string, params: VideoStreamWidgetParams) {
     super(id, params);
-    this.createHtmlControl(id, params.name);
-    this.wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.createHtmlWidget(id, params.name);
+    this.wrapperEl = document.getElementById(`${id}-widget`) as HTMLDivElement;
     this.videoEl = document.getElementById(`${id}-video`) as HTMLVideoElement;
     this.canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
     this.startButtonEl = document.getElementById(`${id}-start`) as HTMLButtonElement;
@@ -460,14 +460,14 @@ class VideoStreamControl extends Control {
     this.animate();
   }
 
-  private createHtmlControl(id: string, name: string) {
+  private createHtmlWidget(id: string, name: string) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(`${name} <video id="${id}-video" autoplay playsinline webkit-playsinline muted hidden></video>`);
     html.push(`<canvas id="${id}-canvas"></canvas>`);
     html.push(`<button id="${id}-start">Start</button>`);
     html.push(`</div>`);
-    const anchorElement = document.getElementById('controls');
+    const anchorElement = document.getElementById('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
       $(`${id}-start`).onclick = async () => {
@@ -493,25 +493,25 @@ class VideoStreamControl extends Control {
 
 //============================================================================
 
-interface ImageUploadControlParams extends ControlParams {
+interface ImageUploadWidgetParams extends WidgetParams {
   callback: (...args: any[]) => void;
   initialImage: string;
 }
 
-class ImageUploadControl extends Control {
+class ImageUploadWidget extends Widget {
   private uploadEl: HTMLInputElement;
   private canvasEl: HTMLCanvasElement;
   private _imageUrl: string;
   private callback: (...args: any[]) => void;
 
 
-  constructor(id: string, params: ImageUploadControlParams) {
+  constructor(id: string, params: ImageUploadWidgetParams) {
     super(id, params);
     this._imageUrl = params.initialImage;
     this.callback = params.callback;
-    this.createHtmlControl(id, params.name);
+    this.createHtmlWidget(id, params.name);
 
-    this.wrapperEl = document.getElementById(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = document.getElementById(`${id}-widget`) as HTMLDivElement;
     this.uploadEl = document.getElementById(`${id}-upload`) as HTMLInputElement;
     this.canvasEl = document.getElementById(`${id}-canvas`) as HTMLCanvasElement;
     this.loadImage(this._imageUrl, () => {
@@ -526,13 +526,13 @@ class ImageUploadControl extends Control {
     };
   }
 
-  private createHtmlControl(id: string, name: string) {
+  private createHtmlWidget(id: string, name: string) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(`${name} <input type="file" id="${id}-upload" accept="image/*"><br/>`);
     html.push(`<canvas id="${id}-canvas"></canvas>`);
     html.push(`</div>`);
-    const anchorElement = document.getElementById('controls');
+    const anchorElement = document.getElementById('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -599,22 +599,22 @@ const updateUrl = (params: any) => {
 
 //============================================================================
 
-interface TextControlParams extends ControlParams {
+interface TextWidgetParams extends WidgetParams {
   value: string,
   callback: (...args: any[]) => void
 }
 
-class TextControl extends Control {
+class TextWidget extends Widget {
   private widgetEl: HTMLInputElement;
   private buttonEl: HTMLButtonElement;
   private value: string;
 
-  constructor(id: string, params: TextControlParams) {
+  constructor(id: string, params: TextWidgetParams) {
     super(id, params);
     this.value = params.value;
-    this.createHtmlControl(id, params.name, params.value);
+    this.createHtmlWidget(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
     this.buttonEl = $(`${id}-button`) as HTMLButtonElement;
     this._updateUrl = params.updateUrl || true;
 
@@ -625,9 +625,9 @@ class TextControl extends Control {
     };
   }
 
-  private createHtmlControl(id: string, name: string, value: string) {
+  private createHtmlWidget(id: string, name: string, value: string) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(`
       <input id="${id}" value="${value}"/>
       <button id="${id}-button">Update</button>
@@ -635,7 +635,7 @@ class TextControl extends Control {
     `);
     html.push('</div>');
     // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -652,16 +652,16 @@ class TextControl extends Control {
   }
 }
 
-class TextAreaControl extends Control {
+class TextAreaWidget extends Widget {
   private widgetEl: HTMLInputElement;
   private value;
 
   constructor(id: string, params: any) {
     super(id, params);
     this.value = params.value;
-    this.createHtmlControl(id, params.name, params.value);
+    this.createHtmlWidget(id, params.name, params.value);
     this.widgetEl = $(id) as HTMLInputElement;
-    this.wrapperEl = $(`${id}-control`) as HTMLDivElement;
+    this.wrapperEl = $(`${id}-widget`) as HTMLDivElement;
     this._updateUrl = params.updateUrl || false;
     // text can be long so by default don't include it in the URL
 
@@ -672,16 +672,16 @@ class TextAreaControl extends Control {
     };
   }
 
-  private createHtmlControl(id: string, name: string, value: number) {
+  private createHtmlWidget(id: string, name: string, value: number) {
     const html = [];
-    html.push(`<div class="control" id="${id}-control">`);
+    html.push(`<div class="widget" id="${id}-widget">`);
     html.push(`
       ${name}
       <textarea id="${id}">${value}</textarea>
       <button id="${id}-button">Update</button>
     </div>`);
     // Find the anchor element and insert the constructed HTML as the last child
-    const anchorElement = $('controls');
+    const anchorElement = $('widgets');
     if (anchorElement) {
       anchorElement.insertAdjacentHTML('beforeend', html.join(''));
     }
@@ -700,35 +700,35 @@ class TextAreaControl extends Control {
 
 //============================================================================
 
-// DEPRECATED: Use ControlGroup instead.
-const controls: Control[] = [];
+// DEPRECATED: Use WidgetGroup instead.
+const widgets: Widget[] = [];
 
-// DEPRECATED: Use ControlGroup.initializeParams() and ControlGroup.getValues() instead.
+// DEPRECATED: Use WidgetGroup.initializeParams() and WidgetGroup.getValues() instead.
 const getParams = function(defaults: any = {}): Record<string, any> {
   const params: Record<string, any> = defaults;
-  // iterate controls with a value (i.e. not SVG save, for instance)
-  controls.forEach((control: Control) => {
-    if (control.val() !== undefined) { // if undefined the control doesn't hold a value so skip
-      const key: string = control.id;
-      if (control.updateUrl()) {
+  // iterate widgets with a value (i.e. not SVG save, for instance)
+  widgets.forEach((widget: Widget) => {
+    if (widget.val() !== undefined) { // if undefined the widget doesn't hold a value so skip
+      const key: string = widget.id;
+      if (widget.updateUrl()) {
         let value = paramFromQueryString(
-          control.id,
+          widget.id,
           window.location.search
         );
         if (value) {
           params[key] = value;
-          control.set(value);
+          widget.set(value);
         } else {
-          value = control.val();
+          value = widget.val();
           if (value) {
-            params[key] = control.val();
+            params[key] = widget.val();
             updateUrlParam(key, params[key]);
           } else {
             params[key] = defaults[key];
           }
         }
       } else {
-        params[key] = control.val() || defaults[key];
+        params[key] = widget.val() || defaults[key];
       }
     }
   });
@@ -737,40 +737,40 @@ const getParams = function(defaults: any = {}): Record<string, any> {
 
 
 export {
-  NumberControl,
-  SelectControl,
-  CheckboxControl,
-  VideoStreamControl,
-  ImageUploadControl,
-  SvgSaveControl,
-  TextSaveControl,
-  TextControl,
-  TextAreaControl,
-  ImageInputControl,
+  NumberWidget,
+  SelectWidget,
+  CheckboxWidget,
+  VideoStreamWidget,
+  ImageUploadWidget,
+  SvgSaveWidget,
+  TextSaveWidget,
+  TextWidget,
+  TextAreaWidget,
+  ImageInputWidget,
   paramsFromUrl,
   updateUrl,
   getParams, // Maintained for backward compatibility, but deprecated
   $,
-  ControlGroup // New class for managing groups of controls
+  WidgetGroup // New class for managing groups of widgets
 };
 
 //============================================================================
 
-class ControlGroup {
-  private controls: Map<string, Control> = new Map();
+class WidgetGroup {
+  private widgets: Map<string, Widget> = new Map();
 
-  add(control: Control): void {
-    if (this.controls.has(control.id)) {
-      console.warn(`ControlGroup already has a control with id: ${control.id}`);
+  add(widget: Widget): void {
+    if (this.widgets.has(widget.id)) {
+      console.warn(`WidgetGroup already has a widget with id: ${widget.id}`);
     }
-    this.controls.set(control.id, control);
+    this.widgets.set(widget.id, widget);
   }
 
   getValues(): Record<string, any> {
     const values: Record<string, any> = {};
-    this.controls.forEach((control, id) => {
-      if (typeof control.val === 'function') {
-        const value = control.val();
+    this.widgets.forEach((widget, id) => {
+      if (typeof widget.val === 'function') {
+        const value = widget.val();
         if (value !== undefined) {
           values[id] = value;
         }
@@ -780,22 +780,22 @@ class ControlGroup {
   }
 
   setValues(newValues: Record<string, any>): void {
-    this.controls.forEach((control, id) => {
-      if (newValues.hasOwnProperty(id) && typeof control.set === 'function') {
-        control.set(newValues[id]);
+    this.widgets.forEach((widget, id) => {
+      if (newValues.hasOwnProperty(id) && typeof widget.set === 'function') {
+        widget.set(newValues[id]);
       }
     });
   }
 
   /**
-   * Initializes controls based on defaults and URL parameters.
+   * Initializes widgets based on defaults and URL parameters.
    * The order of precedence for a parameter's value is:
    * 1. URL query string
    * 2. Provided defaults
-   * 3. Control's own initial value (from its constructor)
+   * 3. Widget's own initial value (from its constructor)
    *
-   * Also updates the URL for controls configured to do so.
-   * @param defaults A record of default values for controls.
+   * Also updates the URL for widgets configured to do so.
+   * @param defaults A record of default values for widgets.
    * @param queryString The URL query string (e.g., window.location.search).
    * @returns A record of the final effective parameters.
    */
@@ -803,9 +803,9 @@ class ControlGroup {
     const urlParams = queryStringToObject(queryString);
     const effectiveParams: Record<string, any> = {};
 
-    this.controls.forEach((control, id) => {
+    this.widgets.forEach((widget, id) => {
       let valueToSet: any;
-      let valueSource: 'url' | 'default' | 'controlInitial' = 'controlInitial';
+      let valueSource: 'url' | 'default' | 'widgetInitial' = 'widgetInitial';
 
       if (urlParams.hasOwnProperty(id)) {
         valueToSet = urlParams[id];
@@ -814,30 +814,30 @@ class ControlGroup {
         valueToSet = defaults[id];
         valueSource = 'default';
       } else {
-        // Use the control's current value if no URL or default is provided
-        // This assumes the control was initialized with a meaningful value in its constructor
-        valueToSet = control.val();
+        // Use the widget's current value if no URL or default is provided
+        // This assumes the widget was initialized with a meaningful value in its constructor
+        valueToSet = widget.val();
       }
 
-      if (valueSource !== 'controlInitial' && typeof control.set === 'function') {
-        control.set(valueToSet);
+      if (valueSource !== 'widgetInitial' && typeof widget.set === 'function') {
+        widget.set(valueToSet);
       }
       
       // Store the effective value
-      const finalValue = control.val(); // Get value after potential set
+      const finalValue = widget.val(); // Get value after potential set
       if (finalValue !== undefined) {
         effectiveParams[id] = finalValue;
       }
 
 
-      // Update URL if the control is configured to do so and has a value
-      if (control.updateUrl() && finalValue !== undefined) {
+      // Update URL if the widget is configured to do so and has a value
+      if (widget.updateUrl() && finalValue !== undefined) {
         updateUrlParam(id, finalValue);
-      } else if (control.updateUrl() && defaults.hasOwnProperty(id) && !urlParams.hasOwnProperty(id)) {
-        // If control should update URL, had a default, but wasn't in URL, add its default value to URL
+      } else if (widget.updateUrl() && defaults.hasOwnProperty(id) && !urlParams.hasOwnProperty(id)) {
+        // If widget should update URL, had a default, but wasn't in URL, add its default value to URL
         updateUrlParam(id, defaults[id]);
         if (finalValue === undefined && defaults[id] !== undefined) {
-             effectiveParams[id] = defaults[id]; // Ensure default is in effectiveParams if control.val() was undefined
+             effectiveParams[id] = defaults[id]; // Ensure default is in effectiveParams if widget.val() was undefined
         }
       }
     });

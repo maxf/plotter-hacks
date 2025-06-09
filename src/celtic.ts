@@ -15,7 +15,7 @@
 
 import Delaunator from 'delaunator';
 import seedrandom from 'seedrandom';
-import { SelectControl, NumberControl, CheckboxControl, SvgSaveControl, ControlGroup, $ } from './controls';
+import { SelectWidget, NumberWidget, CheckboxWidget, SvgSaveWidget, WidgetGroup, $ } from './widgets';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -707,10 +707,10 @@ const render = (params?: any) => {
   params.width ||= defaultParams.width; // Use defaults for width/height
   params.height ||= defaultParams.height;
 
-  // updateUrl(params); // Handled by ControlGroup and individual controls
+  // updateUrl(params); // Handled by WidgetGroup and individual widgets
 
   // const graphType = $('graphType') as HTMLInputElement; // Not needed, get from params
-  activateControls(params.graphType as GraphType);
+  activateWidgets(params.graphType as GraphType);
 
   $('canvas').innerHTML = renderCeltic(params as Params);
 };
@@ -719,31 +719,31 @@ const render = (params?: any) => {
 
 
 
-const controlGroup = new ControlGroup();
-const controls: any = {}; // Keep this for local access if needed by activateControls logic
+const widgetGroup = new WidgetGroup();
+const widgets: any = {}; // Keep this for local access if needed by activateWidgets logic
 
-controls.graphType = new SelectControl('graphType', {
+widgets.graphType = new SelectWidget('graphType', {
   name:'',
   value: defaultParams['graphType'],
   choices: ['Polar', 'Grid', 'Random'],
-  callback: function(t: any) { // t is the SelectControl instance
-    Object.values(controls).forEach((c: any) => c.hide());
-    paramsPerType[(t.val() as GraphType)].forEach(name => controls[name].show());
+  callback: function(t: any) { // t is the SelectWidget instance
+    Object.values(widgets).forEach((c: any) => c.hide());
+    paramsPerType[(t.val() as GraphType)].forEach(name => widgets[name].show());
     render();
   }
 });
-controlGroup.add(controls.graphType);
+widgetGroup.add(widgets.graphType);
 
-controls.margin = new NumberControl('margin', {
+widgets.margin = new NumberWidget('margin', {
   name: 'Margin',
   value: defaultParams['margin'],
   callback: render,
   min: 0,
   max: 500
 });
-controlGroup.add(controls.margin);
+widgetGroup.add(widgets.margin);
 
-controls.shape1 = new NumberControl('shape1', {
+widgets.shape1 = new NumberWidget('shape1', {
   name: 'Shape1',
   value: defaultParams['shape1'],
   callback: render,
@@ -751,9 +751,9 @@ controls.shape1 = new NumberControl('shape1', {
   max: 2,
   step: 0.01
 });
-controlGroup.add(controls.shape1);
+widgetGroup.add(widgets.shape1);
 
-controls.shape2 = new NumberControl('shape2', {
+widgets.shape2 = new NumberWidget('shape2', {
   name: 'Shape2',
   value: defaultParams['shape2'],
   callback: render,
@@ -761,100 +761,100 @@ controls.shape2 = new NumberControl('shape2', {
   max: 2,
   step: 0.01
 });
-controlGroup.add(controls.shape2);
+widgetGroup.add(widgets.shape2);
 
-controls.perturbation = new NumberControl('perturbation', {
+widgets.perturbation = new NumberWidget('perturbation', {
   name: 'Perturbation',
   value: defaultParams['perturbation'],
   callback: render,
   min: 0,
   max: 300
 });
-controlGroup.add(controls.perturbation);
+widgetGroup.add(widgets.perturbation);
 
-controls.showGraph = new CheckboxControl('showGraph', {
+widgets.showGraph = new CheckboxWidget('showGraph', {
   name: 'Graph',
   value: defaultParams['showGraph'],
   callback: render
 });
-controlGroup.add(controls.showGraph);
+widgetGroup.add(widgets.showGraph);
 
-controls.seed = new NumberControl('seed', {
+widgets.seed = new NumberWidget('seed', {
   name: 'seed',
   value: defaultParams['seed'] || 0,
   callback: render,
   min: 0,
   max: 500
 });
-controlGroup.add(controls.seed);
+widgetGroup.add(widgets.seed);
 
-controls.nbNodes = new NumberControl('nbNodes', {
+widgets.nbNodes = new NumberWidget('nbNodes', {
   name: 'Nodes',
   value: defaultParams['nbNodes'] || 3,
   callback: render,
   min: 3,
   max: 40
 });
-controlGroup.add(controls.nbNodes);
+widgetGroup.add(widgets.nbNodes);
 
-controls.cells = new NumberControl('cells', {
+widgets.cells = new NumberWidget('cells', {
   name: 'Cells',
   value: defaultParams['cells'] || 2,
   callback: render,
   min: 2,
   max: 100
 });
-controlGroup.add(controls.cells);
+widgetGroup.add(widgets.cells);
 
-controls.nbOrbits = new NumberControl('nbOrbits', {
+widgets.nbOrbits = new NumberWidget('nbOrbits', {
   name: 'Orbits',
   value: defaultParams['nbOrbits'] || 1,
   callback: render,
   min: 1,
   max: 20
 });
-controlGroup.add(controls.nbOrbits);
+widgetGroup.add(widgets.nbOrbits);
 
-controls.nbNodesPerOrbit = new NumberControl('nbNodesPerOrbit', {
+widgets.nbNodesPerOrbit = new NumberWidget('nbNodesPerOrbit', {
   name: 'Nodes per orbit',
   value: defaultParams['nbNodesPerOrbit'] || 3,
   callback: render,
   min: 3,
   max: 20
 });
-controlGroup.add(controls.nbNodesPerOrbit);
+widgetGroup.add(widgets.nbNodesPerOrbit);
 
-controls.svgSave = new SvgSaveControl('svgSave', {
+widgets.svgSave = new SvgSaveWidget('svgSave', {
   canvasId: 'svg-canvas',
   name: "Save SVG",
   saveFilename: 'celtic.svg'
 });
-controlGroup.add(controls.svgSave);
+widgetGroup.add(widgets.svgSave);
 
 
-type ControlKeys = keyof typeof controls; // This can still refer to the local 'controls' object for type safety in paramsPerType
+type WidgetKeys = keyof typeof widgets; // This can still refer to the local 'widgets' object for type safety in paramsPerType
 
 
-const paramsPerType: Record<GraphType, ControlKeys[]>  = {
+const paramsPerType: Record<GraphType, WidgetKeys[]>  = {
   Random: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbNodes', 'svgSave'],
   Grid: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'cells', 'perturbation', 'svgSave'],
   Polar: ['seed', 'graphType', 'margin', 'showGraph', 'shape1', 'shape2', 'nbOrbits', 'nbNodesPerOrbit', 'perturbation', 'svgSave']
 };
 
-const activateControls = (graphType: GraphType) => {
-  Object.values(controls).forEach((c: any) => c.hide());
-  paramsPerType[graphType].forEach(name => controls[name].show());
+const activateWidgets = (graphType: GraphType) => {
+  Object.values(widgets).forEach((c: any) => c.hide());
+  paramsPerType[graphType].forEach(name => widgets[name].show());
 };
 
 
 // =========== First render =============
 
-// Initialize controls from defaults and URL, and update URL
-// This will also set the control values.
-controlGroup.initializeParams(defaultParams, window.location.search);
+// Initialize widgets from defaults and URL, and update URL
+// This will also set the widget values.
+widgetGroup.initializeParams(defaultParams, window.location.search);
 
-// activateControls is called within render(), which is called next.
-// The initialParams are applied by controlGroup.initializeParams.
+// activateWidgets is called within render(), which is called next.
+// The initialParams are applied by widgetGroup.initializeParams.
 // The render() function will get the latest values (including those from URL/defaults)
-// via controlGroup.getValues() and then call activateControls.
+// via widgetGroup.getValues() and then call activateWidgets.
 render();
