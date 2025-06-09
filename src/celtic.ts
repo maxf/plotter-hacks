@@ -851,7 +851,7 @@ const activateControls = (graphType: GraphType) => {
 
 // Initialize controls from defaults and URL, and update URL
 // This will also set the control values.
-const initialParams = controlGroup.initializeParams(defaultParams, window.location.search);
+controlGroup.initializeParams(defaultParams, window.location.search);
 
 // activateControls is called within render(), which is called next.
 // The initialParams are applied by controlGroup.initializeParams.
