@@ -15,7 +15,7 @@
 
 import Delaunator from 'delaunator';
 import seedrandom from 'seedrandom';
-import { SelectControl, NumberControl, CheckboxControl, SvgSaveControl, paramsFromUrl, updateUrl, $ } from './controls';
+import { SelectControl, NumberControl, CheckboxControl, SvgSaveControl, ControlGroup, $ } from './controls';
 
 const assert = function(assertion: boolean) {
   if (!assertion) {
@@ -704,33 +704,35 @@ const render = (params?: any) => {
     params = paramsFromWidgets(controls);
   }
 
-  params.width ||= 800;
-  params.height ||= 800;
+  params.width ||= defaultParams.width; // Use defaults for width/height
+  params.height ||= defaultParams.height;
 
-  updateUrl(params);
+  // updateUrl(params); // Handled by ControlGroup and individual controls
 
-  const graphType = $('graphType') as HTMLInputElement;
-  activateControls(graphType.value as GraphType);
+  // const graphType = $('graphType') as HTMLInputElement; // Not needed, get from params
+  activateControls(params.graphType as GraphType);
 
-  $('canvas').innerHTML = renderCeltic(params);
+  $('canvas').innerHTML = renderCeltic(params as Params);
 };
 
 
 
 
 
-const controls: any = {};
+const controlGroup = new ControlGroup();
+const controls: any = {}; // Keep this for local access if needed by activateControls logic
 
 controls.graphType = new SelectControl('graphType', {
   name:'',
   value: defaultParams['graphType'],
   choices: ['Polar', 'Grid', 'Random'],
-  callback: function(t) {
+  callback: function(t: any) { // t is the SelectControl instance
     Object.values(controls).forEach((c: any) => c.hide());
     paramsPerType[(t.val() as GraphType)].forEach(name => controls[name].show());
     render();
   }
 });
+controlGroup.add(controls.graphType);
 
 controls.margin = new NumberControl('margin', {
   name: 'Margin',
@@ -739,6 +741,7 @@ controls.margin = new NumberControl('margin', {
   min: 0,
   max: 500
 });
+controlGroup.add(controls.margin);
 
 controls.shape1 = new NumberControl('shape1', {
   name: 'Shape1',
@@ -748,6 +751,7 @@ controls.shape1 = new NumberControl('shape1', {
   max: 2,
   step: 0.01
 });
+controlGroup.add(controls.shape1);
 
 controls.shape2 = new NumberControl('shape2', {
   name: 'Shape2',
@@ -757,6 +761,7 @@ controls.shape2 = new NumberControl('shape2', {
   max: 2,
   step: 0.01
 });
+controlGroup.add(controls.shape2);
 
 controls.perturbation = new NumberControl('perturbation', {
   name: 'Perturbation',
@@ -765,12 +770,14 @@ controls.perturbation = new NumberControl('perturbation', {
   min: 0,
   max: 300
 });
+controlGroup.add(controls.perturbation);
 
 controls.showGraph = new CheckboxControl('showGraph', {
   name: 'Graph',
   value: defaultParams['showGraph'],
   callback: render
 });
+controlGroup.add(controls.showGraph);
 
 controls.seed = new NumberControl('seed', {
   name: 'seed',
@@ -779,6 +786,7 @@ controls.seed = new NumberControl('seed', {
   min: 0,
   max: 500
 });
+controlGroup.add(controls.seed);
 
 controls.nbNodes = new NumberControl('nbNodes', {
   name: 'Nodes',
@@ -787,6 +795,7 @@ controls.nbNodes = new NumberControl('nbNodes', {
   min: 3,
   max: 40
 });
+controlGroup.add(controls.nbNodes);
 
 controls.cells = new NumberControl('cells', {
   name: 'Cells',
@@ -795,6 +804,7 @@ controls.cells = new NumberControl('cells', {
   min: 2,
   max: 100
 });
+controlGroup.add(controls.cells);
 
 controls.nbOrbits = new NumberControl('nbOrbits', {
   name: 'Orbits',
@@ -803,6 +813,7 @@ controls.nbOrbits = new NumberControl('nbOrbits', {
   min: 1,
   max: 20
 });
+controlGroup.add(controls.nbOrbits);
 
 controls.nbNodesPerOrbit = new NumberControl('nbNodesPerOrbit', {
   name: 'Nodes per orbit',
@@ -811,15 +822,17 @@ controls.nbNodesPerOrbit = new NumberControl('nbNodesPerOrbit', {
   min: 3,
   max: 20
 });
+controlGroup.add(controls.nbNodesPerOrbit);
 
 controls.svgSave = new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: "Save SVG",
   saveFilename: 'celtic.svg'
 });
+controlGroup.add(controls.svgSave);
 
 
-type ControlKeys = keyof typeof controls;
+type ControlKeys = keyof typeof controls; // This can still refer to the local 'controls' object for type safety in paramsPerType
 
 
 const paramsPerType: Record<GraphType, ControlKeys[]>  = {
@@ -836,17 +849,12 @@ const activateControls = (graphType: GraphType) => {
 
 // =========== First render =============
 
-// Fetch plot parameters from the query string
-const params = paramsFromUrl(defaultParams);
+// Initialize controls from defaults and URL, and update URL
+// This will also set the control values.
+const initialParams = controlGroup.initializeParams(defaultParams, window.location.search);
 
-// populate the form controls from controls.params
-activateControls(params.graphType as GraphType);
-Object.keys(params).forEach(key => {
-  if (key in controls) {
-    const index: keyof typeof params = key;
-    const paramValue: any = params[index];
-    controls[key as keyof typeof controls].set(paramValue);
-  }
-});
-
-$('canvas').innerHTML = renderCeltic(params);
+// activateControls is called within render(), which is called next.
+// The initialParams are applied by controlGroup.initializeParams.
+// The render() function will get the latest values (including those from URL/defaults)
+// via controlGroup.getValues() and then call activateControls.
+render();

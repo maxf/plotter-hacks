@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 //import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, TextControl, ImageInputControl, $, getParams } from './controls';
+import { NumberControl, SvgSaveControl, TextControl, ImageInputControl, ControlGroup, $ } from './controls';
 import { Pixmap } from './pixmap';
 
 type Params = {
@@ -33,10 +33,11 @@ class Excoffizer {
   private cutoff: number;
   private style: string;
 
-  constructor(params: any, inputCanvas: HTMLCanvasElement) {
+  constructor(params: Params, inputCanvas: HTMLCanvasElement) {
     this.params = params;
-    this.params.tx = 1;
-    this.params.ty = 1;
+    // Ensure tx and ty default to 1 if not provided, though they are in defaultParams
+    this.params.tx = params.tx !== undefined ? params.tx : 1;
+    this.params.ty = params.ty !== undefined ? params.ty : 1;
     const ctx = inputCanvas.getContext('2d') as CanvasRenderingContext2D;
     const imageData: ImageData = ctx.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
     this.inputPixmap = new Pixmap(imageData);
@@ -221,15 +222,11 @@ class Excoffizer {
   }
 }
 
-
-
-
-/*
 const defaultParams: Params = {
-  inputImageUrl: 'portrait.jpg',
+  inputImageUrl: 'tbl.png', // Default initial image for ImageInputControl
   theta: 3.58,
-  width: 800,
-  height: 800,
+  width: 800, // Output width, not a direct control for Excoffizer class but for SVG canvas
+  height: 800, // Output height
   margin: 10,
   waviness: 3.1,
   lineHeight: 3.4,
@@ -243,133 +240,137 @@ const defaultParams: Params = {
   cutoff: 0.5,
   style: "stroke: black; stroke-width: 1; fill: none"
 };
- */
-const render = () => {
-  const params = getParams();
-  params['width'] ||= 800;
-  params['height'] ||= 800;
 
-  const canvas: HTMLCanvasElement = imageSourceControl.canvas();
-  const excoffizator = new Excoffizer(params, canvas);
+const controlGroup = new ControlGroup();
+
+const render = () => {
+  const params = {
+    ...defaultParams, // Base defaults including width/height
+    ...controlGroup.getValues() // Overlay with current control values
+  };
+
+  const canvas: HTMLCanvasElement = imageSourceControl.canvas(); // imageSourceControl is defined below
+  const excoffizator = new Excoffizer(params as Params, canvas);
   $('canvas').innerHTML = excoffizator.excoffize();
 };
 
-
-new NumberControl('margin',{
+controlGroup.add(new NumberControl('margin',{
   name: 'Margin',
-  value: 10,
+  value: defaultParams.margin,
   callback: render,
   min: 0,
   max: 500
-});
+}));
 
-
-new TextControl('style', {
+controlGroup.add(new TextControl('style', {
   name: 'CSS Style',
-  value: 'stroke: black; stroke-width: 1; fill: none',
+  value: defaultParams.style,
   callback: render
-});
+}));
 
-
-new NumberControl('theta', {
+controlGroup.add(new NumberControl('theta', {
   name: 'Angle',
-  value: 3.58,
+  value: defaultParams.theta,
   callback: render,
   min: 0,
   max: 6.28,
   step: 0.01
-});
+}));
 
-
-new NumberControl('waviness', {
+controlGroup.add(new NumberControl('waviness', {
   name: 'Waviness',
-  value: 3.1,
+  value: defaultParams.waviness,
   callback: render,
   min: 0,
   max: 10,
   step: 0.1
-});
+}));
 
-
-new NumberControl('lineHeight', {
+controlGroup.add(new NumberControl('lineHeight', {
   name: 'Line height',
-  value: 3.4,
+  value: defaultParams.lineHeight,
   callback: render,
   min: 1,
   max: 15,
   step: 0.1
-});
+}));
 
-
-new NumberControl('density', {
+controlGroup.add(new NumberControl('density', {
   name: 'Density',
-  value: 1.6,
+  value: defaultParams.density,
   callback: render,
   min: 1,
   max: 4,
   step: 0.1
-});
+}));
 
-
-new NumberControl('thickness', {
+controlGroup.add(new NumberControl('thickness', {
   name: 'Thickness',
-  value: 3.1,
+  value: defaultParams.thickness,
   callback: render,
   min: 1,
   max: 10,
   step: 0.1
-});
+}));
 
-
-new NumberControl('sx', {
+controlGroup.add(new NumberControl('sx', {
   name: 'Stretch X',
-  value: 1,
+  value: defaultParams.sx,
   callback: render,
   min: 0,
   max: 2,
   step: 0.01
-});
+}));
 
-
-new NumberControl('sy', {
+controlGroup.add(new NumberControl('sy', {
   name: 'Stretch Y',
-  value: 1,
+  value: defaultParams.sy,
   callback: render,
   min: 0,
   max: 2,
   step: 0.01
-});
+}));
 
-
-new NumberControl('blur', {
+controlGroup.add(new NumberControl('blur', {
   name: 'Blur',
-  value: 1,
+  value: defaultParams.blur,
   callback: render,
   min: 1,
   max: 10
-});
+}));
 
-
-new NumberControl('cutoff', {
+controlGroup.add(new NumberControl('cutoff', {
   name: 'White cutoff',
-  value: 0.5,
+  value: defaultParams.cutoff,
   callback: render,
   min: 0.1,
   max: 1,
   step: 0.01
-});
+}));
 
-
-new SvgSaveControl('svgSave', {
+controlGroup.add(new SvgSaveControl('svgSave', {
   canvasId: 'svg-canvas',
   name: 'Save SVG',
   saveFilename: 'excoffizer.svg'
-});
+}));
 
-
+// ImageInputControl itself is not added to ControlGroup for URL param management,
+// as its value isn't a simple URL param. Its sub-controls (like the mode toggle)
+// will manage their own URL state if configured.
 const imageSourceControl = new ImageInputControl('imageSource', {
   name: 'Source',
-  callback: render,
-  initialImage: 'tbl.png',
-  updateUrl: false
+  callback: render, // This will trigger the first render after image is loaded
+  initialImage: defaultParams.inputImageUrl,
+  updateUrl: false // Explicitly false, as ControlGroup shouldn't manage this complex control's "value" in URL
 });
+// We still need to add it if we want its sub-controls (like the toggle) to be part of the group,
+// but ImageInputControl itself doesn't have a .val() that's useful for the group's getValues().
+// However, its sub-controls (like the toggle) are created with their own URL update logic.
+// For now, let's assume ImageInputControl is not added to the group directly for parameter management.
+// If its sub-controls (e.g., the mode selector) need to be part of the main ControlGroup,
+// they would need to be created externally and passed in, or ImageInputControl would need to expose them.
+// Given updateUrl: false, it's fine not to add it for param management.
+
+// Initialize parameters for all controls added to the group
+controlGroup.initializeParams(defaultParams, window.location.search);
+// The first render is triggered by the ImageInputControl's callback when the initial image loads.

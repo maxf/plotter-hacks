@@ -1,6 +1,6 @@
 // copied from https://github.com/hughsk/boids/blob/master/index.js
 import seedrandom from 'seedrandom';
-import { NumberControl, SvgSaveControl, TextControl, getParams, $ } from './controls';
+import { NumberControl, SvgSaveControl, TextControl, ControlGroup, $ } from './controls';
 
 type Params = {
   width: number,
@@ -23,6 +23,26 @@ type Params = {
   nbAttractors: number
 };
 
+const defaultParams: Params = {
+  width: 800,
+  height: 800,
+  zoom: 3,
+  cssStyle: 'stroke: black; stroke-width: 0.5',
+  iterations: 23,
+  startIteration: 11,
+  nboids: 195,
+  speedLimit: 16.5,
+  seed: 188,
+  accelerationLimitRoot: 1, // This will be squared in the constructor
+  separationDistance: 60, // This will be squared in the constructor
+  alignmentDistance: 180, // This will be squared in the constructor
+  separationForce: 0.15,
+  cohesionForce: 0.23, // Corrected from 0.5 in original constructor to match control
+  alignmentForce: 0.25,
+  accelerationLimit: 1, // This will be squared in the constructor
+  cohesionDistance: 259, // This will be squared in the constructor
+  nbAttractors: 0
+};
 
 // Indices for boid array
 const POSITIONX = 0;
@@ -294,28 +314,29 @@ const renderBoids = (params: Params): string => {
   `;
 };
 
+const controlGroup = new ControlGroup();
+
 const render = () => {
   const params = {
-    width: 800,
-    height: 800,
-    ...getParams()
+    ...defaultParams, // Ensure width/height are part of the base
+    ...controlGroup.getValues()
   };
   $('canvas').innerHTML = renderBoids(params as Params);
 };
 
-new NumberControl('zoom', { name: 'Zoom', value: 3, callback: render, min: -20, max: 20 });
-new NumberControl('seed', {name: 'RNG seed', value: 188, callback: render, min: 0, max: 500});
-new NumberControl('nboids', {name: 'Boids', value: 195, callback: render, min: 1, max: 100 });
-new NumberControl('iterations', {name: 'Iterations', value: 23, callback: render, min: 1, max: 1000});
-new NumberControl('startIteration', {name: 'Start iteration', value: 11, callback: render, min: 1, max: 1000});
-new NumberControl('speedLimit', {name: 'Max speed', value: 16.5, callback: render, min: 0 , max: 20, step: 0.1});
-new NumberControl('cohesionForce', {name: 'Cohesion', value: 0.23, callback: render, min: 0, max: 1, step: 0.01});
-new NumberControl('cohesionDistance', {name: 'Cohesion distance', value: 259, callback: render, min: 10, max: 300 });
-new NumberControl('nbAttractors', {name: 'Attractors', value: 0, callback: render, min: 0, max: 10 });
-new TextControl('cssStyle', {name: 'CSS style', value: 'stroke: black; stroke-width: 0.5', callback: render});
-new SvgSaveControl('svgSave', { canvasId: 'svg-canvas', name: 'Save SVG', saveFilename: 'boids.svg' });
+controlGroup.add(new NumberControl('zoom', { name: 'Zoom', value: defaultParams.zoom, callback: render, min: -20, max: 20 }));
+controlGroup.add(new NumberControl('seed', {name: 'RNG seed', value: defaultParams.seed, callback: render, min: 0, max: 500}));
+controlGroup.add(new NumberControl('nboids', {name: 'Boids', value: defaultParams.nboids, callback: render, min: 1, max: 100 }));
+controlGroup.add(new NumberControl('iterations', {name: 'Iterations', value: defaultParams.iterations, callback: render, min: 1, max: 1000}));
+controlGroup.add(new NumberControl('startIteration', {name: 'Start iteration', value: defaultParams.startIteration, callback: render, min: 1, max: 1000}));
+controlGroup.add(new NumberControl('speedLimit', {name: 'Max speed', value: defaultParams.speedLimit, callback: render, min: 0 , max: 20, step: 0.1}));
+controlGroup.add(new NumberControl('cohesionForce', {name: 'Cohesion', value: defaultParams.cohesionForce, callback: render, min: 0, max: 1, step: 0.01}));
+controlGroup.add(new NumberControl('cohesionDistance', {name: 'Cohesion distance', value: defaultParams.cohesionDistance, callback: render, min: 10, max: 300 }));
+controlGroup.add(new NumberControl('nbAttractors', {name: 'Attractors', value: defaultParams.nbAttractors, callback: render, min: 0, max: 10 }));
+controlGroup.add(new TextControl('cssStyle', {name: 'CSS style', value: defaultParams.cssStyle, callback: render}));
+controlGroup.add(new SvgSaveControl('svgSave', { canvasId: 'svg-canvas', name: 'Save SVG', saveFilename: 'boids.svg' }));
 
 
 // =========== First render =============
-
+controlGroup.initializeParams(defaultParams, window.location.search);
 render();
